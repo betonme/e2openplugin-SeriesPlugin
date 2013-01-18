@@ -19,12 +19,11 @@
 # for localized messages
 from . import _
 
+from time import time
+from enigma import eEPGCache
+
 # Config
 from Components.config import *
-
-from ServiceReference import ServiceReference
-
-from Tools.BoundFunction import boundFunction
 
 from Screens.MessageBox import MessageBox
 from Tools.Notifications import AddPopup
@@ -32,21 +31,38 @@ from Tools.Notifications import AddPopup
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 from Logger import splog
-import NavigationInstance
 
-# AutoTimerIgnoreEntry
-try:
-	from Plugins.Extensions.AutoTimer.AutoTimerComponent import AutoTimerIgnoreEntry
-except ImportError as ie:
-	AutoTimerIgnoreEntry = None
-
-pattern1 = "S{season:d}E{episode:d}"
-pattern2 = "S{season:02d}E{episode:02d}"
 
 #######################################################
 # Label timer
 class SeriesPluginTimer(object):
-	def __init__(self, timer, name, begin, end, avoidDuplicates=False, timers=None, moviedict=None, autotimer=None, *args, **kwargs):
+
+	data = []
+	
+	def __init__(self, timer, name, begin, end):
+		
+		# We have to compare the length,
+		# because of the E2 special chars handling for creating the filenames
+		#if timer.name == name:
+		# Mad Men != Mad_Men
+		epgcache = eEPGCache.getInstance()
+		event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
+		if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
+			splog("Skip timer because it is already modified", timer.name, name, event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
+			return
+		
+		if timer.begin < time() + 60:
+			splog("Skipping an event because it starts in less than 60 seconds", timer.name )
+			return
+		
+		if timer.isRunning() and not timer.justplay:
+			splog("Skipping timer because it is already running", timer.name )
+			return
+		
+		if timer.justplay:
+			splog("Skipping justplay timer", timer.name )
+			return
+		
 		self.timer = timer
 		
 		splog("SeriesPluginTimer")
@@ -54,22 +70,18 @@ class SeriesPluginTimer(object):
 		
 		self.seriesPlugin = getInstance()
 		
-		self.autoTimer = autotimer
-		self.timers = timers
-		self.moviedict = moviedict
-		self.avoidDuplicates = avoidDuplicates
-		splog("SeriesPluginTimer avoidDuplicates=" + str(self.avoidDuplicates))
 		if timer.service_ref:
-			channel = timer.service_ref.getServiceName()
-			splog(channel)
+			#channel = timer.service_ref.getServiceName()
+			#splog(channel)
 			
 			self.seriesPlugin.getEpisode(
 					self.timerCallback,
-					name, begin, end, channel, future=True
+					#name, begin, end, channel, future=True
+					name, begin, end, timer.service_ref, future=True
 				)
 		else:
 			splog("SeriesPluginTimer: No channel specified")
-			self.callback()
+			self.timerCallback("No channel specified")
 
 	def timerCallback(self, data=None):
 		splog("SeriesPluginTimer timerCallback")
@@ -78,63 +90,31 @@ class SeriesPluginTimer(object):
 		
 		if data and len(data) == 4 and timer:
 			# Episode data available, refactor name and description
-			removeTimer = False
-			if self.avoidDuplicates:
-				dirname = timer.dirname
-				# Update list of known episodes
-				if not self.moviedict == None:
-					self.seriesPlugin.addMoviesToEpisodes(dirname, self.moviedict)
-				if not self.timers == None:
-					self.seriesPlugin.addTimersToEpisodes(self.timers, False)
-				# Check if the current Episode is already in the list...
-				season, episode, title, series = data
-				episode1 = pattern1.format( **{'season': season, 'episode': episode} )
-				episode2 = pattern2.format( **{'season': season, 'episode': episode} )
-				splog("SeriesPluginTimer: check duplicates for series: " + series)
-				if series in self.seriesPlugin.existingEpisodes:
-					splog("SeriesPluginTimer: series found")
-					existingEpisodes = self.seriesPlugin.existingEpisodes[series]
-					splog("SeriesPluginTimer: check duplicates for episode: " + episode1 + " ; " + episode2)	
-					if episode1 in existingEpisodes or \
-						episode2 in existingEpisodes:
-						# If AutoTimer already knows about ignoreentries: Add this timer so that it will not be readded.
-						if not AutoTimerIgnoreEntry is None:
-							ignoreEntry = AutoTimerIgnoreEntry( serviceref=timer.service_ref, eit=timer.eit, begin=timer.begin, end=timer.end, name=timer.name, description=timer.description )
-							splog("SeriesPluginTimer: Adding IgnoreEntry: " + ignoreEntry.name)
-							if not self.autoTimer == None:
-								self.autoTimer.addIgnore( ignoreEntry, writexml=True )
-						removeTimer = True
-					else:
-						splog("SeriesPluginTimer: episode not found in " + str(existingEpisodes))
-				else:
-					splog("SeriesPluginTimer: series not found in " + str(self.seriesPlugin.existingEpisodes.keys()))
-			if removeTimer:
-				splog("SeriesPluginTimer: Removing Duplicate Timer:" + timer.name + " : " + str( data ))
-				if timer in NavigationInstance.instance.RecordTimer.processed_timers:
-					NavigationInstance.instance.RecordTimer.processed_timers.remove(timer)
-				elif timer in NavigationInstance.instance.RecordTimer.timer_list:
-					NavigationInstance.instance.RecordTimer.timer_list.remove(timer)
-			else:
-				series = timer.name
-				timer.name = refactorTitle(timer.name, data)
-				#from SeriesPluginRenamer import newLegacyEncode
-				#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
-				timer.description = refactorDescription(timer.description, data)
-				self.seriesPlugin.addEpisode(timer.name, timer.description, timer.extdesc, series=series)
-		#TODO avoid to many PopUps
+			from SeriesPluginRenamer import newLegacyEncode
+			timer.name = refactorTitle(timer.name, data)
+			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
+			timer.description = refactorDescription(timer.description, data)
 		
 		elif data:
-			AddPopup(
-				_("SeriesPlugin: Timer lookup failed\n") + str( data ) + " : " + timer.name + "\n",
-				MessageBox.TYPE_ERROR,
-				0,
-				'SP_PopUp_ID_TimerFinished'
+			SeriesPluginTimer.data.append(
+				str(timer.name) + " " + str( data )
 			)
 		
 		else:
-			AddPopup(
-				_("SeriesPlugin: Timer lookup failed\n") + timer.name,
-				MessageBox.TYPE_ERROR,
-				0,
-				'SP_PopUp_ID_TimerFinished'
+			SeriesPluginTimer.data.append(
+				str(timer.name) + " " + _("No data available")
 			)
+		
+		# Maybe there is a better way to avoid multiple Popups
+		#print "QUEUE SIZE", self.seriesPlugin.queue.qsize()
+		if self.seriesPlugin and self.seriesPlugin.queueEmpty() and SeriesPluginTimer.data:
+			if config.plugins.seriesplugin.timer_popups.value:
+				AddPopup(
+					"SeriesPlugin:\n" + "\n".join(SeriesPluginTimer.data),
+					MessageBox.TYPE_ERROR,
+					0,
+					'SP_PopUp_ID_TimerFinished'
+				)
+			
+			SeriesPluginTimer.data = []
+			

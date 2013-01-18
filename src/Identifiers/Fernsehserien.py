@@ -20,7 +20,7 @@ import json
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
-from Plugins.Extensions.SeriesPlugin.Helper import unifyChannel
+from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 
@@ -61,7 +61,7 @@ class Fernsehserien(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, callback, name, begin, end=None, channel=None):
+	def getEpisode(self, callback, name, begin, end=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		
@@ -70,7 +70,7 @@ class Fernsehserien(IdentifierBase):
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
 		self.end = end
-		self.channel = channel
+		self.channels = channels
 		self.ids = []
 		
 		self.soup = None
@@ -80,6 +80,8 @@ class Fernsehserien(IdentifierBase):
 		self.first = None
 		self.last = None
 		self.page = 0
+		
+		self.returnvalue = None
 		
 		# Check preconditions
 		if not name:
@@ -102,7 +104,7 @@ class Fernsehserien(IdentifierBase):
 		if self.name:
 			self.getSeries()
 		else:
-			self.callback()
+			self.callback( self.returnvalue or _("No matching series found") )
 	
 	def getSeries(self):
 		self.getPageInternal(
@@ -147,7 +149,7 @@ class Fernsehserien(IdentifierBase):
 			self.getNextPage()
 		
 		else:
-			self.callback()
+			self.callback( self.returnvalue or _("No matching series found") )
 
 	def getNextPage(self):
 		url = EPISODEIDURL % (self.id, self.page)
@@ -172,6 +174,7 @@ class Fernsehserien(IdentifierBase):
 			table = self.soup.find('table', 'sendetermine')
 			if table:
 				for trnode in table.find_all('tr'):
+					# TODO skip first header row
 					tdnodes = trnode and trnode.find_all('td')
 					# Filter for known rows
 					#if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
@@ -181,7 +184,7 @@ class Fernsehserien(IdentifierBase):
 							tds.append(tdnode.string)
 						trs.append( tds )
 					# This row belongs to the previous
-					elif len(tdnodes) == 5:
+					elif trs and len(tdnodes) == 5:
 						trs[-1][5] += ' ' + tdnodes[3].string
 						trs[-1][6] += ' ' + tdnodes[4].string
 			
@@ -254,10 +257,8 @@ class Fernsehserien(IdentifierBase):
 								splog(self.begin, xbegin, delta, max_time_drift)
 								
 								if delta <= max_time_drift:
-									xchannel = unifyChannel(tds[3])
-									splog(self.channel, xchannel, len(self.channel), len(xchannel))
 									
-									if self.compareChannels(self.channel, xchannel):
+									if compareChannels(self.channels, tds[3]):
 										
 										if delta < ydelta:
 										
@@ -280,7 +281,10 @@ class Fernsehserien(IdentifierBase):
 										
 										else: #if delta >= ydelta:
 											break
-								
+									
+									else:
+										self.returnvalue = _("Check the channel name")
+									
 								elif yepisode:
 									break
 						
@@ -310,8 +314,37 @@ class Fernsehserien(IdentifierBase):
 		return data
 
 	def getPageInternal(self, callback, url):
-		# PHP Proxy with 3 day Caching
-		# to minimize server requests
-		#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-		#IdentifierBase.getPage(self, callback, url, Headers)
-		self.getPage(callback, url, Headers)
+		
+		if self.checkLicense():
+		
+			# PHP Proxy with 3 day Caching
+			# to minimize server requests
+			#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
+			#IdentifierBase.getPage(self, callback, url, Headers)
+			self.getPage(callback, url, Headers)
+			
+		else:
+			self.callback( _("No valid license") )
+
+	def checkLicense(self):
+		
+		global license
+		if license is not None:
+			return license
+		
+		from urllib2 import urlopen, URLError
+		try:
+			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/License.html" , timeout=10).read()
+		except URLError, e:
+			raise
+			
+		print "checkLicense"
+		print response
+		if response == "Valid License":
+			license = True
+			return True
+		else:
+			license = False
+			return False
+
+license = None

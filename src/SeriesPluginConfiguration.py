@@ -35,42 +35,9 @@ from Plugins.Plugin import PluginDescriptor
 
 # Plugin internal
 from SeriesPlugin import resetInstance, getInstance
+from EpisodePatterns import readPatternFile
 from Logger import splog
 
-scheme_fallback = [
-		("Off", "Disabled"),
-		
-		("{org:s} S{season:02d}E{episode:02d}"            , "Org S01E01"),
-		("{org:s} S{season:02d}E{episode:02d} {title:s}"  , "Org S01E01 Title"),
-		("{title:s} {org:s}"                              , "Title Org"),
-		("S{season:02d}E{episode:02d} {title:s} {org:s}"  , "S01E01 Title Org"),
-		("{title:s} S{season:02d}E{episode:02d} {org:s}"  , "Title S01E01 Org"),
-		
-		("{series:s} S{season:02d}E{episode:02d}"            , "Series S01E01"),
-		("{series:s} S{season:02d}E{episode:02d} {title:s}"  , "Series S01E01 Title"),
-		("{title:s} {series:s}"                              , "Title Series"),
-		("S{season:02d}E{episode:02d} {title:s} {series:s}"  , "S01E01 Title Series"),
-		("{title:s} S{season:02d}E{episode:02d} {series:s}"  , "Title S01E01 Series"),
-	]
-
-def readPatternFile():
-	path = config.plugins.seriesplugin.pattern_file.value
-	obj = None
-	patterns = None
-	
-	if os.path.exists(path):
-		f = None
-		try:
-			import json
-			f = open(path, 'rb')
-			header, patterns = json.load(f)
-			patterns = [tuple(p) for p in patterns]
-		except Exception, e:
-			splog("[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e))
-		finally:
-			if f is not None:
-				f.close()
-	return patterns or scheme_fallback
 
 def checkList(cfg):
 	if cfg.value not in cfg.choices.choices:
@@ -167,15 +134,22 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
 			
+			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.channel_file ) )
+			
 			self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
 			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
+					
+			self.list.append( getConfigListEntry(  _("AutoTimer independent mode")                 , config.plugins.seriesplugin.autotimer_independent ) )
+			if config.plugins.seriesplugin.autotimer_independent.value:
+				self.list.append( getConfigListEntry(  _("Check timer every x hours")              , config.plugins.seriesplugin.independent_cycle ) )
+			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
 			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
 			
 			self.list.append( getConfigListEntry(  _("Debug: Write Log")                           , config.plugins.seriesplugin.write_log ) )
 			if config.plugins.seriesplugin.write_log.value:
-				self.list.append( getConfigListEntry(  _("Debug: Log file path")                     , config.plugins.seriesplugin.log_file ) )
+				self.list.append( getConfigListEntry(  _("Debug: Log file path")                      , config.plugins.seriesplugin.log_file ) )
 				#self.list.append( getConfigListEntry(  _("Debug: Forum user name")                   , config.plugins.seriesplugin.log_reply_user ) )
 				#self.list.append( getConfigListEntry(  _("Debug: User mail address")                 , config.plugins.seriesplugin.log_reply_mail ) )
 
@@ -229,6 +203,10 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES, movielist_rename)
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES)
+		
+		if config.plugins.seriesplugin.autotimer_independent.value:
+			from SeriesPluginIndependent import startIndependent
+			startIndependent()
 		
 		# To set new module configuration
 		resetInstance()

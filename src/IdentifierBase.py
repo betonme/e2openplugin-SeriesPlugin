@@ -21,27 +21,28 @@ from Tools.BoundFunction import boundFunction
 
 # Internal
 from ModuleBase import ModuleBase
-from Helper import Cacher, INTER_QUERY_TIME  #, Retry
+from Cacher import Cacher, INTER_QUERY_TIME
 from Logger import splog
 
 
 import recipeMemUse as MemoryUsage
 
 
-class IdentifierBase(ModuleBase, Cacher):  #, Retry):
+class IdentifierBase(ModuleBase, Cacher):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
-		#Retry.__init__(self)
 		self.callback = None
 		self.name = ""
 		self.begin = None
 		self.end = None
 		self.channel = ""
 		self.ids = []
+		
+		self.returnvalue = None
 
 	################################################
-	# Twisted functions
+	# URL functions
 	def getPage(self, callback, url, headers={}, expires=INTER_QUERY_TIME, counter=0):
 		splog("SSBase getPage", url)
 		
@@ -86,27 +87,9 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 					raise
 			
 			data = callback( response )
-			splog("SSBase data to cache: ", data) 
+			#splog("SSBase data to cache: ", data) 
 			if data:
 				self.doCache(url, data)
-
-	@staticmethod
-	def compareChannels(local, remote):
-		if local == remote:
-			# The channels are equal
-			return True
-		elif local in remote or remote in local:
-			# Parts of the channels are equal
-			return True
-		elif local == "":
-			# The local channel is empty
-			return True
-		elif "unknown" in local:
-			# The local channel is unknown
-			return True
-		
-		return False
-
 
 	################################################
 	# Service prototypes
@@ -128,7 +111,7 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 		# False: Service doesn't know future air dates
 		return False
 
-	def getEpisode(self, callback, name, begin, end, channel):
+	def getEpisode(self, callback, name, begin, end, channels):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		callback( None )

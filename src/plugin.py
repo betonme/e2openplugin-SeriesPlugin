@@ -1,5 +1,4 @@
 
-import re
 import os, sys, traceback
 
 # Localization
@@ -26,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.0"
+VERSION = "0.8.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -61,13 +60,19 @@ config.plugins.seriesplugin.identifier_future         = ConfigText(default = "",
 #config.plugins.seriesplugin.manager                   = ConfigSelection(choices = [("", "")], default = "")
 #config.plugins.seriesplugin.guide                     = ConfigSelection(choices = [("", "")], default = "")
 
-config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
+config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin_patterns.json", fixed_size = False)
 config.plugins.seriesplugin.pattern_title             = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
 config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{season:02d}E{episode:02d} {title:s} {org:s}", fixed_size = False)
+
+config.plugins.seriesplugin.channel_file              = ConfigText(default = "/etc/enigma2/seriesplugin_channels.xml", fixed_size = False)
 
 config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = False)
 
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
+
+config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = False)
+config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(0, 24, 1, default = 6)
+config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
 config.plugins.seriesplugin.log_file                  = ConfigText(default = "/tmp/seriesplugin.log", fixed_size = False)
@@ -84,9 +89,10 @@ def start(reason, **kwargs):
 	# Startup
 	if reason == 0:
 		# Start on demand if it is requested
-		#from SeriesPlugin import getInstance
-		#getInstance()
-		pass
+		if config.plugins.seriesplugin.autotimer_independent.value:
+			from SeriesPluginIndependent import startIndependent
+			startIndependent()
+		
 	# Shutdown
 	elif reason == 1:
 		from SeriesPlugin import resetInstance
@@ -96,60 +102,33 @@ def start(reason, **kwargs):
 #######################################################
 # Plugin configuration
 def setup(session, *args, **kwargs):
-	#from SeriesPluginConfiguration import SeriesPluginConfiguration
-	#session.open(SeriesPluginConfiguration)
 	try:
-		### For testing only
-		#import SeriesPluginConfiguration
-		#reload(SeriesPluginConfiguration)
-		#session.open(SeriesPluginConfiguration.SeriesPluginConfiguration)
-		###
 		session.open(SeriesPluginConfiguration)
 	except Exception, e:
 		splog(_("SeriesPlugin setup exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		#splog( exc_type, exc_value, exc_traceback.format_exc() )
 		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Event Info
 def info(session, service=None, event=None, *args, **kwargs):
-	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
-	#SeriesPluginInfoScreen(session, ref)
 	try:
-		### For testing only
-		#import SeriesPluginInfoScreen
-		#reload(SeriesPluginInfoScreen)
-		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service, event)
-		###
 		session.open(SeriesPluginInfoScreen, service, event)
 	except Exception, e:
 		splog(_("SeriesPlugin info exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		#splog( exc_type, exc_value, exc_traceback.format_exc() )
 		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Extensions menu
 def extension(session, *args, **kwargs):
-	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
-	#SeriesPluginInfoScreen(session)
 	try:
-		### For testing only
-		#import SeriesPluginInfoScreen
-		#reload(SeriesPluginInfoScreen)
-		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen)
-		###
 		session.open(SeriesPluginInfoScreen)
 	except Exception, e:
 		splog(_("SeriesPlugin extension exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		#splog( exc_type, exc_value, exc_traceback.format_exc() )
 		splog( exc_type, exc_value, exc_traceback )
 
 
@@ -157,23 +136,10 @@ def extension(session, *args, **kwargs):
 # Movielist menu rename
 def movielist_rename(session, service, services=None, *args, **kwargs):
 	try:
-		if services:
-			if not isinstance(services, list):
-				services = [services]	
-		else:
-			services = [service]
-		
-		### For testing only
-		#import SeriesPluginRenamer
-		#reload(SeriesPluginRenamer)
-		#SeriesPluginRenamer.SeriesPluginRenamer(session, services)
-		###
 		SeriesPluginRenamer(session, services)
 	except Exception, e:
 		splog(_("SeriesPlugin renamer exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		#splog( exc_type, exc_value, exc_traceback.format_exc() )
 		splog( exc_type, exc_value, exc_traceback )
 
 
@@ -181,75 +147,41 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 # Movielist menu info
 def movielist_info(session, service, *args, **kwargs):
 	try:
-		### For testing only
-		#import SeriesPluginInfoScreen
-		#reload(SeriesPluginInfoScreen)
-		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
-		###
 		session.open(SeriesPluginInfoScreen, service)
 	except Exception, e:
 		splog(_("SeriesPlugin extension exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		#splog( exc_type, exc_value, exc_traceback.format_exc() )
 		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Timer renaming
 def renameTimer(timer, name, begin, end, *args, **kwargs):
-	# We have to compare the length,
-	# because of the E2 special chars handling for creating the filenames
-	#if timer.name == name:
-	# Mad Men
-	# Mad_Men
-	if len(timer.name) == len(name):
-		#from SeriesPluginTimer import SeriesPluginTimer
-		#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
-		try:
-			### For testing only
-			#import SeriesPluginTimer
-			#reload(SeriesPluginTimer)
-			#SeriesPluginTimer.SeriesPluginTimer(timer)
-			###
-			SeriesPluginTimer(timer, name, begin, end, *args, **kwargs)
-		except Exception, e:
-			splog(_("SeriesPlugin label exception ") + str(e))
-			exc_type, exc_value, exc_traceback = sys.exc_info()
-			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			#splog( exc_type, exc_value, exc_traceback.format_exc() )
-			splog( exc_type, exc_value, exc_traceback )
-	else:
-		splog("Skip timer because it is already modified", timer.name, name, len(timer.name), len(name) )
+	try:
+		SeriesPluginTimer(timer, name, begin, end)
+	except Exception, e:
+		splog(_("SeriesPlugin label exception ") + str(e))
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		splog( exc_type, exc_value, exc_traceback )
+
 
 # For compatibility reasons
 def modifyTimer(timer, name, *args, **kwargs):
-	if timer.name == name: # or len(timer.name) <= len(name):
-		#from SeriesPluginTimer import SeriesPluginTimer
-		#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
-		try:
-			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
-		except Exception, e:
-			splog(_("SeriesPlugin label exception ") + str(e))
-			exc_type, exc_value, exc_traceback = sys.exc_info()
-			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			#splog( exc_type, exc_value, exc_traceback.format_exc() )
-			splog( exc_type, exc_value, exc_traceback )
-	else:
-		splog("Skip timer because it is already modified", name)
-
-
-# For compatibility reasons
-def labelTimer(timer, begin=None, end=None, *args, **kwargs):
-	#from SeriesPluginTimer import SeriesPluginTimer
-	#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
 	try:
 		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 	except Exception, e:
 		splog(_("SeriesPlugin label exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
+
+
+# For compatibility reasons
+def labelTimer(timer, begin=None, end=None, *args, **kwargs):
+	try:
+		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
+	except Exception, e:
+		splog(_("SeriesPlugin label exception ") + str(e))
+		exc_type, exc_value, exc_traceback = sys.exc_info()
 		splog( exc_type, exc_value, exc_traceback )
 
 

@@ -68,9 +68,7 @@ def rename(service, name, short, data):
 	#MAYBE Check if it is already renamed?
 	try:
 		# Before renaming change content
-		#TODO renameEIT
-		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
-			renameMeta(service, data)
+		renameMeta(service, data)
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
 			renameFile(service, name, data)
 		return True
@@ -110,9 +108,15 @@ def renameMeta(service, data):
 			rest = metafile.read()
 			metafile.close()
 			
-			title = refactorTitle(oldtitle, data)
+			if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
+				title = refactorTitle(oldtitle, data)
+			else:
+				title = oldtitle
 			splog(title)
-			descr = refactorDescription(olddescr, data)
+			if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
+				descr = refactorDescription(olddescr, data)
+			else:
+				descr = olddescr
 			splog(descr)
 			
 			metafile = open(meta_file, "w")
@@ -194,11 +198,12 @@ class SeriesPluginRenameService(object):
 			end - (config.recording.margin_after.value * 60)
 		
 		rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-		channel = ServiceReference(rec_ref_str).getServiceName()
+		#channel = ServiceReference(rec_ref_str).getServiceName()
 		
 		self.seriesPlugin.getEpisode(
 				self.serviceCallback, 
-				self.name, begin, end, channel, elapsed=True
+				#self.name, begin, end, channel, elapsed=True
+				self.name, begin, end, eServiceReference(rec_ref_str), elapsed=True
 			)
 
 	def serviceCallback(self, data=None):
@@ -224,6 +229,13 @@ class SeriesPluginRenameService(object):
 # Rename movies
 class SeriesPluginRenamer(object):
 	def __init__(self, session, services, *args, **kwargs):
+		
+		if services:
+			if not isinstance(services, list):
+				services = [services]	
+		else:
+			services = [service]
+		
 		self.services = services
 		
 		self.failed = []

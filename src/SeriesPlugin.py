@@ -5,14 +5,10 @@ import os, sys, traceback
 from time import time, gmtime, strftime
 from datetime import datetime
 
-from Queue import Queue
-import threading
-import inspect
-import ctypes
-
-
 # Localization
 from . import _
+
+from datetime import datetime
 
 from Components.config import config
 
@@ -26,17 +22,18 @@ from Tools.Notifications import AddPopup
 from Screens.MessageBox import MessageBox
 
 # Plugin internal
-from itertools import chain
 from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
-from Helper import unifyName, unifyChannel
+from Channels import ChannelsBase, removeEpisodeInfo
 from Logger import splog
+from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
+
 
 # Constants
 IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
-MANAGER_PATH	= os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Managers/" )
-GUIDE_PATH	  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Guides/" )
+MANAGER_PATH    = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Managers/" )
+GUIDE_PATH      = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Guides/" )
 
 
 # Globals
@@ -48,7 +45,8 @@ CompiledRegexpNonDecimal = re.compile(r'[^\d.]+')
 def getInstance():
 	global instance
 	if instance is None:
-		splog("SERIESPLUGIN NEW INSTANCE")
+		from plugin import VERSION
+		splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
 		instance = SeriesPlugin()
 	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
 	return instance
@@ -60,7 +58,7 @@ def resetInstance():
 		splog("SERIESPLUGIN INSTANCE STOP")
 		instance.stop()
 		instance = None
-	from Helper import cache
+	from Cacher import cache
 	global cache
 	cache = {}
 
@@ -69,6 +67,9 @@ def refactorTitle(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
+			#if season == 0 and episode == 0:
+			#	return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'title': title, 'series': series} )
+			#else:
 			return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 		else:
 			return org
@@ -79,6 +80,9 @@ def refactorDescription(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
+			#if season == 0 and episode == 0:
+			#	description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'title': title, 'series': series} )
+			#else:
 			description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 			description = description.replace("\n", " ")
 			return description
@@ -88,74 +92,15 @@ def refactorDescription(org, data):
 		return org
 
 
-class QueueWithTimeOut(Queue):
-	def __init__(self):
-		Queue.__init__(self)
-	def join_with_timeout(self, timeout):
-		self.all_tasks_done.acquire()
-		endtime = time() + timeout
-		#splog("SeriesPluginWorker for while")
-		while self.unfinished_tasks:
-			remaining = endtime - time()
-			#splog("SeriesPluginWorker while", remaining)
-			if remaining <= 0.0:
-				break
-			#splog("SeriesPluginWorker before all_tasks_done wait")
-			self.all_tasks_done.wait(remaining)
-		#splog("SeriesPluginWorker before all_tasks_done release")
-		self.all_tasks_done.release()
-
-
-def _async_raise(tid, exctype):
-	"""raises the exception, performs cleanup if needed"""
-	if not inspect.isclass(exctype):
-		raise TypeError("Only types can be raised (not instances)")
-	res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
-	if res == 0:
-		raise ValueError("invalid thread id")
-	elif res != 1:
-		# """if it returns a number greater than one, you're in trouble, 
-		# and you should call it again with exc=NULL to revert the effect"""
-		ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
-		raise SystemError("PyThreadState_SetAsyncExc failed")
-
-
-class Thread(threading.Thread):
-	def _get_my_tid(self):
-		"""determines this (self's) thread id"""
-		if not self.isAlive():
-			raise threading.ThreadError("the thread is not active")
-		
-		# do we have it cached?
-		if hasattr(self, "_thread_id"):
-			return self._thread_id
-		
-		# no, look for it in the _active dict
-		for tid, tobj in threading._active.items():
-			if tobj is self:
-				self._thread_id = tid
-				return tid
-		
-		raise AssertionError("could not determine the thread's id")
-	
-	def raise_exc(self, exctype):
-		"""raises the given exception type in the context of this thread"""
-		_async_raise(self._get_my_tid(), exctype)
-	
-	def terminate(self):
-		"""raises SystemExit in the context of the given thread, which should 
-		cause the thread to exit silently (unless caught)"""
-		self.raise_exc(SystemExit)
-
-
-class SeriesPluginWorkerThread(Thread):
+class SeriesPluginWorkerThread(CancelableThread):
 	# LATER stop thread this way:
 	# http://www.rootninja.com/thread-control-in-python-how-to-safely-stop-a-thread/
 	def __init__(self, queue):
-		Thread.__init__(self)
+		CancelableThread.__init__(self)
 		self.queue = queue
 		self.item = None
 	
+	@synchronized(myLock)
 	def run(self):
 		while True:
 			self.item = self.queue.get()
@@ -164,14 +109,14 @@ class SeriesPluginWorkerThread(Thread):
 				splog('SeriesPluginWorkerThread has been finished')
 				return
 			
-			service, callback, name, begin, end, channel = self.item
-			splog('SeriesPluginWorkerThread is processing: ', service)
+			identifier, callback, name, begin, end, channels = self.item
+			splog('SeriesPluginWorkerThread is processing: ', identifier)
 			
 			# do processing stuff here
 			try:
-				service.getEpisode(
+				identifier.getEpisode(
 					self.workerCallback,
-					name, begin, end, channel
+					name, begin, end, channels
 				)
 			except Exception, e:
 				splog("SeriesPluginWorkerThread Exception:", str(e))
@@ -186,7 +131,10 @@ class SeriesPluginWorkerThread(Thread):
 	
 	def workerCallback(self, data=None):
 		splog('SeriesPluginWorkerThread callback')
-		service, callback, name, begin, end, channel = self.item
+		identifier, callback, name, begin, end, channels = self.item
+		
+		# kill the thread
+		self.queue.task_done()
 		
 		if data and len(data) == 4:
 			season, episode, title, series = data
@@ -196,9 +144,6 @@ class SeriesPluginWorkerThread(Thread):
 			callback( (season, episode, title, series) )
 		else:
 			callback( data )
-		
-		# kill the thread
-		self.queue.task_done()
 		
 		config.plugins.seriesplugin.lookup_counter.value += 1
 		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
@@ -221,11 +166,16 @@ class SeriesPluginWorkerThread(Thread):
 		#self.run()
 
 
-class SeriesPlugin(Modules):
+class SeriesPlugin(Modules, ChannelsBase):
 	def __init__(self):
 		splog("SeriesPlugin")
 		Modules.__init__(self)
-		self.queue = QueueWithTimeOut() #Queue()
+		ChannelsBase.__init__(self)
+		
+		self.queue = QueueWithTimeOut()
+		
+		#http://bugs.python.org/issue7980
+		datetime.strptime('2012-01-01', '%Y-%m-%d')
 		
 		self.worker = SeriesPluginWorkerThread(self.queue)
 		self.worker.daemon = True
@@ -241,10 +191,6 @@ class SeriesPlugin(Modules):
 		
 		self.identifier_future = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_future.value )
 		splog(self.identifier_future)
-		
-		self.existingEpisodes = {}
-		self.timersRead = False
-		self.directoriesRead = {}
 		
 		#self.managers = self.loadModules(MANAGER_PATH, ManagerBase)
 		#if self.managers:
@@ -281,35 +227,38 @@ class SeriesPlugin(Modules):
 				#self.worker = None
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()
+		self.saveXML()
 
-
+	def queueEmpty(self):
+		return self.queue and self.queue.qsize()
+	
 	################################################
 	# Identifier functions
-	def getEpisode(self, callback, name, begin, end=None, channel=None, future=False, today=False, elapsed=False):
+	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False):
 		#available = False
 		
-		name = unifyName(name)
+		name = removeEpisodeInfo(name)
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
-		channel = unifyChannel(channel)
+		channels = self.lookupServiceAlternatives(service)
 		
-		#MAYBE for all valid service in services:
+		#MAYBE for all valid identifier in identifiers:
 		
 		# Return a season, episode, title tuple
 		
 		if elapsed:
-			service = self.identifier_elapsed
+			identifier = self.identifier_elapsed
 		elif today:
-			service = self.identifier_today
+			identifier = self.identifier_today
 		elif future:
-			service = self.identifier_future
+			identifier = self.identifier_future
 		else:
-			service = None
+			identifier = None
 		
-		if service:
-			#if ( future and service.knowsFuture() ) or \
-			#	 ( today and service.knowsToday() ) or \
-			#	 ( elapsed and service.knowsElapsed() ):
+		if identifier:
+			#if ( future and identifier.knowsFuture() ) or \
+			#	 ( today and identifier.knowsToday() ) or \
+			#	 ( elapsed and identifier.knowsElapsed() ):
 			try:
 				#available = True
 				splog("SeriesPlugin Worker isAlive", self.worker and self.worker.isAlive(), self.queue.qsize())
@@ -320,7 +269,7 @@ class SeriesPlugin(Modules):
 					self.worker.daemon = True
 					self.worker.start()
 				
-				self.queue.put( (service, callback, name, begin, end, channel) )
+				self.queue.put( (identifier, callback, name, begin, end, channels) )
 				
 			except Exception, e:
 				splog(_("SeriesPlugin getEpisode exception ") + str(e))
@@ -329,7 +278,7 @@ class SeriesPlugin(Modules):
 				#splog( exc_type, exc_value, exc_traceback.format_exc() )
 				splog( exc_type, exc_value, exc_traceback )
 				callback( str(e) )
-			return service.getName()
+			return identifier.getName()
 			
 		#if not available:
 		else:
@@ -362,55 +311,3 @@ class SeriesPlugin(Modules):
 
 	def cancel(self):
 		self.stop()
-
-	################################################
-	# Avoid duplicates functions
-	def addTimersToEpisodes(self, timers, force = False):
-		splog("SeriesPlugin addTimersToEpisodes")
-		if not self.timersRead or force:
-			try:
-				for timer in chain.from_iterable( timers.itervalues() ):
-					name = timer.name
-					description = timer.description or ''
-					extdesc = timer.extdesc or ''						
-					self.addEpisode(name, description, extdesc)
-				self.timersRead = True
-			except Exception, e:
-				splog("SeriesPlugin.addTimersToEpisodes Exception:" + str(e))
-
-	def addMoviesToEpisodes(self, dest, moviedict):
-		splog("SeriesPlugin addMoviesToEpisodes:" + dest)
-		if not dest in self.directoriesRead:
-			try:
-				for movieinfo in moviedict.get(dest, ()):
-					name = movieinfo.get("name")
-					description = movieinfo.get("shortdesc") or '' 
-					extdesc = movieinfo.get("exntdesc") or ''					
-					self.addEpisode(name, description, extdesc)
-				self.directoriesRead[dest] = True
-			except Exception, e:
-				splog("SeriesPlugin.addMoviesToEpisodes Exception:" + str(e))
-	
-	def addEpisode(self, name, description, extdesc, series = ''):
-		splog("SeriesPlugin.addEpisode name=" + name)
-		try:
-			episode = self.getEpisodeFromString( name + description + extdesc )
-			if series == '':
-				series = name.replace( episode, '').strip()
-			splog("SeriesPlugin.addEpisode series=" + series + ";")
-			if not series in self.existingEpisodes:
-				self.existingEpisodes[series] = []
-			if not episode in self.existingEpisodes[series]:
-				self.existingEpisodes[series].append(episode)
-		except Exception, e:
-			splog("SeriesPlugin.addEpisode Exception:" + str(e))
-	
-	#######################################################
-	# Getting Series- Info from String
-	def getEpisodeFromString(self, strinput):
-		splog("SeriesPlugin.getEpisodeFromString Searching Series for:" + strinput)
-		match = re.compile('(S[0-9]+[0-9]*)(E[0-9]+[0-9]*)')
-		res = match.search(strinput)
-		resGroup = res.group(0) if (res.group(0) is not None) else ''
-		splog("SeriesPlugin.getEpisodeFromString Found:" + resGroup )
-		return resGroup

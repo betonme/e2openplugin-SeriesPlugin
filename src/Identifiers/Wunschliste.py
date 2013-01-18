@@ -17,7 +17,7 @@ from sys import maxint
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
-from Plugins.Extensions.SeriesPlugin.Helper import unifyChannel
+from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 
@@ -36,13 +36,13 @@ EPISODEIDURLPRINT = "http://www.wunschliste.de/epg_print.pl?"
 # Galileo: Magazin mit Aiman Abdallah, BRD 2012 - Mi 09.05., 06.10:00 Uhr / ProSieben
 # Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
 # Channel is between last / and ( or line end
-ComiledRegexpAtomChannel = re.compile('\/(?!.*\/) ([^\(]+)')
+CompiledRegexpAtomChannel = re.compile('\/(?!.*\/) ([^\(]+)')
 # Date is between last - and channel
-ComiledRegexpAtomDate = re.compile('-(?!.*-) (.+)')
+CompiledRegexpAtomDate = re.compile('-(?!.*-) (.+)')
 # Find optional episode
-ComiledRegexpAtomEpisode = re.compile('\((?!.*\()(.+)\) ')
+CompiledRegexpAtomEpisode = re.compile('\((?!.*\()(.+)\) ')
 # Series: Title
-ComiledRegexpAtomTitle = re.compile('.+: (.+)')
+CompiledRegexpAtomTitle = re.compile('.+: (.+)')
 
 # (Season.Episode) - EpisodeTitle
 # (21.84) Folge 4985
@@ -51,9 +51,9 @@ ComiledRegexpAtomTitle = re.compile('.+: (.+)')
 # Galileo: Die schaerfste Chili der Welt
 # Galileo: Jumbo auf Achse: Muelltonnenkoch
 # Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
-#ComiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
+#CompiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
 
-ComiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
+CompiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
 
 
 class WLAtomParser(HTMLParser):
@@ -129,7 +129,7 @@ class Wunschliste(IdentifierBase):
 		# Use the atom feed
 		return True
 
-	def getEpisode(self, callback, name, begin, end=None, channel=None):
+	def getEpisode(self, callback, name, begin, end=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		
@@ -137,9 +137,11 @@ class Wunschliste(IdentifierBase):
 		self.name = name
 		self.begin = begin
 		self.end = end
-		self.channel = channel
+		self.channels = channels
 		self.ids = []
 		self.when = 0
+		
+		self.returnvalue = None
 		
 		# Check preconditions
 		if not name:
@@ -167,7 +169,7 @@ class Wunschliste(IdentifierBase):
 		if self.name:
 			self.getSeries()
 		else:
-			self.callback()
+			self.callback( self.returnvalue or _("No matching series found") )
 	
 	def getSeries(self):
 		self.getPageInternal(
@@ -217,7 +219,7 @@ class Wunschliste(IdentifierBase):
 							)
 		
 		else:
-			self.callback()
+			self.callback( self.returnvalue or _("No matching series found") )
 
 	def getEpisodeFutureCallback(self, data=None):
 		splog("Wunschliste getEpisodeFutureCallback")
@@ -255,22 +257,20 @@ class Wunschliste(IdentifierBase):
 							splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
 							
 							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
-								result = ComiledRegexpAtomChannel.search(xtitle)
+								result = CompiledRegexpAtomChannel.search(xtitle)
 								if result and len(result.groups()) >= 1:
-									xchannel = unifyChannel(result.group(1))
-									splog(self.channel, xchannel, len(self.channel), len(xchannel))
 									
-									if self.compareChannels(self.channel, xchannel):
+									if compareChannels(self.channels, result.group(1)):
 										
 										if delta < ydelta:
 											# Slice string to remove channel
 											xtitle = xtitle[:result.start()]
-											result = ComiledRegexpAtomDate.search(xtitle)
+											result = CompiledRegexpAtomDate.search(xtitle)
 											
 											if result and len(result.groups()) >= 1:
 												# Slice string to remove date
 												xtitle = xtitle[:result.start()]
-												result = ComiledRegexpAtomEpisode.search(xtitle)
+												result = CompiledRegexpAtomEpisode.search(xtitle)
 												
 												if result and len(result.groups()) >= 1:
 													# Extract season and episode
@@ -278,7 +278,7 @@ class Wunschliste(IdentifierBase):
 													# Slice string to remove season and episode
 													xtitle = xtitle[:result.start()]
 													
-													result = ComiledRegexpEpisode.search(xepisode)
+													result = CompiledRegexpEpisode.search(xepisode)
 													if result and len(result.groups()) >= 3:
 														xseason = result and result.group(2) or "1"
 														xepisode = result and result.group(3) or "0"
@@ -290,7 +290,7 @@ class Wunschliste(IdentifierBase):
 													splog("Wunschliste wrong title format", xtitle)
 													xseason = "1"
 													xepisode = "0"
-												result = ComiledRegexpAtomTitle.search(xtitle)
+												result = CompiledRegexpAtomTitle.search(xtitle)
 												
 												if result and len(result.groups()) >= 1:
 													# Extract episode title
@@ -300,7 +300,10 @@ class Wunschliste(IdentifierBase):
 										
 										else: #if delta >= ydelta:
 											break
-						
+									
+									else:
+										self.returnvalue = _("Check the channel name")
+									
 							elif yepisode:
 								break
 				
@@ -351,18 +354,17 @@ class Wunschliste(IdentifierBase):
 						splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
 						
 						if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
-							xchannel = unifyChannel(xchannel)
-							splog(self.channel, xchannel, len(self.channel), len(xchannel))
 							
-							if self.compareChannels(self.channel, xchannel):
+							if compareChannels(self.channels, xchannel):
 							
 								if delta < ydelta:
 									
+									print len(tds), tds
 									if len(tds) >= 7:
 										xepisode, xtitle = tds[5:7]
 									
 										if xepisode:
-											result = ComiledRegexpEpisode.search(xepisode)
+											result = CompiledRegexpEpisode.search(xepisode)
 											
 											if result and len(result.groups()) >= 3:
 												xseason = result and result.group(2) or "1"
@@ -384,7 +386,10 @@ class Wunschliste(IdentifierBase):
 								
 								else: #if delta >= ydelta:
 									break
-					
+							
+							else:
+								self.returnvalue = _("Check the channel name")
+							
 						elif yepisode:
 							break
 				
@@ -396,8 +401,37 @@ class Wunschliste(IdentifierBase):
 		return data
 
 	def getPageInternal(self, callback, url):
-		# PHP Proxy with 3 day Caching
-		# to minimize server requests
-		#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-		#IdentifierBase.getPage(self, callback, url)
-		self.getPage(callback, url)
+		
+		if self.checkLicense():
+			
+			# PHP Proxy with 3 day Caching
+			# to minimize server requests
+			#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
+			#IdentifierBase.getPage(self, callback, url)
+			self.getPage(callback, url)
+		
+		else:
+			self.callback( _("No valid license") )
+
+	def checkLicense(self):
+		
+		global license
+		if license is not None:
+			return license
+		
+		from urllib2 import urlopen, URLError
+		try:
+			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/License.html" , timeout=10).read()
+		except URLError, e:
+			raise
+			
+		print "checkLicense"
+		print response
+		if response == "Valid License":
+			license = True
+			return True
+		else:
+			license = False
+			return False
+
+license = None

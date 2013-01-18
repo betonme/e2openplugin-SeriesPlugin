@@ -144,11 +144,10 @@ class SeriesPluginInfoScreen(Screen):
 		if isinstance(service, eServiceReference):
 			#ref = service  #Problem EPG
 			if service.getPath():
-				ref = service
 				# Service is a movie reference
 				info = self.serviceHandler.info(service)
-				rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-				channel = ServiceReference(rec_ref_str).getServiceName() or ""
+				ref = info.getInfoString(service, iServiceInformation.sServiceref)
+				channel = ServiceReference(ref).getServiceName() or ""
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
 				today = False
@@ -232,7 +231,8 @@ class SeriesPluginInfoScreen(Screen):
 		
 		identifier = self.seriesPlugin.getEpisode(
 				self.episodeCallback, 
-				self.name, begin, end, channel, today=today, elapsed=elapsed
+				#self.name, begin, end, channel, today=today, elapsed=elapsed
+				self.name, begin, end, self.service, today=today, elapsed=elapsed
 			)
 		
 		if identifier:
@@ -255,7 +255,17 @@ class SeriesPluginInfoScreen(Screen):
 		#			boundFunction(self.stateCallback, show_name, short, ext), 
 		#			show_name, season, episode
 		#		)
-			custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( 
+			if season == 0 and episode == 0:
+				custom = _("{title:s}").format( 
+							**{'season': season, 'episode': episode, 'title': title} )
+			elif season == 0:
+				custom = _("Episode: {episode:d}\n{title:s}").format( 
+							**{'season': season, 'episode': episode, 'title': title} )
+			elif episode == 0:
+				custom = _("Season: {season:d}\n{title:s}").format( 
+							**{'season': season, 'episode': episode, 'title': title} )
+			else:
+				custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( 
 							**{'season': season, 'episode': episode, 'title': title} )
 			
 			try:
