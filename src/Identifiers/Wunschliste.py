@@ -11,7 +11,6 @@ from iso8601 import parse_date
 from HTMLParser import HTMLParser
 
 from datetime import datetime
-from time import time
 
 import re
 
@@ -89,11 +88,19 @@ class Wunschliste(IdentifierBase):
 		# Two and a Half Men: Der Mittwochs-Mann (1.5) - Mi 02.05., 19.50:00 Uhr / TNT Serie (Pay-TV)
 		# Two and a Half Men: Der Mittwochs-Mann (1.5) - Mi 02.05., 19.50:00 Uhr / TNT Serie
 		# Der Troedeltrupp - Das Geld liegt im Keller: Folge 109 (109) - Do 03.05., 16.15:00 Uhr / RTL II
+		# Not yet
+		# Galileo: U.a.: Die schaerfste Chili der Welt - Fr 04.05., 19.05:00 Uhr / ProSieben
+		# Galileo: Magazin mit Aiman Abdallah, BRD 2012 - Mi 09.05., 06.10:00 Uhr / ProSieben
+		# Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
 		self.regexpatom = re.compile('(.+): (.+) \((\d*?)\.?(\d+)\) - .+ \/ ([^\(]+)')
 		
 		# (Season.Episode) - EpisodeTitle
 		# (21.84) Folge 4985
 		# (105) Folge 105
+		# Not yet
+		# Galileo: Die schaerfste Chili der Welt
+		# Galileo: Jumbo auf Achse: Muelltonnenkoch
+		# Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
 		self.regexpprint = re.compile('\((\d*?)\.?(\d+)\) (.+)')
 
 	@classmethod
@@ -162,11 +169,11 @@ class Wunschliste(IdentifierBase):
 			id, name = ids.pop()
 			print id, name
 			
-			from time import clock
-			global start
-			start = clock()
-			
-			if begin - time() > 3*60*60:
+			#Py2.6
+			delta = abs(datetime.now() - begin)
+			delta = delta.seconds + delta.days * 24 * 3600
+			#Py2.7 delta = abs(datetime.now() - begin).total_seconds()
+			if delta > 3*60*60:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
 				self.getPage(
 								boundFunction(self.getEpisodeFutureCallback, callback, show_name, short, description, begin, end, channel, ids),
@@ -187,14 +194,10 @@ class Wunschliste(IdentifierBase):
 	def getEpisodeFutureCallback(self, callback, show_name, short, description, begin, end, channel, ids, data=None):
 		print "Wunschliste getEpisodeFutureCallback"
 		
-		datebegin = begin and datetime.fromtimestamp(begin)
-		#dateend = end and datetime.fromtimestamp(end)
-		
 		margin_before = max( 15, (config.recording.margin_before.value or 15) ) * 60
 		#margin_after = max( 15, (config.recording.margin_after.value or 15) ) * 60
 		
 		channel = self.unifyChannel(channel)
-		print "Channel", channel
 		
 		if data is not None:
 			parser = WLAtomParser()
@@ -221,15 +224,16 @@ class Wunschliste(IdentifierBase):
 							#http://labix.org/python-dateutil
 							#xbegin = parser.parse(xupdated)
 		
-							delta = abs((datebegin - xbegin))
-							delta = delta.days * 3600 * 24 + delta.seconds
-							print datebegin, xbegin, delta, margin_before, delta < margin_before
+							#Py2.6
+							delta = abs(begin - xbegin)
+							delta = delta.seconds + delta.days * 24 * 3600
+							#Py2.7 delta = abs(begin - xbegin).total_seconds()
+							print begin, xbegin, delta, margin_before, delta < margin_before
 							if delta < margin_before:
 								# We actually don't check the channel - Any ideas?
 								result = self.regexpatom.match(xtitle)
 								if result and len(result.groups()) >= 5:
-									xchannel = int(result.group(5))
-									xchannel = self.unifyChannel(xchannel)
+									xchannel = self.unifyChannel(result.group(5))
 									print channel, xchannel
 									if channel == xchannel:
 										# series = result.group(1)
@@ -247,9 +251,6 @@ class Wunschliste(IdentifierBase):
 
 	def getEpisodeTodayCallback(self, callback, show_name, short, description, begin, end, channel, ids, data=None):
 		print "Wunschliste getEpisodeTodayCallback"
-		
-		datebegin = begin and datetime.fromtimestamp(begin)
-		#dateend = end and datetime.fromtimestamp(end)
 		
 		margin_before = max( 15, (config.recording.margin_before.value or 15) ) * 60
 		#margin_after = max( 15, (config.recording.margin_after.value or 15) ) * 60
@@ -279,9 +280,11 @@ class Wunschliste(IdentifierBase):
 						#print xchannel, xdate, xbegin, xend, xtitle
 						#print datebegin, xbegin, abs((datebegin - xbegin)), margin_before
 						
-						delta = abs((datebegin - xbegin))
-						delta = delta.days * 3600 * 24 + delta.seconds
-						print datebegin, xbegin, delta, margin_before, delta < margin_before
+						#Py2.6
+						delta = abs(begin - xbegin)
+						delta = delta.seconds + delta.days * 24 * 3600
+						#Py2.7 delta = abs(begin - xbegin).total_seconds()
+						print begin, xbegin, delta, margin_before, delta < margin_before
 						if delta < margin_before:
 							xchannel = self.unifyChannel(xchannel)
 							print channel, xchannel

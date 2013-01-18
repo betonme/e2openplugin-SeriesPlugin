@@ -140,7 +140,8 @@ class SeriesPluginInfoScreen(Screen):
 			# Get information from epg
 			name = event.getEventName() or ""
 			begin = event.getBeginTime() or 0
-			end = begin + ( event.getDuration() or 0) or 0
+			duration = event.getDuration() or 0
+			end = begin + duration or 0
 			short = event.getShortDescription() or ""
 			ext = event.getExtendedDescription() or ""
 			channel = ServiceReference(ref).getServiceName() or ""
@@ -168,10 +169,12 @@ class SeriesPluginInfoScreen(Screen):
 			info = self.serviceHandler.info(ref)
 			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
 			if begin != -1:
-				end = begin + (info.getLength(ref) or 0)
+				duration = info.getLength(ref) or 0
+				end = begin + duration or 0
 			else:
 				end = os.path.getmtime(ref.getPath())
-				begin = end - (info.getLength(ref) or 0)
+				duration = info.getLength(ref) or 0
+				begin = end - duration or 0
 				#MAYBE we could also try to parse the filename
 			
 			
@@ -186,6 +189,9 @@ class SeriesPluginInfoScreen(Screen):
 			self.event = None
 			self.currentService = None
 		
+		begin = datetime.fromtimestamp(begin)
+		end = datetime.fromtimestamp(end)
+		
 		# Adapted from EventView
 		self["event_title"].setText( name )
 		self["event_episode"].setText( _("Retrieving Season, Episode and Title...") )
@@ -198,10 +204,8 @@ class SeriesPluginInfoScreen(Screen):
 			text += ext
 		self["event_description"].setText(text)
 		
-		d = datetime.fromtimestamp(begin)
-		d = begin and d and d.strftime("%d.%m.%Y, %H:%M") or ""
-		self["datetime"].setText(d)
-		self["duration"].setText(_("%d min")%((end-begin)/60))
+		self["datetime"].setText( begin.strftime("%d.%m.%Y, %H:%M") )
+		self["duration"].setText(_("%d min")%((duration)/60))
 		self["channel"].setText(channel)
 		
 		print name, short, ext, begin, end, channel, today, elapsed 

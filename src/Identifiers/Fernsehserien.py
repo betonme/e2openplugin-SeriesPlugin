@@ -13,8 +13,7 @@ from urllib2 import Request, urlopen, URLError
 
 from HTMLParser import HTMLParser
 
-import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from Tools.BoundFunction import boundFunction
 
@@ -148,8 +147,13 @@ class Fernsehserien(IdentifierBase):
 			#for id_name in data:
 			id, name = ids.pop()
 			print id, name
-			if begin - time.time() < -2*60*60:
-				# Older than 2 hours
+			#Py2.6
+			delta = abs(datetime.now() - begin)
+			delta = delta.seconds + delta.days * 24 * 3600
+			#Py2.7 delta = abs(datetime.now() - begin).total_seconds()
+			if delta > 3*60*60:
+			#if begin - time.time() < -2*60*60:
+				# Older than 3 hours
 				print "Past events"
 				type = 6 # Past events
 			else:
@@ -157,7 +161,6 @@ class Fernsehserien(IdentifierBase):
 				type = 8 # Today events
 			
 			channel = self.unifyChannel(channel)
-			print "Channel", channel
 			
 			self.getNextPage(callback, show_name, short, description, begin, end, channel, ids, id, type)
 				
@@ -191,10 +194,6 @@ class Fernsehserien(IdentifierBase):
 	def getEpisodeFromPage(self, callback, show_name, short, description, begin, end, channel, ids, id, type, page, lastpage, minpages, maxpages, data=None):
 		print "Fernsehserien getEpisodeCallback"
 		
-		#print begin
-		datebegin = begin and datetime.fromtimestamp(begin)
-		#dateend = end and datetime.fromtimestamp(end)
-		
 		margin_before = max( 15, (config.recording.margin_before.value or 15) ) * 60
 		#margin_after = max( 15, (config.recording.margin_after.value or 15) ) * 60
 		
@@ -206,9 +205,9 @@ class Fernsehserien(IdentifierBase):
 			
 			parser = FSParser()
 			parser.feed(data)
+			#print parser.list
 			
 			trs = parser.list
-			
 			if not trs:
 				# Store maxpages as callback parameter
 				print "minpages < maxpages", (minpages < maxpages)
@@ -225,9 +224,9 @@ class Fernsehserien(IdentifierBase):
 			
 			else:
 				first = trs[0]
-				first = time.mktime( time.strptime( first[1]+first[2].split("-")[0], "%d.%m.%y%H:%M" ) ) - margin_before
+				first = datetime.strptime( first[1]+first[2].split("-")[0], "%d.%m.%y%H:%M" ) - timedelta(seconds=margin_before)
 				last = trs[-1]
-				last = time.mktime( time.strptime( last[1]+last[2].split("-")[0], "%d.%m.%y%H:%M" ) ) + margin_before # margin_after
+				last = datetime.strptime( last[1]+last[2].split("-")[0], "%d.%m.%y%H:%M" )
 				
 				print "first, begin, last, if ", first, begin, last, ( first <= begin and begin <= last )
 				if ( first <= begin and begin <= last ):
@@ -242,9 +241,11 @@ class Fernsehserien(IdentifierBase):
 							xbegin = datetime.strptime( xdate+xbegin, "%d.%m.%y%H:%M" )
 							#xend = datetime.strptime( xdate+xend, "%d.%m.%y%H:%M" )
 							
-							delta = abs((datebegin - xbegin))
-							delta = delta.days * 3600 * 24 + delta.seconds
-							print datebegin, xbegin, delta, margin_before, delta < margin_before
+							#Py2.6
+							delta = abs(begin - xbegin)
+							delta = delta.seconds + delta.days * 24 * 3600
+							#Py2.7 delta = abs(begin - xbegin).total_seconds()
+							print begin, xbegin, delta, margin_before, delta < margin_before
 							if delta < margin_before:
 								xchannel = self.unifyChannel(xchannel)
 								print channel, xchannel
@@ -264,9 +265,17 @@ class Fernsehserien(IdentifierBase):
 					elif ( begin > last ):
 						minpages = max(minpages, lastpage) if minpages else lastpage
 					
-					pageination = abs(last - first) #.total_seconds() #days # / diffpages(=1)
-					diff = abs(begin - last) #.total_seconds() #days
-					diffpages = abs(diff / pageination) #float(pageination)
+					#Py2.6
+					diff = abs(begin - last)
+					diff = diff.seconds + diff.days * 24 * 3600
+					#Py2.7 diff = abs(begin - last).total_seconds()
+					
+					#Py2.6
+					pageination = abs(last - first)
+					pageination = pageination.seconds + pageination.days * 24 * 3600
+					#Py2.7 pageination = abs(last - first).total_seconds()
+					
+					diffpages = abs(diff / pageination)
 					page = lastpage + diffpages
 					print "minpages, pageination, diff, diffpages, page ", minpages, pageination, diff, diffpages, page
 					return self.getNextPage(callback, show_name, short, description, begin, end, channel, ids, id, type, page, lastpage, minpages, maxpages)

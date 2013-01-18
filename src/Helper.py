@@ -10,6 +10,12 @@ try:
 except:
 	from OrderedDict import OrderedDict
 
+from twisted.internet.error import TimeoutError, DNSLookupError, \
+																		ConnectionRefusedError, ConnectionDone, ConnectError, \
+																		ConnectionLost
+																		#ServerTimeoutError
+from twisted.web.client import PartialDownloadError
+
 # Max Age (in seconds) of each feed in the cache
 INTER_QUERY_TIME = 60*60*24
 
@@ -61,19 +67,21 @@ class Throttler(object):
 	# a specific amount of seconds. The first request to the server
 	# always gets made immediately
 	# Also throttle if there are already to many open requests 
-	def __init__(self, throttleDelay=5):
+	def __init__(self, throttleDelay=5, requestLimit=5):
 		# The number of seconds to wait between subsequent requests
 		self.throttleDelay = throttleDelay
-		self.lastRequestTime = {}
+		self.requestLimit = requestLimit
+		self.alreadyRequested = {}
 
 	def throttle(self, url):
-		currentTime = time()
-		if ((url in self.lastRequestTime)
-			and (time() - self.lastRequestTime[url] < self.throttleDelay)):
-			throttleTime = (self.throttleDelay - (currentTime - self.lastRequestTime[url]))
-			print "Throttle for %s seconds %s" % (throttleTime, url)
-			sleep(throttleTime)
-		self.lastRequestTime[url] = currentTime
+		throttled = False
+		if url in self.alreadyRequested:
+			if self.alreadyRequested[url] <= self.requestLimit:
+				print "Throttle for %s seconds %s" % (self.throttleDelay, url)
+				throttled = True
+				sleep(self.throttleDelay)
+		self.alreadyRequested[url] = self.alreadyRequested.get(url,0) + 1
+		return throttled
 
 
 class Limiter(object):
@@ -81,20 +89,20 @@ class Limiter(object):
 	# a specific amount of seconds. The first request to the server
 	# always gets made immediately
 	# Also throttle if there are already to many open requests 
-	def __init__(self, limitDelay=5, limitRequests=3):
+	def __init__(self, limitDelay=3, limitRequests=3):
 		# The number of seconds to wait between subsequent requests
 		self.limitDelay = limitDelay
 		self.limitRequests = limitRequests
 		self.openRequests = 0
 
-	def start(self, url):
-		self.openRequests += 1
+	def increment(self, url):
 		print "Open requests: %s" % self.openRequests
-		if (self.openRequests > self.limitRequests):
+		while (self.openRequests >= self.limitRequests):
 			print "Limiter: Sleeping for %s seconds %s" % (self.limitDelay, url)
 			sleep(self.limitDelay)
-	
-	def end(self):
+		self.openRequests += 1
+
+	def decrement(self):
 		self.openRequests = max(0, self.openRequests-1)
 
 
@@ -135,6 +143,33 @@ ChannelDict = OrderedDict([
 class ChannelUnifier(object):
 	def __init__(self):
 		self.rc = re.compile('|'.join(map(re.escape, ChannelDict)))
+	
+	def unifyChannel(self, text):
+		def translate(match):
+			return ChannelDict[match.group(0)]
+		return self.rc.sub(translate, text).lower()
+
+
+class Retry(object):
+	
+	EXCEPTIONS_TO_RETRY = (TimeoutError, DNSLookupError,
+												 ConnectionRefusedError, ConnectionDone, ConnectError,
+												 ConnectionLost, PartialDownloadError)
+	
+	def __init__(self, retryLimit=3, retryDelay=5):
+		self.retryLimit = retryLimit
+		# The number of seconds to wait between retry requests
+		self.retryDelay = retryDelay
+		self.retryCounter = {}
+
+	def retry(self, err, url):
+		if isinstance(err, self.EXCEPTIONS_TO_RETRY):
+			if self.retryCounter.get(url,0) <= self.retryLimit:
+				self.retryCounter[url] = self.retryCounter.get(url,0) + 1
+				sleep(self.retryDelay)
+				return True
+		# No retry because of major failure or retry limit has been reached
+		return False
 	
 	def unifyChannel(self, text):
 		def translate(match):

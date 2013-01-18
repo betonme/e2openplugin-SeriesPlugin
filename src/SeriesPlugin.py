@@ -2,6 +2,8 @@
 
 import os, sys, traceback
 
+from thread import start_new_thread
+
 # Localization
 from . import _
 
@@ -145,10 +147,13 @@ class SeriesPlugin(Modules):
 				#	 ( elapsed and service.knowsElapsed() ):
 				try:
 					available = True
-					service.getEpisode(
+					start_new_thread(
+						service.getEpisode,
+						(
 							boundFunction(self.getEpisodeCallback, callback),
 							show_name, short, description, begin, end, channel
 						)
+					)
 				except Exception, e:
 					print _("SeriesPlugin getEpisode exception ") + str(e)
 					exc_type, exc_value, exc_traceback = sys.exc_info()

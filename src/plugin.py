@@ -20,7 +20,7 @@ from Plugins.Plugin import PluginDescriptor
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.2"
+VERSION = "0.3"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")

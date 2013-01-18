@@ -19,6 +19,7 @@
 import os
 import re
 from thread import start_new_thread
+from datetime import datetime
 
 # for localized messages
 from . import _
@@ -57,7 +58,7 @@ class SeriesPluginRenamer(Screen):
 			"down":  self["text"].pageDown
 		}, -1)
 		
-		#self.regexp_seriesepisodes = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 01x01
+		self.regexp_seriesepisodes = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 01x01
 		
 		#self.parent = session.current_dialog
 		#print "SeriesPluginRenamer"
@@ -80,15 +81,14 @@ class SeriesPluginRenamer(Screen):
 		self.onLayoutFinish.append( self.layoutFinished )
 
 	def layoutFinished(self):
-		
 		self.setTitle( _("SeriesPlugin Renamer") + ' %d/%d' % (self.progress, self.goal) )
 		start_new_thread(self.renameNext, ())
 
 	def renameNext(self):
-		
-		for service in self.services:
-		#if self.services:
-		#	service = self.services.pop()
+		#TEST Run renaming parallel
+		#for service in self.services:
+		if self.services:
+			service = self.services.pop()
 			if isinstance(service, eServiceReference):
 				ref = service
 				print "SeriesPluginRenamer eServiceReference" + str(ref)
@@ -97,46 +97,33 @@ class SeriesPluginRenamer(Screen):
 				print "SeriesPluginRenamer ServiceReference" + str(ref)
 			else:
 				print _("SeriesPluginRenamer: No instance of eServiceReference")
-				return #self.renameNext()
+				return self.renameNext()
 			
 			if not os.path.exists( ref.getPath() ):
 				self.progress += 1
 				self.setTitle( _("SeriesPlugin Renamer") + ' %d/%d' % (self.progress, self.goal) )
 				self.appendText( _("File does not exist: ") + name )
-				return #self.renameNext()
-			
-			#print ref.getServiceName()
+				return self.renameNext()
 			
 			name = ref.getName() or "" #info and info.getName(ref)
 			print "name", name
 			
 			# Remove Series Episode naming
 			#MAYBE read SeriesPlugin config and parse it ??
-			#m = self.regexp_seriesepisodes.match(name)
-			#if m:
-			#	print m.group(0)       # The entire match
-			#	print m.group(1)       # The first parenthesized subgroup.
-			#	name = m.group(1)
-			
-			
-			description = "TODO"
-			
+			m = self.regexp_seriesepisodes.match(name)
+			if m:
+				print m.group(0)       # The entire match
+				print m.group(1)       # The first parenthesized subgroup.
+				name = m.group(1)
 			
 			info = self.serviceHandler.info(ref)
 			if not info:
 				print _("SeriesPluginRenamer: No info available")
-				return
+				return self.renameNext()
 			
-			channel = "TODO"
-			#rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-			#channel = ServiceReference(rec_ref_str).getServiceName()
-			
-			#channel = info and info.getName(ref)
-			#print "channel", channel
-			
-			#channel = ServiceReference(ref).getServiceName()
-			#print "channel", channel
-			
+			rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
+			channel = ServiceReference(rec_ref_str).getServiceName()
+			print "channel", channel
 			
 			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
 			if begin != -1:
@@ -145,12 +132,19 @@ class SeriesPluginRenamer(Screen):
 				end = os.path.getmtime(ref.getPath())
 				begin = end - (info.getLength(ref) or 0)
 				#MAYBE we could also try to parse the filename
+			
+			begin = datetime.fromtimestamp(begin)
+			end = datetime.fromtimestamp(end)
 			print begin
 			print end
 			
-			short = "TODO"
+			event = info.getEvent(ref)
+			short = event and event.getShortDescription() or ""
+			print "short", short
 			
-			self.appendText( _("Search: ") + name )
+			description = "TODO Don't worry Not used"
+			
+			self.appendText( _("Search: ") + name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
 			
 			self.seriesPlugin.getEpisode(
 					boundFunction(self.episodeCallback, ref, name, short, description), 
@@ -169,14 +163,12 @@ class SeriesPluginRenamer(Screen):
 			print data
 			
 			name = self.seriesPlugin.refactorTitle(name, data)
-			description = self.seriesPlugin.refactorDescription(description, data)
-			
+			short = self.seriesPlugin.refactorDescription(short, data)
 			print name
-			print description
+			print short
 			
 			#MAYBE Check if it is already renamed?
-			
-			self.renameSeries(ref, name, description)
+			self.renameSeries(ref, name, short)
 			self.renameFile(ref, name)
 			
 			try:
@@ -189,7 +181,7 @@ class SeriesPluginRenamer(Screen):
 			except:
 				pass
 		
-		#self.renameNext()
+		self.renameNext()
 
 	# Adapted from MovieRetitle setTitleDescr
 	def renameSeries(self, service, title, descr):

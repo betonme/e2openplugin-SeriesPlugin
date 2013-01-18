@@ -19,6 +19,8 @@
 # for localized messages
 from . import _
 
+from datetime import datetime
+
 # Config
 from Components.config import *
 
@@ -49,6 +51,9 @@ class SeriesPluginTimer(object):
 		# Overwrite begin / end or use timer values
 		begin = begin or timer.begin
 		end = end or timer.end
+		
+		begin = datetime.fromtimestamp(begin)
+		end = datetime.fromtimestamp(end)
 		
 		short = timer.description
 		print short

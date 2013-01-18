@@ -9,22 +9,22 @@ from thread import start_new_thread
 #Twisted 8.x
 from twisted.web.client import _parse, HTTPClientFactory
 from twisted.internet import reactor
-from twisted.internet.error import ConnectionDone
 
 from Tools.BoundFunction import boundFunction
 
 # Internal
 from ModuleBase import ModuleBase
-from Helper import Cacher, Throttler, Limiter, ChannelUnifier, INTER_QUERY_TIME
+from Helper import Connector, Cacher, Throttler, Limiter, Retry, ChannelUnifier, INTER_QUERY_TIME
 
 
-class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, ChannelUnifier):
+class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, Retry, ChannelUnifier):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
 		Throttler.__init__(self)
 		Limiter.__init__(self)
 		ChannelUnifier.__init__(self)
+		Retry.__init__(self)
 		
 		#Twisted 12.x use
 		#self.deferreds = []
@@ -38,8 +38,12 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, ChannelUnifier):
 		print url
 		
 		# Handle throttling
-		self.throttle(url)
+		#while True:
 		cached = self.getCached(url, expires)
+		#	if cached:
+		#		break
+		#	elif not self.throttle(url):
+		#		break
 		
 		if cached:
 			print "SSBase cached"
@@ -50,7 +54,7 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, ChannelUnifier):
 		
 		else:
 			print "SSBase not cached"
-			self.start(url)
+			#self.increment(url)
 			try:
 				#Twisted 12.x use
 				#deferred = twGetPage(url, timeout = 5)
@@ -86,7 +90,7 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, ChannelUnifier):
 	def base_callback(self, connector, callback, id, url, page=None, *args, **kwargs):
 		print "callback", args, kwargs
 		try:
-			self.end()
+			#self.decrement()
 			if connector and connector in self.connectors.get(id, []):
 				self.connectors[id].remove(connector)
 			if page:
@@ -99,18 +103,17 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, ChannelUnifier):
 			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
 
 	def base_errback(self, connector, callback, id, url, *args, **kwargs):
-		self.end()
+		#self.decrement()
 		if connector in self.connectors.get(id, []):
 			self.connectors[id].remove(connector)
 		print "errback", args, kwargs
 		for arg in args:
-			print arg
-			print arg.type
-			if isinstance(arg, ConnectionDone):
+			if self.retry(arg, url):
+				# TODO Attention there is no retry counter yet
 				print "RETRY"
 				start_new_thread(self.getPage(callback, id, url))
 				return
-			if isinstance(arg, Exception):
+			elif isinstance(arg, Exception):
 				print _("Twisted failed:\n%s\n%s") % (arg.type, arg.value)
 			elif arg:
 				print _("Twisted failed\n%s") % str(arg)
