@@ -32,12 +32,21 @@ from Tools.Notifications import AddPopup
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 from Logger import splog
+import NavigationInstance
 
+# AutoTimerIgnoreEntry
+try:
+	from Plugins.Extensions.AutoTimer.AutoTimerComponent import AutoTimerIgnoreEntry
+except ImportError as ie:
+	AutoTimerIgnoreEntry = None
+
+pattern1 = "S{season:d}E{episode:d}"
+pattern2 = "S{season:02d}E{episode:02d}"
 
 #######################################################
 # Label timer
 class SeriesPluginTimer(object):
-	def __init__(self, timer, name, begin, end):
+	def __init__(self, timer, name, begin, end, avoidDuplicates=False, timers=None, moviedict=None, autotimer=None, *args, **kwargs):
 		self.timer = timer
 		
 		splog("SeriesPluginTimer")
@@ -45,6 +54,11 @@ class SeriesPluginTimer(object):
 		
 		self.seriesPlugin = getInstance()
 		
+		self.autoTimer = autotimer
+		self.timers = timers
+		self.moviedict = moviedict
+		self.avoidDuplicates = avoidDuplicates
+		splog("SeriesPluginTimer avoidDuplicates=" + str(self.avoidDuplicates))
 		if timer.service_ref:
 			channel = timer.service_ref.getServiceName()
 			splog(channel)
@@ -64,11 +78,49 @@ class SeriesPluginTimer(object):
 		
 		if data and len(data) == 4 and timer:
 			# Episode data available, refactor name and description
-			from SeriesPluginRenamer import newLegacyEncode
-			timer.name = refactorTitle(timer.name, data)
-			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
-			timer.description = refactorDescription(timer.description, data)
-		
+			removeTimer = False
+			if self.avoidDuplicates:
+				dirname = timer.dirname
+				# Update list of known episodes
+				if not self.moviedict == None:
+					self.seriesPlugin.addMoviesToEpisodes(dirname, self.moviedict)
+				if not self.timers == None:
+					self.seriesPlugin.addTimersToEpisodes(self.timers, False)
+				# Check if the current Episode is already in the list...
+				season, episode, title, series = data
+				episode1 = pattern1.format( **{'season': season, 'episode': episode} )
+				episode2 = pattern2.format( **{'season': season, 'episode': episode} )
+				splog("SeriesPluginTimer: check duplicates for series: " + series)
+				if series in self.seriesPlugin.existingEpisodes:
+					splog("SeriesPluginTimer: series found")
+					existingEpisodes = self.seriesPlugin.existingEpisodes[series]
+					splog("SeriesPluginTimer: check duplicates for episode: " + episode1 + " ; " + episode2)	
+					if episode1 in existingEpisodes or \
+						episode2 in existingEpisodes:
+						# If AutoTimer already knows about ignoreentries: Add this timer so that it will not be readded.
+						if not AutoTimerIgnoreEntry is None:
+							ignoreEntry = AutoTimerIgnoreEntry( serviceref=timer.service_ref, eit=timer.eit, begin=timer.begin, end=timer.end, name=timer.name, description=timer.description )
+							splog("SeriesPluginTimer: Adding IgnoreEntry: " + ignoreEntry.name)
+							if not self.autoTimer == None:
+								self.autoTimer.addIgnore( ignoreEntry, writexml=True )
+						removeTimer = True
+					else:
+						splog("SeriesPluginTimer: episode not found in " + str(existingEpisodes))
+				else:
+					splog("SeriesPluginTimer: series not found in " + str(self.seriesPlugin.existingEpisodes.keys()))
+			if removeTimer:
+				splog("SeriesPluginTimer: Removing Duplicate Timer:" + timer.name + " : " + str( data ))
+				if timer in NavigationInstance.instance.RecordTimer.processed_timers:
+					NavigationInstance.instance.RecordTimer.processed_timers.remove(timer)
+				elif timer in NavigationInstance.instance.RecordTimer.timer_list:
+					NavigationInstance.instance.RecordTimer.timer_list.remove(timer)
+			else:
+				series = timer.name
+				timer.name = refactorTitle(timer.name, data)
+				#from SeriesPluginRenamer import newLegacyEncode
+				#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
+				timer.description = refactorDescription(timer.description, data)
+				self.seriesPlugin.addEpisode(timer.name, timer.description, timer.extdesc, series=series)
 		#TODO avoid to many PopUps
 		
 		elif data:

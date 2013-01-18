@@ -1,4 +1,5 @@
 
+import re
 import os, sys, traceback
 
 # Localization
@@ -25,7 +26,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.7.2"
+VERSION = "0.8.0"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -211,7 +212,7 @@ def renameTimer(timer, name, begin, end, *args, **kwargs):
 			#reload(SeriesPluginTimer)
 			#SeriesPluginTimer.SeriesPluginTimer(timer)
 			###
-			SeriesPluginTimer(timer, name, begin, end)
+			SeriesPluginTimer(timer, name, begin, end, *args, **kwargs)
 		except Exception, e:
 			splog(_("SeriesPlugin label exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -220,7 +221,6 @@ def renameTimer(timer, name, begin, end, *args, **kwargs):
 			splog( exc_type, exc_value, exc_traceback )
 	else:
 		splog("Skip timer because it is already modified", timer.name, name, len(timer.name), len(name) )
-
 
 # For compatibility reasons
 def modifyTimer(timer, name, *args, **kwargs):

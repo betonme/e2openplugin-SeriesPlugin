@@ -96,10 +96,10 @@ class Cacher(object):
 #		return False
 
 
-ComiledRegexpSeries = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 OR 01x01 + optional title
+CompiledRegexpSeries = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 OR 01x01 + optional title
 def unifyName(text):
 	# Remove Series Episode naming
-	m = ComiledRegexpSeries.match(text)
+	m = CompiledRegexpSeries.match(text)
 	if m:
 		#splog(m.group(0))     # Entire match
 		#splog(m.group(1))     # First parenthesized subgroup
@@ -133,15 +133,15 @@ ChannelReplaceDict = OrderedDict([
 	('\xc3\x9c', 'ue'),
 	('\xc3\x9f', 'ss'),
 ])
-ComiledRegexpChannelUnify = re.compile('|'.join(ChannelReplaceDict))
-ComiledRegexpChannelFilter = re.compile('[\W_]+')
+CompiledRegexpChannelUnify = re.compile('|'.join(ChannelReplaceDict))
+CompiledRegexpChannelFilter = re.compile('[\W_]+')
 def unifyChannel(text):
 	def translate(match):
 		m = match.group(0)
 		return ChannelReplaceDict.get(m, m)
 	
-	text = ComiledRegexpChannelUnify.sub(translate, text)
+	text = CompiledRegexpChannelUnify.sub(translate, text)
 	text = text.decode("utf-8").encode("latin1")
-	text = ComiledRegexpChannelFilter.sub('', text)
+	text = CompiledRegexpChannelFilter.sub('', text)
 	return text.strip().lower()
 

@@ -26,6 +26,7 @@ from Tools.Notifications import AddPopup
 from Screens.MessageBox import MessageBox
 
 # Plugin internal
+from itertools import chain
 from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
@@ -34,14 +35,14 @@ from Logger import splog
 
 # Constants
 IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
-MANAGER_PATH    = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Managers/" )
-GUIDE_PATH      = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Guides/" )
+MANAGER_PATH	= os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Managers/" )
+GUIDE_PATH	  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Guides/" )
 
 
 # Globals
 instance = None
 
-ComiledRegexpNonDecimal = re.compile(r'[^\d.]+')
+CompiledRegexpNonDecimal = re.compile(r'[^\d.]+')
 
 
 def getInstance():
@@ -106,45 +107,45 @@ class QueueWithTimeOut(Queue):
 
 
 def _async_raise(tid, exctype):
-    """raises the exception, performs cleanup if needed"""
-    if not inspect.isclass(exctype):
-        raise TypeError("Only types can be raised (not instances)")
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
-    if res == 0:
-        raise ValueError("invalid thread id")
-    elif res != 1:
-        # """if it returns a number greater than one, you're in trouble, 
-        # and you should call it again with exc=NULL to revert the effect"""
-        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
-        raise SystemError("PyThreadState_SetAsyncExc failed")
+	"""raises the exception, performs cleanup if needed"""
+	if not inspect.isclass(exctype):
+		raise TypeError("Only types can be raised (not instances)")
+	res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
+	if res == 0:
+		raise ValueError("invalid thread id")
+	elif res != 1:
+		# """if it returns a number greater than one, you're in trouble, 
+		# and you should call it again with exc=NULL to revert the effect"""
+		ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+		raise SystemError("PyThreadState_SetAsyncExc failed")
 
 
 class Thread(threading.Thread):
-    def _get_my_tid(self):
-        """determines this (self's) thread id"""
-        if not self.isAlive():
-            raise threading.ThreadError("the thread is not active")
-        
-        # do we have it cached?
-        if hasattr(self, "_thread_id"):
-            return self._thread_id
-        
-        # no, look for it in the _active dict
-        for tid, tobj in threading._active.items():
-            if tobj is self:
-                self._thread_id = tid
-                return tid
-        
-        raise AssertionError("could not determine the thread's id")
-    
-    def raise_exc(self, exctype):
-        """raises the given exception type in the context of this thread"""
-        _async_raise(self._get_my_tid(), exctype)
-    
-    def terminate(self):
-        """raises SystemExit in the context of the given thread, which should 
-        cause the thread to exit silently (unless caught)"""
-        self.raise_exc(SystemExit)
+	def _get_my_tid(self):
+		"""determines this (self's) thread id"""
+		if not self.isAlive():
+			raise threading.ThreadError("the thread is not active")
+		
+		# do we have it cached?
+		if hasattr(self, "_thread_id"):
+			return self._thread_id
+		
+		# no, look for it in the _active dict
+		for tid, tobj in threading._active.items():
+			if tobj is self:
+				self._thread_id = tid
+				return tid
+		
+		raise AssertionError("could not determine the thread's id")
+	
+	def raise_exc(self, exctype):
+		"""raises the given exception type in the context of this thread"""
+		_async_raise(self._get_my_tid(), exctype)
+	
+	def terminate(self):
+		"""raises SystemExit in the context of the given thread, which should 
+		cause the thread to exit silently (unless caught)"""
+		self.raise_exc(SystemExit)
 
 
 class SeriesPluginWorkerThread(Thread):
@@ -189,8 +190,8 @@ class SeriesPluginWorkerThread(Thread):
 		
 		if data and len(data) == 4:
 			season, episode, title, series = data
-			season = int(ComiledRegexpNonDecimal.sub('', season))
-			episode = int(ComiledRegexpNonDecimal.sub('', episode))
+			season = int(CompiledRegexpNonDecimal.sub('', season))
+			episode = int(CompiledRegexpNonDecimal.sub('', episode))
 			title = title.strip()
 			callback( (season, episode, title, series) )
 		else:
@@ -240,6 +241,10 @@ class SeriesPlugin(Modules):
 		
 		self.identifier_future = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_future.value )
 		splog(self.identifier_future)
+		
+		self.existingEpisodes = {}
+		self.timersRead = False
+		self.directoriesRead = {}
 		
 		#self.managers = self.loadModules(MANAGER_PATH, ManagerBase)
 		#if self.managers:
@@ -357,3 +362,55 @@ class SeriesPlugin(Modules):
 
 	def cancel(self):
 		self.stop()
+
+	################################################
+	# Avoid duplicates functions
+	def addTimersToEpisodes(self, timers, force = False):
+		splog("SeriesPlugin addTimersToEpisodes")
+		if not self.timersRead or force:
+			try:
+				for timer in chain.from_iterable( timers.itervalues() ):
+					name = timer.name
+					description = timer.description or ''
+					extdesc = timer.extdesc or ''						
+					self.addEpisode(name, description, extdesc)
+				self.timersRead = True
+			except Exception, e:
+				splog("SeriesPlugin.addTimersToEpisodes Exception:" + str(e))
+
+	def addMoviesToEpisodes(self, dest, moviedict):
+		splog("SeriesPlugin addMoviesToEpisodes:" + dest)
+		if not dest in self.directoriesRead:
+			try:
+				for movieinfo in moviedict.get(dest, ()):
+					name = movieinfo.get("name")
+					description = movieinfo.get("shortdesc") or '' 
+					extdesc = movieinfo.get("exntdesc") or ''					
+					self.addEpisode(name, description, extdesc)
+				self.directoriesRead[dest] = True
+			except Exception, e:
+				splog("SeriesPlugin.addMoviesToEpisodes Exception:" + str(e))
+	
+	def addEpisode(self, name, description, extdesc, series = ''):
+		splog("SeriesPlugin.addEpisode name=" + name)
+		try:
+			episode = self.getEpisodeFromString( name + description + extdesc )
+			if series == '':
+				series = name.replace( episode, '').strip()
+			splog("SeriesPlugin.addEpisode series=" + series + ";")
+			if not series in self.existingEpisodes:
+				self.existingEpisodes[series] = []
+			if not episode in self.existingEpisodes[series]:
+				self.existingEpisodes[series].append(episode)
+		except Exception, e:
+			splog("SeriesPlugin.addEpisode Exception:" + str(e))
+	
+	#######################################################
+	# Getting Series- Info from String
+	def getEpisodeFromString(self, strinput):
+		splog("SeriesPlugin.getEpisodeFromString Searching Series for:" + strinput)
+		match = re.compile('(S[0-9]+[0-9]*)(E[0-9]+[0-9]*)')
+		res = match.search(strinput)
+		resGroup = res.group(0) if (res.group(0) is not None) else ''
+		splog("SeriesPlugin.getEpisodeFromString Found:" + resGroup )
+		return resGroup
