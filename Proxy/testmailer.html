@@ -1,0 +1,13 @@
+<!-- Die Encoding-Art enctyoe MUSS wie dargestellt angegeben werden -->
+<form enctype="multipart/form-data" action="mailer.php" method="POST">
+    <!-- MAX_FILE_SIZE muss vor dem Dateiupload Input Feld stehen -->
+    <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
+    <!-- Der Name des Input Felds bestimmt den Namen im $_FILES Array -->
+    Diese Datei hochladen: <input name="logfile" type="file" />
+    <input type="submit" value="Send File" />
+
+<INPUT TYPE=hidden NAME="subject" VALUE="tttt">
+<INPUT TYPE=hidden NAME="message" VALUE="mmm">
+<INPUT TYPE=hidden NAME="replyto" VALUE="asdf@jkl.de">
+
+</form>
