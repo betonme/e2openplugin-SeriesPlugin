@@ -1,54 +1,22 @@
 <?php
 	// Only if You want to debug something 
+	error_reporting(0);
 	//error_reporting(E_ALL);
 	
-	/*
-		Server-Side Google Analytics PHP Client
-		http://code.google.com/p/php-ga/
-	*/
-	require_once 'autoload.php';
-	
-	use UnitedPrototype\GoogleAnalytics;
-	
-	// Initilize GA Tracker
-	$tracker = new GoogleAnalytics\Tracker('UA-31168065-1', 'SeriesPlugin');
-	
-	// Assemble Visitor information
-	// (could also get unserialized from database)
-	$visitor = new GoogleAnalytics\Visitor();
-	$visitor->setIpAddress($_SERVER['REMOTE_ADDR']);
-	$visitor->setUserAgent($_SERVER['HTTP_USER_AGENT']);
-	
-	// Assemble Session information
-	// (could also get unserialized from PHP session)
-	$session = new GoogleAnalytics\Session();
-	
-	// Assemble Page information
-	$page = new GoogleAnalytics\Page($_SERVER["REQUEST_URI"]);
-	$page->setTitle('SeriesPlugin Proxy');
-
-	function addGACustomVariable($index, $name, $value) {
-		global $tracker;
-		
-		// Assemble Visitor information
-		$custom = new GoogleAnalytics\CustomVariable($index, $name, $value);
-		$tracker->addCustomVariable($custom);
-	}
-	
-	function sendGAPageView() {
-		global $tracker, $page, $session, $visitor;
-		
-		// Track page view
-		$tracker->trackPageview($page, $session, $visitor);
-	
-		// Only if You want to debug something 
-		//print_r(error_get_last());
-	}
+	// Google Analytics without utilizing the clients
+	// 25.04.202 by Frank Glaser
+	// http://tecjunkie.blogspot.de/2012/04/google-analytics-without-utilizing.html
+	// Very helpfull:
+	// https://developers.google.com/analytics/resources/articles/gaTrackingTroubleshooting?hl=de-DE#gifParameters
+	// http://www.slideshare.net/yuhuibc/how-to-check-google-analytics-tags-7532272
+	$GA_Account = 'MO-31168065-1';
+	$GA_Variable = '';
+	$GA_Value = '';
+	include('ga.php');
 
 
 	/*
 	Copyright (c) 2011 Manuel Strehl
-	http://www.manuel-strehl.de/dev/a_minimal_proxy_with_php_and_sqlite.en.html
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -80,9 +48,9 @@
 	// allow requests only to these domains
 	$whitelist = array('www.wunschliste.de', 'www.fernsehserien.de');
 	 
-	// cache ressources for 3 days = one hour * 24 * 3
-	$cache_duration = 60*60 *24*3;
-	$then = time() - $cache_duration;
+	// cache ressources for 1 day = one hour * 24 * 1
+	$cache_duration = 60*60 *24*1;
+	$then = mktime() - $cache_duration;
 	$expires = $then + 2*$cache_duration;
 	$max_age = $cache_duration;
 	
@@ -123,11 +91,15 @@
 							'content' => 'null',
 					);
 			}
-			addGACustomVariable(1, 'Cached', 'Yes');
+			global $GA_Variable, $GA_Value;
+			$GA_Variable = 'Cached';
+			$GA_Value = 'Yes';
 	} else {
 			$expires = $entry['age'] + $cache_duration;
 			$max_age = $entry['age'] - $then;
-			addGACustomVariable(1, 'Cached', 'No');
+			global $GA_Variable, $GA_Value;
+			$GA_Variable = 'Cached';
+			$GA_Value = 'No';
 	}
 	
 	header('Content-Type: '.$entry['type']);
@@ -189,8 +161,12 @@
 					'content' => $c
 			);
 	}
-
-
-	// GoogleAnalytics
-	sendGAPageView();
+	
+	trackPageView($GA_Account, 'SeriesPlugin Proxy', $GA_Variable, $GA_Value);
+	
+	// Only if You want to debug something 
+	//print_r(error_get_last());
+	
+	/* The PDO class does not come with a function for closing a connection, and so any PDO connection will sit idle until you explicitly dispose of it. */
+	unset($db);
 ?>
