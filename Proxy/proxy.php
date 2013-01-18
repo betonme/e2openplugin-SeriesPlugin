@@ -1,69 +1,70 @@
 <?php
+	// Only if You want to debug something 
+	//error_reporting(E_ALL);
+	
+	/*
+		Server-Side Google Analytics PHP Client
+		http://code.google.com/p/php-ga/
+	*/
+	require_once 'autoload.php';
+	
+	use UnitedPrototype\GoogleAnalytics;
+	
+	// Initilize GA Tracker
+	$tracker = new GoogleAnalytics\Tracker('UA-31168065-1', 'SeriesPlugin');
+	
+	// Assemble Visitor information
+	// (could also get unserialized from database)
+	$visitor = new GoogleAnalytics\Visitor();
+	$visitor->setIpAddress($_SERVER['REMOTE_ADDR']);
+	$visitor->setUserAgent($_SERVER['HTTP_USER_AGENT']);
+	
+	// Assemble Session information
+	// (could also get unserialized from PHP session)
+	$session = new GoogleAnalytics\Session();
+	
+	// Assemble Page information
+	$page = new GoogleAnalytics\Page($_SERVER["REQUEST_URI"]);
+	$page->setTitle('SeriesPlugin Proxy');
 
-	// Google Analytics without utilizing the clients
-	// 25.04.202 by Frank Glaser
-	// http://tecjunkie.blogspot.de/2012/04/google-analytics-without-utilizing.html
-	// Very helpfull:
-	// https://developers.google.com/analytics/resources/articles/gaTrackingTroubleshooting?hl=de-DE#gifParameters
-	// http://www.slideshare.net/yuhuibc/how-to-check-google-analytics-tags-7532272
-	$GA_ACCOUNT = "MO-31168065-1";
-	$GA_PHP = "ga.php";
-
-	function initPageView() {
-		global $GA_ACCOUNT, $GA_PHP;
-		
-		$_GET["utmac"] = $GA_ACCOUNT;
-		$_GET["utmn"] = rand(0, 0x7fffffff);
-		
-		if ( isset($_SERVER["HTTP_REFERER"]) ) {
-			$referer = $_SERVER["HTTP_REFERER"];
+	function sendGoogleAnalyticsEvent($category, $action, $label = null, $value = null, $noninteraction = true) {
+		global $tracker, $page, $session, $visitor;
+		$event = new GoogleAnalytics\Event();
+		$event->setCategory($category);
+		$event->setAction($action);
+		if ($label){
+			$event->setLabel($label);
+		}
+		if ($value){
+			$event->setValue($value);
+		}
+		if ($noninteraction){
+			$event->setNoninteraction("true");
 		} else {
-			$referer = null;
+			$event->setNoninteraction("false");
 		}
-		if (empty($referer)) {
-			$referer = "-";
-		}
-		$_GET["utmr"] = $referer;
-		
-		if ( isset($_SERVER["REQUEST_URI"]) ) {
-			$path = $_SERVER["REQUEST_URI"];
-		} else {
-			$path = null;
-		}
-		if (!empty($path)) {
-			$_GET["utmp"] = $path;
-		}
-		
-		$_GET["guid"] = "ON";
-		
-		//utmdt
-		
-		include($GA_PHP);
+		$tracker->trackEvent($page, $event, $session, $visitor);
 		
 		// Only if You want to debug something 
 		//print_r(error_get_last());
 	}
+
+	function sendGoogleAnalyticsPageView() {
+		global $tracker, $page, $session, $visitor;
+		// Track page view
+		$tracker->trackPageview($page, $session, $visitor);
 	
-	// Avoid sending anything before the Google Analytics Code
-	// Else You will get:
-	// Warning: Cannot modify header information - headers already sent by
-	initPageView();
-
-	function addCustomVariable($index, $name, $value) {
-		$_GET["utmt"] = 'custom variable';
-		#utms=1&
-		#utme=8(Cached)9(Yes)&
-		$_GET["utme"] = '8(' . $name . ')' . '9(' . $value . ')';
-	}
-
-	function sendPageView() {
-		trackPageView();
+		// Only if You want to debug something 
 		//print_r(error_get_last());
 	}
+	
+	// Could we load the request from cache
+	$fromcache = false;
 
 
 	/*
 	Copyright (c) 2011 Manuel Strehl
+	http://www.manuel-strehl.de/dev/a_minimal_proxy_with_php_and_sqlite.en.html
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
@@ -97,7 +98,7 @@
 	 
 	// cache ressources for 3 days = one hour * 24 * 3
 	$cache_duration = 60*60 *24*3;
-	$then = mktime() - $cache_duration;
+	$then = time() - $cache_duration;
 	$expires = $then + 2*$cache_duration;
 	$max_age = $cache_duration;
 	
@@ -120,6 +121,8 @@
 	
 	// no entry found in cache
 	if ($entry === False) {
+			$fromcache = false;
+			
 			// prune cache
 			$stm = $db->prepare('DELETE FROM cache WHERE url = ? OR age < ?');
 			$stm->execute(array($url, $then));
@@ -138,11 +141,10 @@
 							'content' => 'null',
 					);
 			}
-			addCustomVariable(1, 'Cached', 'Yes');
 	} else {
+			$fromcache = true;
 			$expires = $entry['age'] + $cache_duration;
 			$max_age = $entry['age'] - $then;
-			addCustomVariable(1, 'Cached', 'No');
 	}
 	
 	header('Content-Type: '.$entry['type']);
@@ -204,6 +206,15 @@
 					'content' => $c
 			);
 	}
-	
-	sendPageView();
+
+
+	// GoogleAnalyticsEvent
+	if ($fromcache){
+		sendGoogleAnalyticsEvent('Proxy', 'Cache', 'From Cache');
+	} else {
+		sendGoogleAnalyticsEvent('Proxy', 'Source', 'From Source');
+	}
+
+	// GoogleAnalytics
+	sendGoogleAnalyticsPageView();
 ?>
