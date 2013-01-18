@@ -131,8 +131,8 @@
 					curl_setopt($ch, CURLOPT_URL, $url);
 					curl_setopt($ch, CURLOPT_USERAGENT, "My little cacher");
 					curl_setopt($ch, CURLOPT_HEADER, 1); // we want the HTTP headers, too
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // we need the stuff as 
-																													// string, not printed out
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // we need the stuff as string, not printed out
+					curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 					curl_setopt($ch, CURLOPT_TIMEOUT, 10); // set a timeout for safety
 	
 					// the output is normalized to UNIX line endings (ASCII x10)
