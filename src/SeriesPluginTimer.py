@@ -28,6 +28,7 @@ from Tools.BoundFunction import boundFunction
 
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
+from Logger import splog
 
 
 #######################################################
@@ -35,31 +36,31 @@ from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 class SeriesPluginTimer(object):
 	def __init__(self, timer, name, begin, end):
 		self.timer = timer
-		self.seriesPlugin = getInstance()
 		
-		print "SeriesPluginTimer label"
-		print name, timer.name
+		splog("SeriesPluginTimer")
+		splog(name, timer.name)
+		
+		self.seriesPlugin = getInstance()
 		
 		if timer.service_ref:
 			channel = timer.service_ref.getServiceName()
-			print channel
+			splog(channel)
 			
 			self.seriesPlugin.getEpisode(
 					self.timerCallback,
 					name, begin, end, channel, future=True
 				)
 		else:
-			print "SeriesPluginTimer: No channel specified"
+			splog("SeriesPluginTimer: No channel specified")
 			self.callback()
 
 	def timerCallback(self, data=None):
-		print "SeriesPluginTimer timerCallback"
-		print data
+		splog("SeriesPluginTimer timerCallback")
+		splog(data)
 		timer = self.timer
 		if data and timer:
 			# Episode data available, refactor name and description
+			from SeriesPluginRenamer import newLegacyEncode
 			timer.name = refactorTitle(timer.name, data)
-			print timer.name
+			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = refactorDescription(timer.description, data)
-			print timer.description
-

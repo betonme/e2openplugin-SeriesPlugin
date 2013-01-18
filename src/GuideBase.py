@@ -6,7 +6,9 @@ from twisted.web.client import getPage as twGetPage
 
 from Tools.BoundFunction import boundFunction
 
+# Plugin internal
 from ModuleBase import ModuleBase
+from Logger import splog
 
 
 # Max Age (in seconds) of each feed in the cache
@@ -25,16 +27,16 @@ class GuideBase(ModuleBase):
 
 
 	def getPage(self, callback, url, expires=INTER_QUERY_TIME):
-		print "GSBase getPage"
-		print url
+		splog("GSBase getPage")
+		splog(url)
 		cached = self.getCached(url, expires)
 		
 		if cached:
-			print "GSBase cached"
+			splog("GSBase cached")
 			self.base_callback(callback, url, cached)
 		
 		else:
-			print "GSBase not cached"
+			splog("GSBase not cached")
 			#TODO think about throttling http://code.activestate.com/recipes/491261/
 			try:
 				deferred = twGetPage(url, timeout = 5)
@@ -43,17 +45,18 @@ class GuideBase(ModuleBase):
 				self.deferreds.append(deferred)
 			except Exception, e:
 				import os, sys, traceback
-				print _("SeriesPlugin getPage exception ") + str(e)
+				splog(_("SeriesPlugin getPage exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
-				traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				splog( exc_type, exc_value, exc_traceback.format_exc() )
 				callback()
 
 	def base_callback(self, callback, url, page=None, *args, **kwargs):
 		try:
-			print "callback", args, kwargs
-			#print page
-			#print args
-			#print kwargs
+			splog("callback", args, kwargs)
+			#splog(page)
+			#splog(args)
+			#splog(kwargs)
 			if page:
 				cache[url] = (time(), page)
 				callback( page )
@@ -61,12 +64,13 @@ class GuideBase(ModuleBase):
 				callback( None )
 		except Exception, e:
 			import os, sys, traceback
-			print _("SeriesPlugin getPage exception ") + str(e)
+			splog(_("SeriesPlugin getPage exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
-			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 	def base_errback(self, callback, *args, **kwargs):
-		print "errback", args, kwargs
+		splog("errback", args, kwargs)
 		callback( None )
 
 	def cancel(self):

@@ -30,17 +30,40 @@ from Screens.MessageBox import MessageBox
 from Tools.Notifications import AddPopup
 
 from Tools.BoundFunction import boundFunction
+from Tools.ASCIItranslit import ASCIItranslit
 
 from enigma import eServiceCenter, iServiceInformation, eServiceReference
 from ServiceReference import ServiceReference
 
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
+from Logger import splog
 
+
+# By Bin4ry
+def newLegacyEncode(string):
+	string2 = ""
+	for z, char in enumerate(string.decode("utf-8")):
+		i = ord(char)
+		if i < 33:
+			string2 += " "
+		elif i in ASCIItranslit:
+			# There is a bug in the E2 ASCIItranslit some (not all) german-umlaut(a) -> AE
+			if char.islower():
+				string2 += ASCIItranslit[i].lower()
+			else:
+				string2 += ASCIItranslit[i]
+				
+		else:
+			try:
+				string2 += char.encode('ascii', 'strict')
+			except:
+				string2 += " "
+	return string2
 
 def rename(service, name, short, data):
 	# Episode data available
-	print data
+	splog(data)
 	
 	#MAYBE Check if it is already renamed?
 	try:
@@ -87,27 +110,27 @@ def renameMeta(service, data):
 			metafile.close()
 			
 			title = refactorTitle(oldtitle, data)
-			print title
+			splog(title)
 			descr = refactorDescription(olddescr, data)
-			print descr
+			splog(descr)
 			
 			metafile = open(meta_file, "w")
 			metafile.write("%s%s\n%s\n%s" % (sid, title, descr, rest))
 			metafile.close()
 	except Exception, e:
-		print e
+		splog(e)
 
 def renameFile(service, name, data):
 	try:
 		path = os.path.dirname(service.getPath())
 		file_name = os.path.basename(os.path.splitext(service.getPath())[0])
 		
-		if config.plugins.seriesplugin.rename_tidy.value:
-			# Refactor title
+		# Refactor title
+		if config.plugins.seriesplugin.tidy_rename.value:
 			name = refactorTitle(name, data)
 		else:
-			# Refactor filename
 			name = refactorTitle(file_name, data)
+		name = newLegacyEncode(name)
 		
 		src = os.path.join(path, file_name)
 		dst = os.path.join(path, name)
@@ -115,12 +138,14 @@ def renameFile(service, name, data):
 		for f in glob.glob(os.path.join(path, src + "*")):
 			os.rename(f, f.replace(src, dst))
 	except Exception, e:
-		print e
+		splog(e)
 
 
 class SeriesPluginService(object):
 	def __init__(self, service, callback=None):
 		self.callback = callback
+		
+		splog("SeriesPluginRenamer")
 		self.seriesPlugin = getInstance()
 		self.serviceHandler = eServiceCenter.getInstance()
 		
@@ -129,20 +154,20 @@ class SeriesPluginService(object):
 		elif isinstance(service, ServiceReference):
 			self.service = service.ref
 		else:
-			print _("SeriesPluginRenamer: Wrong instance")
+			splog(_("SeriesPluginRenamer: Wrong instance"))
 			return self.callback(service)
 		
 		if not os.path.exists( service.getPath() ):
-			print _("SeriesPluginRenamer: File not exists: ") + service.getPath()
+			splog(_("SeriesPluginRenamer: File not exists: ") + service.getPath())
 			return self.callback(service)
 		
 		info = self.serviceHandler.info(service)
 		if not info:
-			print _("SeriesPluginRenamer: No info available: ") + service.getPath()
+			splog(_("SeriesPluginRenamer: No info available: ") + service.getPath())
 			return self.callback(service)
 		
 		self.name = service.getName() or info.getName(service) or ""
-		print "name", self.name
+		splog("name", self.name)
 		
 		self.short = ""
 		begin = None
@@ -176,8 +201,8 @@ class SeriesPluginService(object):
 			)
 
 	def serviceCallback(self, data=None):
-		print "SeriesPluginTimer serviceCallback"
-		print data
+		splog("SeriesPluginTimer serviceCallback")
+		splog(data)
 		
 		result = self.service
 		

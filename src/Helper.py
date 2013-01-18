@@ -4,6 +4,8 @@ import re
 
 from time import time, sleep
 
+from Logger import splog
+
 try:
 	#Python >= 2.7
 	from collections import OrderedDict
@@ -25,9 +27,9 @@ cache = {}
 
 
 # Dummy Connector for cached pages
-class Connector(object):
-	def disconnect(self):
-		pass
+#class Connector(object):
+#	def disconnect(self):
+#		pass
 
 
 class Cacher(object):
@@ -72,14 +74,35 @@ class Cacher(object):
 		global cache
 		cache[url] = (time(), page)
 
+#class Retry(object):
+#	
+#	EXCEPTIONS_TO_RETRY = (TimeoutError, DNSLookupError,
+#												 ConnectionRefusedError, ConnectionDone, ConnectError,
+#												 ConnectionLost, PartialDownloadError)
+#	
+#	def __init__(self, retryLimit=3, retryDelay=5):
+#		self.retryLimit = retryLimit
+#		# The number of seconds to wait between retry requests
+#		self.retryDelay = retryDelay
+#		self.retryCounter = {}
+#
+#	def retry(self, err, url):
+#		if isinstance(err, self.EXCEPTIONS_TO_RETRY):
+#			if self.retryCounter.get(url,0) <= self.retryLimit:
+#				self.retryCounter[url] = self.retryCounter.get(url,0) + 1
+#				sleep(self.retryDelay)
+#				return True
+#		# No retry because of major failure or retry limit has been reached
+#		return False
+
 
 ComiledRegexpSeries = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 OR 01x01 + optional title
 def unifyName(text):
 	# Remove Series Episode naming
 	m = ComiledRegexpSeries.match(text)
 	if m:
-		#print m.group(0)     # Entire match
-		#print m.group(1)     # First parenthesized subgroup
+		#splog(m.group(0))     # Entire match
+		#splog(m.group(1))     # First parenthesized subgroup
 		if m.group(1):
 			text = m.group(1)
 	return text
@@ -122,24 +145,3 @@ def unifyChannel(text):
 	text = ComiledRegexpChannelFilter.sub('', text)
 	return text.strip().lower()
 
-
-class Retry(object):
-	
-	EXCEPTIONS_TO_RETRY = (TimeoutError, DNSLookupError,
-												 ConnectionRefusedError, ConnectionDone, ConnectError,
-												 ConnectionLost, PartialDownloadError)
-	
-	def __init__(self, retryLimit=3, retryDelay=5):
-		self.retryLimit = retryLimit
-		# The number of seconds to wait between retry requests
-		self.retryDelay = retryDelay
-		self.retryCounter = {}
-
-	def retry(self, err, url):
-		if isinstance(err, self.EXCEPTIONS_TO_RETRY):
-			if self.retryCounter.get(url,0) <= self.retryLimit:
-				self.retryCounter[url] = self.retryCounter.get(url,0) + 1
-				sleep(self.retryDelay)
-				return True
-		# No retry because of major failure or retry limit has been reached
-		return False

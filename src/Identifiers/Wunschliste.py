@@ -18,6 +18,7 @@ from sys import maxint
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Helper import unifyChannel
+from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 
 # Constants
@@ -143,13 +144,13 @@ class Wunschliste(IdentifierBase):
 		
 		# Check preconditions
 		if not name:
-			print _("Skip Wunschliste: No show name specified")
+			splog(_("Skip Wunschliste: No show name specified"))
 			return callback()
 		if not begin:
-			print _("Skip Wunschliste: No begin timestamp specified")
+			splog(_("Skip Wunschliste: No begin timestamp specified"))
 			return callback()
 		
-		print "Wunschliste getEpisode"
+		splog("Wunschliste getEpisode")
 		
 		#Py2.6
 		delta = abs(datetime.now() - self.begin)
@@ -176,7 +177,7 @@ class Wunschliste(IdentifierBase):
 					)
 
 	def getSeriesCallback(self, data=None):
-		print "Wunschliste getSeriesListCallback"
+		splog("Wunschliste getSeriesListCallback")
 		serieslist = []
 		
 		if data and isinstance(data, basestring):
@@ -185,10 +186,10 @@ class Wunschliste(IdentifierBase):
 				values = line.split("|")
 				if len(values) == 3:
 					idname, countryyear, id = values
-					print id, idname
+					splog(id, idname)
 					serieslist.append( id )
 				else:
-					print "Wunschliste: ParseError: " + str(line)
+					splog("Wunschliste: ParseError: " + str(line))
 			serieslist.reverse()
 			data = serieslist
 		
@@ -200,7 +201,7 @@ class Wunschliste(IdentifierBase):
 		return data
 
 	def getNextSeries(self):
-		print "Wunschliste getNextSeries", self.ids
+		splog("Wunschliste getNextSeries", self.ids)
 		if self.ids:
 			#for id_name in data:
 			id = self.ids.pop()
@@ -222,7 +223,7 @@ class Wunschliste(IdentifierBase):
 			self.callback()
 
 	def getEpisodeFutureCallback(self, data=None):
-		print "Wunschliste getEpisodeFutureCallback"
+		splog("Wunschliste getEpisodeFutureCallback")
 		
 		if data and isinstance(data, basestring):
 		#if data and not isinstance(data, WLAtomParser):
@@ -231,7 +232,7 @@ class Wunschliste(IdentifierBase):
 			
 			parser = WLAtomParser()
 			parser.feed(data)
-			#print parser.list
+			#splog(parser.list)
 			
 			data = parser
 		
@@ -254,13 +255,13 @@ class Wunschliste(IdentifierBase):
 							delta = abs(self.begin - xbegin)
 							delta = delta.seconds + delta.days * 24 * 3600
 							#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-							print self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60
+							splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
 							
 							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 								result = ComiledRegexpAtomChannel.search(xtitle)
 								if result and len(result.groups()) >= 1:
 									xchannel = unifyChannel(result.group(1))
-									print self.channel, xchannel, len(self.channel), len(xchannel)
+									splog(self.channel, xchannel, len(self.channel), len(xchannel))
 									
 									if self.compareChannels(self.channel, xchannel):
 										
@@ -314,7 +315,7 @@ class Wunschliste(IdentifierBase):
 		return data
 
 	def getEpisodeTodayCallback(self, data=None):
-		print "Wunschliste getEpisodeTodayCallback"
+		splog("Wunschliste getEpisodeTodayCallback")
 		
 		if data and isinstance(data, basestring):
 		#if data and not isinstance(data, WLPrintParser):
@@ -325,7 +326,7 @@ class Wunschliste(IdentifierBase):
 			
 			parser = WLPrintParser()
 			parser.feed(data)
-			#print parser.list
+			#splog(parser.list)
 			
 			data = parser
 		
@@ -344,18 +345,18 @@ class Wunschliste(IdentifierBase):
 						xdate    = xdate[3:]+year
 						xbegin   = datetime.strptime( xdate+xbegin, "%d.%m.%Y%H.%M Uhr" )
 						#xend     = datetime.strptime( xdate+xend, "%d.%m.%Y%H.%M Uhr" )
-						#print xchannel, xdate, xbegin, xend, xtitle
-						#print datebegin, xbegin, abs((datebegin - xbegin))
+						#splog(xchannel, xdate, xbegin, xend, xtitle)
+						#splog(datebegin, xbegin, abs((datebegin - xbegin)))
 						
 						#Py2.6
 						delta = abs(self.begin - xbegin)
 						delta = delta.seconds + delta.days * 24 * 3600
 						#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-						print self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60
+						splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
 						
 						if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 							xchannel = unifyChannel(xchannel)
-							print self.channel, xchannel, len(self.channel), len(xchannel)
+							splog(self.channel, xchannel, len(self.channel), len(xchannel))
 							
 							if self.compareChannels(self.channel, xchannel):
 							

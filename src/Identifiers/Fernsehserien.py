@@ -19,6 +19,7 @@ from Tools.BoundFunction import boundFunction
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Helper import unifyChannel
+from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 
 # Constants
@@ -129,13 +130,13 @@ class Fernsehserien(IdentifierBase):
 		
 		# Check preconditions
 		if not name:
-			print _("Skip Fernsehserien: No show name specified")
+			splog(_("Skip Fernsehserien: No show name specified"))
 			return callback()
 		if not begin:
-			print _("Skip Fernsehserien: No begin timestamp specified")
+			splog(_("Skip Fernsehserien: No begin timestamp specified"))
 			return callback()
 		
-		print "Fernsehserien getEpisode"
+		splog("Fernsehserien getEpisode")
 		
 		#Py2.6
 		delta = abs(datetime.now() - self.begin)
@@ -144,10 +145,10 @@ class Fernsehserien(IdentifierBase):
 		if delta > 3*60*60:
 		#if self.begin - time.time() < -2*60*60:
 			# Older than 3 hours
-			print "Past events"
+			splog("Past events")
 			self.when = 6 # Past events
 		else:
-			print "Today events"
+			splog("Today events")
 			self.when = 8 # Today events
 		self.getSeries()
 
@@ -165,7 +166,7 @@ class Fernsehserien(IdentifierBase):
 					)
 
 	def getSeriesCallback(self, data=None):
-		print "Fernsehserien getSeriesListCallback"
+		splog("Fernsehserien getSeriesListCallback")
 		serieslist = []
 		
 		if data and isinstance(data, basestring):
@@ -174,10 +175,10 @@ class Fernsehserien(IdentifierBase):
 				values = line.split("|")
 				if len(values) == 3:
 					idname, countryyear, id = values
-					print id, idname
+					splog(id, idname)
 					serieslist.append( id )
 				else:
-					print "Fernsehserien: ParseError: " + str(line)
+					splog("Fernsehserien: ParseError: " + str(line))
 			serieslist.reverse()
 			data = serieslist
 		
@@ -189,7 +190,7 @@ class Fernsehserien(IdentifierBase):
 		return data
 
 	def getNextSeries(self):
-		print "Fernsehserien getNextSeries", self.ids
+		splog("Fernsehserien getNextSeries", self.ids)
 		if self.ids:
 			#for id_name in data:
 			self.id = self.ids.pop()
@@ -205,13 +206,13 @@ class Fernsehserien(IdentifierBase):
 			self.callback()
 
 	def getNextPage(self):
-		print "page, lastpage, minpages, maxpages ", self.page, self.lastpage, self.minpages, self.maxpages
+		splog("page, lastpage, minpages, maxpages ", self.page, self.lastpage, self.minpages, self.maxpages)
 		nextpage = int(self.page)
 		if self.maxpages <= nextpage: nextpage = self.maxpages - 1
 		if nextpage <= self.minpages: nextpage = self.minpages + 1
 		self.lastpage = nextpage
 		start = nextpage * 100 or -1 # Norm to x00 -> Caching is only working for equal URLs
-		print "page, lastpage, minpages, maxpages, start ", self.page, self.lastpage, self.minpages, self.maxpages, start
+		splog("page, lastpage, minpages, maxpages, start ", self.page, self.lastpage, self.minpages, self.maxpages, start)
 		
 		url = urljoin(EPISODEIDURL, EPISODEIDPARAMETER % (self.id, self.when, "", start))
 		if ( self.minpages < nextpage < self.maxpages ):
@@ -224,7 +225,7 @@ class Fernsehserien(IdentifierBase):
 			self.getNextSeries()
 
 	def getEpisodeFromPage(self, data=None):
-		print "Fernsehserien getEpisodeCallback"
+		splog("Fernsehserien getEpisodeCallback")
 		
 		if data and isinstance(data, basestring):
 		#if data and not isinstance(data, FSParser):
@@ -236,7 +237,7 @@ class Fernsehserien(IdentifierBase):
 			
 			parser = FSParser()
 			parser.feed(data)
-			#print parser.list
+			#splog(parser.list)
 			
 			data = parser
 		
@@ -244,10 +245,10 @@ class Fernsehserien(IdentifierBase):
 			trs = data.list
 			if not trs:
 				# Store self.maxpages as callback parameter
-				print "minpages < maxpages", (self.minpages < self.maxpages)
+				splog("minpages < maxpages", (self.minpages < self.maxpages))
 				if self.minpages < self.maxpages:
 					self.maxpages = min(self.maxpages, self.lastpage) if self.maxpages else self.lastpage
-					print "min, max, lastpage, ", self.minpages, self.maxpages, self.lastpage
+					splog("min, max, lastpage, ", self.minpages, self.maxpages, self.lastpage)
 					#self.lastpage
 					#calculate next fallback page:
 					diffpages = (self.maxpages-self.minpages) // 2 # integer division = floor = round down            # TEST / 4 !!!     # diffpages = diffpages / 2 #/ 100 * 100 # Norm to x00
@@ -257,7 +258,7 @@ class Fernsehserien(IdentifierBase):
 					self.page = self.minpages + diffpages
 					self.lastpage = self.page
 					#TEST END
-					print "min, max, lastpage, diffpages, page, ", self.minpages, self.maxpages, self.lastpage, diffpages, self.page
+					splog("min, max, lastpage, diffpages, page, ", self.minpages, self.maxpages, self.lastpage, diffpages, self.page)
 					self.getNextPage()
 					return data
 			
@@ -270,7 +271,7 @@ class Fernsehserien(IdentifierBase):
 				last = trs[-1]
 				last = datetime.strptime( last[1]+last[2].split("-")[0], "%d.%m.%y%H:%M" )
 				
-				print "first, self.begin, last, if ", first, self.begin, last, ( first <= self.begin and self.begin <= last )
+				splog("first, self.begin, last, if ", first, self.begin, last, ( first <= self.begin and self.begin <= last ))
 				if ( first <= self.begin and self.begin <= last ):
 					#search in page for matching datetime
 					for tds in trs:
@@ -292,11 +293,11 @@ class Fernsehserien(IdentifierBase):
 							delta = abs(self.begin - xbegin)
 							delta = delta.seconds + delta.days * 24 * 3600
 							#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-							print self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60
+							splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
 							
 							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 								xchannel = unifyChannel(xchannel)
-								print self.channel, xchannel, len(self.channel), len(xchannel)
+								splog(self.channel, xchannel, len(self.channel), len(xchannel))
 								
 								if self.compareChannels(self.channel, xchannel):
 									
@@ -327,8 +328,8 @@ class Fernsehserien(IdentifierBase):
 				
 				else:
 					#calculate next page : use firtsrow lastrow datetime
-					print "( first > begin )", ( first > self.begin )
-					print "( begin > last )", ( self.begin > last )
+					splog("( first > begin )", ( first > self.begin ))
+					splog("( begin > last )", ( self.begin > last ))
 					if ( first > self.begin ):
 						self.maxpages = min(self.maxpages, self.lastpage) if self.maxpages else self.lastpage
 					elif ( self.begin > last ):
@@ -346,7 +347,7 @@ class Fernsehserien(IdentifierBase):
 					
 					diffpages = abs(diff / pageination)
 					self.page = self.lastpage + diffpages
-					print "minpages, pageination, diff, diffpages, page ", self.minpages, pageination, diff, diffpages, self.page
+					splog("minpages, pageination, diff, diffpages, page ", self.minpages, pageination, diff, diffpages, self.page)
 					self.getNextPage()
 					return data
 		

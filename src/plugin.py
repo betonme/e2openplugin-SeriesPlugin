@@ -19,12 +19,13 @@ from SeriesPluginTimer import SeriesPluginTimer
 from SeriesPluginInfoScreen import SeriesPluginInfoScreen
 from SeriesPluginRenamer import SeriesPluginRenamer
 from SeriesPluginConfiguration import SeriesPluginConfiguration
+from Logger import splog
 
 
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.5.4"
+VERSION = "0.5.5"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -60,7 +61,7 @@ def readPatternFile():
 			f = open(path, 'rb')
 			obj = json.load(f)
 		except Exception, e:
-			print "[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e)
+			splog("[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e))
 			obj = None
 			patterns = scheme_fallback
 		finally:
@@ -92,25 +93,32 @@ config.plugins.seriesplugin.manager                   = ConfigSelection(choices 
 config.plugins.seriesplugin.guide                     = ConfigSelection(choices = [("", "")], default = "")
 
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
-
 patterns = readPatternFile()
+#TEST ONLY
 print "SeriesPlugin"
-if patterns:
-	for p in patterns:
-		print p
+print patterns
 if not patterns:
 	print "SeriesPlugin Pattern Fallback"
 	patterns = scheme_fallback
 config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = patterns, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
 config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = patterns, default = "S{season:02d}E{episode:02d} {title:s} {org:s}")
+
+config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = False)
+
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
-config.plugins.seriesplugin.rename_tidy               = ConfigYesNo(default = False)
+
+config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
+config.plugins.seriesplugin.log_file                  = ConfigText(default = "/tmp/seriesplugin.log", fixed_size = False)
+config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)
+config.plugins.seriesplugin.log_reply_mail            = ConfigText(default = "myemail@home.com", fixed_size = False)
 
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
 
-print config.plugins.seriesplugin.pattern_title.value
-print config.plugins.seriesplugin.pattern_description.value
+#TEST PATTERNS
+splog(config.plugins.seriesplugin.pattern_title.value)
+splog(config.plugins.seriesplugin.pattern_description.value)
+
 
 #######################################################
 # Start
@@ -140,9 +148,10 @@ def setup(session, *args, **kwargs):
 		###
 		session.open(SeriesPluginConfiguration)
 	except Exception, e:
-		print _("SeriesPlugin setup exception ") + str(e)
+		splog(_("SeriesPlugin setup exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 
 #######################################################
@@ -158,9 +167,10 @@ def info(session, service=None, event=None, *args, **kwargs):
 		###
 		session.open(SeriesPluginInfoScreen, service, event)
 	except Exception, e:
-		print _("SeriesPlugin info exception ") + str(e)
+		splog(_("SeriesPlugin info exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 
 #######################################################
@@ -176,9 +186,10 @@ def extension(session, *args, **kwargs):
 		###
 		session.open(SeriesPluginInfoScreen)
 	except Exception, e:
-		print _("SeriesPlugin extension exception ") + str(e)
+		splog(_("SeriesPlugin extension exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 
 #######################################################
@@ -198,9 +209,10 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 		###
 		SeriesPluginRenamer(session, services)
 	except Exception, e:
-		print _("SeriesPlugin renamer exception ") + str(e)
+		splog(_("SeriesPlugin renamer exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 
 #######################################################
@@ -214,15 +226,21 @@ def movielist_info(session, service, *args, **kwargs):
 		###
 		session.open(SeriesPluginInfoScreen, service)
 	except Exception, e:
-		print _("SeriesPlugin extension exception ") + str(e)
+		splog(_("SeriesPlugin extension exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 
 #######################################################
 # Timer renaming
 def renameTimer(timer, name, begin, end, *args, **kwargs):
-	if timer.name == name: # or len(timer.name) <= len(name):
+	# We have to compare the length,
+	# because of the E2 special chars handling for creating the filenames
+	#if timer.name == name:
+	# Mad Men
+	# Mad_Men
+	if len(timer.name) == len(name):
 		#from SeriesPluginTimer import SeriesPluginTimer
 		#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
 		try:
@@ -233,11 +251,13 @@ def renameTimer(timer, name, begin, end, *args, **kwargs):
 			###
 			SeriesPluginTimer(timer, name, begin, end)
 		except Exception, e:
-			print _("SeriesPlugin label exception ") + str(e)
+			splog(_("SeriesPlugin label exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
-			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			splog( exc_type, exc_value, exc_traceback.format_exc() )
 	else:
-		print "Skip timer because it is already modified", name
+		splog("Skip timer because it is already modified", timer.name) #, name, len(timer.name), len(name)
+
 
 # For compatibility reasons
 def modifyTimer(timer, name, *args, **kwargs):
@@ -247,11 +267,13 @@ def modifyTimer(timer, name, *args, **kwargs):
 		try:
 			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 		except Exception, e:
-			print _("SeriesPlugin label exception ") + str(e)
+			splog(_("SeriesPlugin label exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
-			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			splog( exc_type, exc_value, exc_traceback.format_exc() )
 	else:
-		print "Skip timer because it is already modified", name
+		splog("Skip timer because it is already modified", name)
+
 
 # For compatibility reasons
 def labelTimer(timer, begin=None, end=None, *args, **kwargs):
@@ -260,9 +282,10 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 	try:
 		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 	except Exception, e:
-		print _("SeriesPlugin label exception ") + str(e)
+		splog(_("SeriesPlugin label exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+		splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 
 #######################################################
@@ -343,6 +366,7 @@ def addSeriesPlugin(menu, title, fnc):
 															fnc = fnc)
 			plugins.plugins[ menu ].append(plugin)
 
+
 def removeSeriesPlugin(menu, title):
 	# Remove from extension menu
 	from Components.PluginComponent import plugins
@@ -364,6 +388,7 @@ except:
 ATmodifyTimer = None
 ATcheckSimilarity = None
 
+
 def overwriteAutoTimer():
 	try:
 		global ATmodifyTimer, ATcheckSimilarity
@@ -379,7 +404,8 @@ def overwriteAutoTimer():
 				# Overwrite function
 				AutoTimer.checkSimilarity = SPcheckSimilarity
 	except:
-		print "SeriesPlugin found old AutoTimer"
+		splog("SeriesPlugin found old AutoTimer")
+
 
 def recoverAutoTimer():
 	try:
@@ -392,7 +418,7 @@ def recoverAutoTimer():
 				AutoTimer.checkSimilarity = ATcheckSimilarity
 				ATcheckSimilarity = None
 	except:
-		print "SeriesPlugin found old AutoTimer"
+		splog("SeriesPlugin found old AutoTimer")
 
 
 #######################################################
@@ -410,21 +436,24 @@ def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref):
 	timer.end = int(end)
 	timer.service_ref = ServiceReference(serviceref)
 
-def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc1, extdesc2):
+def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc1, extdesc2, force=False):
 	# Check if the new title is part of the existing one
-	foundTitle = name1 in name2
+	foundTitle = name1 in name2 or name2 in name1
 	
-	if timer.searchForDuplicateDescription > 0:
-		foundShort = shortdesc1 in shortdesc2
+	if timer.searchForDuplicateDescription > 0 or force:
+		foundShort = shortdesc1 in shortdesc2 or shortdesc2 in shortdesc1
+		
+		# NOTE: only check extended if short description already is a match because otherwise
+		# it won't evaluate to True anyway
+		if foundShort:
+			# Some channels indicate replays in the extended descriptions
+			# If the similarity percent is higher then 0.8 it is a very close match
+			if timer.series_labeling and (extdesc1 == "" or extdesc2 == ""):
+				foundExt = True
+			else:
+				foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
 	else:
 		foundShort = True
+		foundExt = True
 	
-	foundExt = True
-	# NOTE: only check extended if short description already is a match because otherwise
-	# it won't evaluate to True anyway
-	if timer.searchForDuplicateDescription == 2 and foundShort:
-		# Some channels indicate replays in the extended descriptions
-		# If the similarity percent is higher then 0.8 it is a very close match
-		foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
-
 	return foundTitle and foundShort and foundExt

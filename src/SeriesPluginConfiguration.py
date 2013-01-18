@@ -35,11 +35,12 @@ from Plugins.Plugin import PluginDescriptor
 
 # Plugin internal
 from SeriesPlugin import resetInstance, getInstance
+from Logger import splog
 
 
 #######################################################
 # Configuration screen
-class SeriesPluginConfiguration(Screen, ConfigListScreen):
+class SeriesPluginConfiguration(ConfigListScreen, Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = [ "SeriesServiceConfiguration", "Setup" ]
@@ -52,33 +53,39 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		# Buttons
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("OK"))
+		#self["key_blue"] = StaticText(_("Send Log"))
 		
 		# Define Actions
-		self["custom_actions"] = ActionMap(["SetupActions", "ChannelSelectBaseActions"],
+		self["actions"] = ActionMap(["SetupActions", "ChannelSelectBaseActions", "ColorActions"],
 		{
 			"cancel":				self.keyCancel,
 			"save":					self.keySave,
 			"nextBouquet":	self.pageUp,
 			"prevBouquet":	self.pageDown,
+			#"blue":					self.blue,
 		}, -2) # higher priority
 		
+		#self.seriesPlugin = getInstance()
+		#if self.seriesPlugin.isActive():
+		#	#TBD Show warning before reset
+		# For reloading modules
 		resetInstance()
 		self.seriesPlugin = getInstance()
 		
 		# Load patterns
 		from plugin import readPatternFile
 		patterns = readPatternFile()
-		print "SeriesPluginConfiguration"
+		splog("SeriesPluginConfiguration")
 		if patterns:
 			for p in patterns:
-				print p
-		print config.plugins.seriesplugin.pattern_title.value
-		print config.plugins.seriesplugin.pattern_description.value
+				splog(p)
+		splog(config.plugins.seriesplugin.pattern_title.value)
+		splog(config.plugins.seriesplugin.pattern_description.value)
 		if patterns:
 			config.plugins.seriesplugin.pattern_title.setChoices(patterns)
 			config.plugins.seriesplugin.pattern_description.setChoices(patterns)
-		print config.plugins.seriesplugin.pattern_title.value
-		print config.plugins.seriesplugin.pattern_description.value
+		splog(config.plugins.seriesplugin.pattern_title.value)
+		splog(config.plugins.seriesplugin.pattern_description.value)
 		
 		# Initialize Configuration
 		self.list = []
@@ -93,7 +100,7 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 
 	def buildConfig(self):
 		#    _config list entry
-		#    _                                                                                 , config element
+		#    _                                                                                   , config element
 		
 		self.list.append( getConfigListEntry(  _("Enable SeriesPlugin")                          , config.plugins.seriesplugin.enabled ) )
 		
@@ -119,9 +126,17 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , config.plugins.seriesplugin.pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , config.plugins.seriesplugin.pattern_description ) )
 			
+			self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
+			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
-			self.list.append( getConfigListEntry(  _("Tidy up filename on SP Rename")              , config.plugins.seriesplugin.rename_tidy ) )
+			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
+			
+			self.list.append( getConfigListEntry(  _("Debug: Write Log")                           , config.plugins.seriesplugin.write_log ) )
+			if config.plugins.seriesplugin.write_log.value:
+				self.list.append( getConfigListEntry(  _("Debug: Log file path")                     , config.plugins.seriesplugin.log_file ) )
+				#self.list.append( getConfigListEntry(  _("Debug: Forum user name")                   , config.plugins.seriesplugin.log_reply_user ) )
+				#self.list.append( getConfigListEntry(  _("Debug: User mail address")                 , config.plugins.seriesplugin.log_reply_mail ) )
 
 	def changeConfig(self):
 		self.list = []
@@ -137,8 +152,8 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 	def keySave(self):
 		self.saveAll()
 		
-		print config.plugins.seriesplugin.pattern_title.value
-		print config.plugins.seriesplugin.pattern_description.value
+		splog(config.plugins.seriesplugin.pattern_title.value)
+		splog(config.plugins.seriesplugin.pattern_description.value)
 		
 		from plugin import overwriteAutoTimer, recoverAutoTimer
 		
@@ -149,8 +164,6 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		
 		# Set new configuration
 		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, info, extension, movielist_info, movielist_rename
-		
-		#TODO handle plugin entries like IBTS
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			addSeriesPlugin(PluginDescriptor.WHERE_EVENTINFO, SHOWINFO, info)
@@ -172,6 +185,7 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES)
 		
+		# To set new module configuration
 		resetInstance()
 		self.close()
 
@@ -207,3 +221,7 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 	def pageDown(self):
 		self["config"].instance.moveSelection(self["config"].instance.pageDown)
 
+	def blue(self):
+		from Logger import sendLog
+		sendLog(self.session)
+	

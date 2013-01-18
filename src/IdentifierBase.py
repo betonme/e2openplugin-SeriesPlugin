@@ -18,14 +18,15 @@ from Tools.BoundFunction import boundFunction
 
 # Internal
 from ModuleBase import ModuleBase
-from Helper import Cacher, Retry, INTER_QUERY_TIME
+from Helper import Cacher, INTER_QUERY_TIME  #, Retry
+from Logger import splog
 
 
-class IdentifierBase(ModuleBase, Cacher, Retry):
+class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
-		Retry.__init__(self)
+		#Retry.__init__(self)
 		self.callback = None
 		self.name = ""
 		self.begin = None
@@ -36,17 +37,17 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 	################################################
 	# Twisted functions
 	def getPage(self, callback, url, expires=INTER_QUERY_TIME):
-		print "SSBase getPage"
-		print url
+		splog("SSBase getPage")
+		splog(url)
 		
 		cached = self.getCached(url, expires)
 		if cached:
-			print "SSBase cached"
+			splog("SSBase cached")
 			#start_new_thread(self.base_callback, (cached, callback, url))
 			self.base_callback(cached, callback, url)
 		
 		else:
-			print "SSBase not cached"
+			splog("SSBase not cached")
 			try:
 				#Twisted 12.x use
 				#deferred = twGetPage(url, timeout = 30)
@@ -72,14 +73,15 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 				
 			except Exception, e:
 				import os, sys, traceback
-				print _("SeriesPlugin getPage exception ") + str(e)
+				splog(_("SeriesPlugin getPage exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
-				traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				splog( exc_type, exc_value, exc_traceback.format_exc() )
 				self.cancel()
 				callback()
 
 	def base_callback(self, page, callback, url):
-		print "base_callback"
+		splog("base_callback")
 		try:
 			data = callback( page )
 			if data:
@@ -87,24 +89,25 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 			
 		except Exception, e:
 			import os, sys, traceback
-			print _("SeriesPlugin getPage exception ") + str(e)
+			splog(_("SeriesPlugin getPage exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
-			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+			splog( exc_type, exc_value, exc_traceback.format_exc() )
 
 	def base_errback(self, err, callback, url):
-		print "base_errback", url
+		splog("base_errback", url)
 		if isinstance(err, Exception):
-			print _("Twisted Exception:\n%s\n%s") % (err.type, err.value)
+			splog(_("Twisted Exception:\n%s\n%s") % (err.type, err.value))
 		#elif isinstance(err, Failure):
-		#	print _("Twisted Failure:\n%s\n%s") % (err.type, err.value)
+		#	splog(_("Twisted Failure:\n%s\n%s") % (err.type, err.value))
 			#TEST Later
 			#if self.retry(err.type, url):
 			#	# TODO Attention there is no retry counter yet
-			#	print "RETRY"
+			#	splog("RETRY")
 			#	self.getPage(callback, url)
 			#return
 		else:
-			print _("Twisted failed\n%s") % str(err)
+			splog(_("Twisted failed\n%s") % str(err))
 		callback( None )
 
 	def cancel(self):

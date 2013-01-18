@@ -2,7 +2,7 @@
 
 import re
 import os, sys, traceback
-from time import time
+from time import time, gmtime, strftime
 from datetime import datetime
 
 from Queue import Queue
@@ -27,7 +27,7 @@ from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
 from Helper import unifyName, unifyChannel
-
+from Logger import splog
 
 # Constants
 IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
@@ -44,8 +44,9 @@ ComiledRegexpNonDecimal = re.compile(r'[^\d.]+')
 def getInstance():
 	global instance
 	if instance is None:
-		print "SERIESPLUGIN NEW INSTANCE"
+		splog("SERIESPLUGIN NEW INSTANCE")
 		instance = SeriesPlugin()
+	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
 	return instance
 
 def resetInstance():
@@ -58,21 +59,26 @@ def resetInstance():
 
 
 def refactorTitle(org, data):
-	season, episode, title = data
-	if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
-		return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+	if data:
+		season, episode, title = data
+		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
+			return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+		else:
+			return org
 	else:
 		return org
 
 def refactorDescription(org, data):
-	season, episode, title = data
-	if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
-		description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
-		description = description.replace("\n", " ")
-		return description
+	if data:
+		season, episode, title = data
+		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
+			description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+			description = description.replace("\n", " ")
+			return description
+		else:
+			return org
 	else:
 		return org
-
 
 class QueueWithTimeOut(Queue):
 	def __init__(self):
@@ -109,13 +115,13 @@ class SeriesPluginWorkerThread(Thread):
 			self.item = self.queue.get()
 			if self.item == None:
 			#except queue.Empty:
-				print 'SeriesPluginWorkerThread has been finished'
+				splog('SeriesPluginWorkerThread has been finished')
 				###self.lock.release()
 				#SeriesPluginWorkerThread.lock.release()
 				##glock.release()
 				return
 			
-			print 'SeriesPluginWorkerThread is processing'
+			splog('SeriesPluginWorkerThread is processing')
 			service, callback, name, begin, end, channel = self.item
 			
 			# do processing stuff here
@@ -125,12 +131,12 @@ class SeriesPluginWorkerThread(Thread):
 					name, begin, end, channel
 				)
 			except Exception, e:
-				print "SeriesPluginWorkerThread Exception:", str(e)
+				splog("SeriesPluginWorkerThread Exception:", str(e))
 				# Exception finish job with error
 				self.workerCallback()
 	
 	def workerCallback(self, data=None):
-		print 'SeriesPluginWorkerThread callback'
+		splog('SeriesPluginWorkerThread callback')
 		service, callback, name, begin, end, channel = self.item
 		
 		if data:
@@ -161,13 +167,17 @@ class SeriesPluginWorkerThread(Thread):
 				'SP_PopUp_ID_About'
 			)
 		
+		# Queue empty check
+		if self.queue.empty():
+			config.plugins.seriesplugin.lookup_counter.save()
+		
 		# Wait for next job
 		#self.run()
 
 
 class SeriesPlugin(Modules):
 	def __init__(self):
-		print "SeriesPlugin"
+		splog("SeriesPlugin")
 		Modules.__init__(self)
 		self.queue = QueueWithTimeOut() #Queue()
 		
@@ -193,11 +203,11 @@ class SeriesPlugin(Modules):
 				config.plugins.seriesplugin.identifier_future.value = identifier_future[0]
 		
 		self.identifier_elapsed = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_elapsed.value )
-		print self.identifier_elapsed
+		splog(self.identifier_elapsed)
 		self.identifier_today = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_today.value )
-		print self.identifier_today
+		splog(self.identifier_today)
 		self.identifier_future = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_future.value )
-		print self.identifier_future
+		splog(self.identifier_future)
 		
 		self.managers = self.loadModules(MANAGER_PATH, ManagerBase)
 		if self.managers:
@@ -207,7 +217,7 @@ class SeriesPlugin(Modules):
 				config.plugins.seriesplugin.manager.value = managers[0]
 		if config.plugins.seriesplugin.manager.value:
 			self.manager = self.instantiateModuleWithName( self.managers, config.plugins.seriesplugin.manager.value )
-			print self.manager
+			splog(self.manager)
 		
 		self.guides = self.loadModules(GUIDE_PATH, GuideBase)
 		if self.guides:
@@ -217,17 +227,21 @@ class SeriesPlugin(Modules):
 				config.plugins.seriesplugin.guide.value = guides[0]
 		if config.plugins.seriesplugin.guide.value:
 			self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
-			print self.guide
+			splog(self.guide)
+
+	def isActive(self):
+		return self.worker and self.worker.isAlive()
 
 	def stop(self):
 		if self.queue and not self.queue.empty():
-			print "SeriesPluginWorker isAlive", self.worker and self.worker.isAlive()
-			if self.worker and self.worker.isAlive():
-				print "Wait a moment"
+			active = self.isActive()
+			splog("SeriesPluginWorker isAlive", active)
+			if active:
+				splog("Wait a moment")
 				# Wait for the worker thread (in seconds)
 				self.queue.join_with_timeout(10)
-		if config.plugins.seriesplugin.lookup_counter.isChanged():
-			config.plugins.seriesplugin.lookup_counter.save()
+		#if config.plugins.seriesplugin.lookup_counter.isChanged():
+		#	config.plugins.seriesplugin.lookup_counter.save()
 
 
 	################################################
@@ -259,7 +273,7 @@ class SeriesPlugin(Modules):
 			#	 ( elapsed and service.knowsElapsed() ):
 			try:
 				#available = True
-				print "self.worker and self.worker.isAlive()", self.worker and self.worker.isAlive()
+				splog("self.worker and self.worker.isAlive()", self.worker and self.worker.isAlive())
 				if not (self.worker and self.worker.isAlive()):
 					# Start new worker
 					self.worker = SeriesPluginWorkerThread(self.queue)
@@ -269,9 +283,10 @@ class SeriesPlugin(Modules):
 				self.queue.put( (service, callback, name, begin, end, channel) )
 				
 			except Exception, e:
-				print _("SeriesPlugin getEpisode exception ") + str(e)
+				splog(_("SeriesPlugin getEpisode exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
-				traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				splog( exc_type, exc_value, exc_traceback.format_exc() )
 				callback()
 			return service.getName()
 			
@@ -294,8 +309,8 @@ class SeriesPlugin(Modules):
 			callback()
 
 	def getStatesCallback(self, callback, name, state):
-		print "SeriesPlugin getStatesCallback"
-		print state
+		splog("SeriesPlugin getStatesCallback")
+		splog(state)
 		
 		# Problem we have to collect all deferreds or cancel them
 		#if state:

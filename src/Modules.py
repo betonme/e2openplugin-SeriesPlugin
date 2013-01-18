@@ -23,6 +23,7 @@ import imp, inspect
 
 # Plugin internal
 from . import _
+from Logger import splog
 
 
 class Modules(object):
@@ -45,10 +46,10 @@ class Modules(object):
 		
 		# List files
 		files = [fname[:-3] for fname in os.listdir(path) if fname.endswith(".py") and not fname.startswith("__")]
-		print files
+		splog(files)
 		if not files:
 			files = [fname[:-4] for fname in os.listdir(path) if fname.endswith(".pyo")]
-			print files
+			splog(files)
 		
 		# Import PushService modules
 		for name in files:
@@ -60,39 +61,39 @@ class Modules(object):
 			try:
 				fp, pathname, description = imp.find_module(name, [path])
 			except Exception, e:
-				print _("[SeriesService] Find module exception: ") + str(e)
+				splog(_("[SeriesService] Find module exception: ") + str(e))
 				fp = None
 			
 			if not fp:
-				print _("[SeriesService] No module found: ") + str(name)
+				splog(_("[SeriesService] No module found: ") + str(name))
 				continue
 			
 			try:
 				module = imp.load_module( name, fp, pathname, description)
 			except Exception, e:
-				print _("[SeriesService] Load exception: ") + str(e)
+				splog(_("[SeriesService] Load exception: ") + str(e))
 			finally:
 				# Since we may exit via an exception, close fp explicitly.
 				if fp: fp.close()
 			
 			if not module:
-				print _("[SeriesService] No module available: ") + str(name)
+				splog(_("[SeriesService] No module available: ") + str(name))
 				continue
 			
 			# Continue only if the attribute is available
 			if not hasattr(module, name):
-				print _("[SeriesService] Warning attribute not available: ") + str(name)
+				splog(_("[SeriesService] Warning attribute not available: ") + str(name))
 				continue
 			
 			# Continue only if attr is a class
 			attr = getattr(module, name)
 			if not inspect.isclass(attr):
-				print _("[SeriesService] Warning no class definition: ") + str(name)
+				splog(_("[SeriesService] Warning no class definition: ") + str(name))
 				continue
 			
 			# Continue only if the class is a subclass of the corresponding base class
 			if not issubclass( attr, base):
-				print _("[SeriesService] Warning no subclass of base: ") + str(name)
+				splog(_("[SeriesService] Warning no subclass of base: ") + str(name))
 				continue
 			
 			# Add module to the module list
@@ -106,13 +107,13 @@ class Modules(object):
 			try:
 				return module()
 			except Exception, e:
-				print _("[SeriesService] Instantiate exception: ") + str(module) + "\n" + str(e)
+				splog(_("[SeriesService] Instantiate exception: ") + str(module) + "\n" + str(e))
 				if sys.exc_info()[0]:
-					print _("Unexpected error: "), sys.exc_info()[0]
+					splog(_("Unexpected error: "), sys.exc_info()[0])
 					traceback.print_exc(file=sys.stdout)
 					return None
 		else:
-			print _("[SeriesService] Module is not callable: ") + str(name)
+			splog(_("[SeriesService] Module is not callable: ") + str(name))
 			return None
 
 	def instantiateModule(self, module):
@@ -121,11 +122,11 @@ class Modules(object):
 			try:
 				return module()
 			except Exception, e:
-				print _("[SeriesService] Instantiate exception: ") + str(module) + "\n" + str(e)
+				splog(_("[SeriesService] Instantiate exception: ") + str(module) + "\n" + str(e))
 				if sys.exc_info()[0]:
-					print _("Unexpected error: "), sys.exc_info()[0]
+					splog(_("Unexpected error: "), sys.exc_info()[0])
 					traceback.print_exc(file=sys.stdout)
 					return None
 		else:
-			print _("[SeriesService] Module is not callable: ") + str(module.getClass())
+			splog(_("[SeriesService] Module is not callable: ") + str(module.getClass()))
 			return None
