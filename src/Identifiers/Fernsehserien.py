@@ -262,6 +262,9 @@ class Fernsehserien(IdentifierBase):
 					return data
 			
 			else:
+				yepisode = None
+				ydelta = maxint
+				
 				first = trs[0]
 				first = datetime.strptime( first[1]+first[2].split("-")[0], "%d.%m.%y%H:%M" )
 				last = trs[-1]
@@ -294,18 +297,33 @@ class Fernsehserien(IdentifierBase):
 							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 								xchannel = unifyChannel(xchannel)
 								print self.channel, xchannel, len(self.channel), len(xchannel)
+								
 								if self.compareChannels(self.channel, xchannel):
 									
-									# Second part: s1e1, s1e2, ..., title1, title2, ...
-									xepisode = tds[4]                      # Use only the first one
-									xtitle = "".join(tds[(len(tds)-4)/2+4:])  # Use all available titles
-									if xepisode.find(".") != -1:
-										xseason, xepisode = xepisode.split(".")
-									else:
-										xseason = "1"
-										xepisode = "0"
-									self.callback( (xseason or "1", xepisode or "0", xtitle.decode('iso-8859-1').encode('utf8')) )
-									return data
+									if delta < ydelta:
+										# Second part: s1e1, s1e2, ..., title1, title2, ...
+										xepisode = tds[4]                      # Use only the first one
+										xtitle = "".join(tds[(len(tds)-4)/2+4:])  # Use all available titles
+										
+										if xepisode.find(".") != -1:
+											xseason, xepisode = xepisode.split(".")
+										else:
+											xseason = "1"
+											xepisode = "0"
+										yepisode = (xseason or "1", xepisode or "0", xtitle.decode('iso-8859-1').encode('utf8'))
+										ydelta = delta
+										#self.callback( yepisode )
+										#return data
+									
+									else: #if delta >= ydelta:
+										break
+							
+							elif yepisode:
+								break
+					
+					if yepisode:
+						self.callback( yepisode )
+						return data
 				
 				else:
 					#calculate next page : use firtsrow lastrow datetime

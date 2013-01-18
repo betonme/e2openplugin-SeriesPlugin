@@ -66,7 +66,7 @@ class SeriesPluginInfoScreen(Screen):
 	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/skin.xml" )
 	skin = open(skinfile).read()
 	
-	def __init__(self, session, service, event=None):
+	def __init__(self, session, service=None, event=None):
 		Screen.__init__(self, session)
 		self.session = session
 		self.skinName = [ "SeriesPluginInfoScreen" ]

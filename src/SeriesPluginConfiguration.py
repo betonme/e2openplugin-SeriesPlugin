@@ -68,9 +68,17 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		# Load patterns
 		from plugin import readPatternFile
 		patterns = readPatternFile()
+		print "SeriesPluginConfiguration"
 		if patterns:
-			config.plugins.seriesplugin.pattern_title.setChoices(patterns, config.plugins.seriesplugin.pattern_title.value)
-			config.plugins.seriesplugin.pattern_description.setChoices(patterns, config.plugins.seriesplugin.pattern_description.value)
+			for p in patterns:
+				print p
+		print config.plugins.seriesplugin.pattern_title.value
+		print config.plugins.seriesplugin.pattern_description.value
+		if patterns:
+			config.plugins.seriesplugin.pattern_title.setChoices(patterns)
+			config.plugins.seriesplugin.pattern_description.setChoices(patterns)
+		print config.plugins.seriesplugin.pattern_title.value
+		print config.plugins.seriesplugin.pattern_description.value
 		
 		# Initialize Configuration
 		self.list = []
@@ -128,6 +136,9 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 	# Overwrite ConfigListScreen keySave function
 	def keySave(self):
 		self.saveAll()
+		
+		print config.plugins.seriesplugin.pattern_title.value
+		print config.plugins.seriesplugin.pattern_description.value
 		
 		from plugin import overwriteAutoTimer, recoverAutoTimer
 		

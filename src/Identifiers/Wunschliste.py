@@ -13,6 +13,7 @@ from HTMLParser import HTMLParser
 from datetime import datetime
 
 import re
+from sys import maxint
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
@@ -237,7 +238,9 @@ class Wunschliste(IdentifierBase):
 		if data: # and isinstance(data, WLAtomParser): #Why is this not working after restarting the SeriesPlugin service
 			trs = data.list
 			if trs:
-			
+				yepisode = None
+				ydelta = maxint
+				
 				for tds in trs:
 					if tds and len(tds) == 2:
 						xtitle, xupdated = tds
@@ -246,55 +249,67 @@ class Wunschliste(IdentifierBase):
 							#http://code.google.com/p/pyiso8601/
 							xbegin = parse_date(xupdated)
 							xbegin = xbegin.replace(tzinfo=None)
-		
-							#import pytz
-							#xbegin = pytz.UTC.localize(xbegin)
-							#xbegin = mktime(xbegin.timetuple())
-		
-							# Alternative
-							#from dateutil import parser
-							#http://labix.org/python-dateutil
-							#xbegin = parser.parse(xupdated)
-		
+							
 							#Py2.6
 							delta = abs(self.begin - xbegin)
 							delta = delta.seconds + delta.days * 24 * 3600
 							#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
 							print self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60
+							
 							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 								result = ComiledRegexpAtomChannel.search(xtitle)
 								if result and len(result.groups()) >= 1:
 									xchannel = unifyChannel(result.group(1))
 									print self.channel, xchannel, len(self.channel), len(xchannel)
+									
 									if self.compareChannels(self.channel, xchannel):
-										# Slice string to remove channel
-										xtitle = xtitle[:result.start()]
-										result = ComiledRegexpAtomDate.search(xtitle)
-										if result and len(result.groups()) >= 1:
-											# Slice string to remove date
+										
+										if delta < ydelta:
+											# Slice string to remove channel
 											xtitle = xtitle[:result.start()]
-											result = ComiledRegexpAtomEpisode.search(xtitle)
+											result = ComiledRegexpAtomDate.search(xtitle)
+											
 											if result and len(result.groups()) >= 1:
-												# Extract season and episode
-												xepisode = result.group(1)
-												# Slice string to remove season and episode
+												# Slice string to remove date
 												xtitle = xtitle[:result.start()]
-												result = ComiledRegexpEpisode.search(xepisode)
-												if result and len(result.groups()) >= 3:
-													xseason = result and result.group(2) or "1"
-													xepisode = result and result.group(3) or "0"
+												result = ComiledRegexpAtomEpisode.search(xtitle)
+												
+												if result and len(result.groups()) >= 1:
+													# Extract season and episode
+													xepisode = result.group(1)
+													# Slice string to remove season and episode
+													xtitle = xtitle[:result.start()]
+													result = ComiledRegexpEpisode.search(xepisode)
+													
+													if result and len(result.groups()) >= 3:
+														xseason = result and result.group(2) or "1"
+														xepisode = result and result.group(3) or "0"
+													else:
+														xseason = "1"
+														xepisode = "0"
 												else:
 													xseason = "1"
 													xepisode = "0"
-											else:
-												xseason = "1"
-												xepisode = "0"
-											result = ComiledRegexpAtomTitle.search(xtitle)
-											if result and len(result.groups()) >= 1:
-												# Extract episode title
-												xtitle = result.group(1)
-												self.callback( (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8')) )
-												return data
+												result = ComiledRegexpAtomTitle.search(xtitle)
+												
+												if result and len(result.groups()) >= 1:
+													# Extract episode title
+													xtitle = result.group(1)
+													yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'))
+													ydelta = delta
+													#self.callback( yepisode )
+													#return data
+										
+										else: #if delta >= ydelta:
+											break
+						
+							elif yepisode:
+								break
+				
+				if yepisode:
+					self.callback( yepisode )
+					return data
+		
 		self.getNextSeries()
 		return data
 
@@ -317,8 +332,10 @@ class Wunschliste(IdentifierBase):
 		if data: # and isinstance(data, WLPrintParser): #Why is this not working after restarting the SeriesPlugin service
 			trs = data.list
 			if trs:
-			
+				yepisode = None
+				ydelta = maxint
 				year = str(datetime.today().year)
+				
 				for tds in trs:
 					if tds and len(tds) >= 5:
 						xchannel, xdate, xbegin, xend = tds[:4]
@@ -339,24 +356,43 @@ class Wunschliste(IdentifierBase):
 						if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 							xchannel = unifyChannel(xchannel)
 							print self.channel, xchannel, len(self.channel), len(xchannel)
+							
 							if self.compareChannels(self.channel, xchannel):
-								result = ComiledRegexpPrintTitle.search(xtitle)
-								if result and len(result.groups()) >= 2:
-									xepisode = result and result.group(1)
-									xtitle = result and result.group(2)
-									if xepisode:
-										result = ComiledRegexpEpisode.search(xepisode)
-										if result and len(result.groups()) >= 3:
-											xseason = result and result.group(2) or "1"
-											xepisode = result and result.group(3) or "0"
+							
+								if delta < ydelta:
+									result = ComiledRegexpPrintTitle.search(xtitle)
+									
+									if result and len(result.groups()) >= 2:
+										xepisode = result and result.group(1)
+										xtitle = result and result.group(2)
+										
+										if xepisode:
+											result = ComiledRegexpEpisode.search(xepisode)
+											
+											if result and len(result.groups()) >= 3:
+												xseason = result and result.group(2) or "1"
+												xepisode = result and result.group(3) or "0"
+											else:
+												xseason = "1"
+												xepisode = "0"
 										else:
 											xseason = "1"
 											xepisode = "0"
-									else:
-										xseason = "1"
-										xepisode = "0"
-									self.callback( (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8')) )
-									return data
+										yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'))
+										ydelta = delta
+										#self.callback( yepisode )
+										#return data
+								
+								else: #if delta >= ydelta:
+									break
+					
+						elif yepisode:
+							break
+				
+				if yepisode:
+					self.callback( yepisode )
+					return data
+		
 		self.getNextSeries()
 		return data
 

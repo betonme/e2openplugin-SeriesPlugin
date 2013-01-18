@@ -24,7 +24,7 @@ from SeriesPluginConfiguration import SeriesPluginConfiguration
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.5.3"
+VERSION = "0.5.4"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -45,7 +45,6 @@ scheme_fallback = [
 		("{title:s} {org:s}"                              , "Title Org"),
 		("S{season:02d}E{episode:02d} {title:s} {org:s}"  , "S01E01 Title Org"),
 		("{title:s} S{season:02d}E{episode:02d} {org:s}"  , "Title S01E01 Org"),
-		("{title:s} S{season:d}E{episode:d} {org:s}"      , "Title S1E1 Org"),
 	]
 
 
@@ -95,6 +94,10 @@ config.plugins.seriesplugin.guide                     = ConfigSelection(choices 
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
 
 patterns = readPatternFile()
+print "SeriesPlugin"
+if patterns:
+	for p in patterns:
+		print p
 if not patterns:
 	print "SeriesPlugin Pattern Fallback"
 	patterns = scheme_fallback
@@ -106,6 +109,8 @@ config.plugins.seriesplugin.rename_tidy               = ConfigYesNo(default = Fa
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
 
+print config.plugins.seriesplugin.pattern_title.value
+print config.plugins.seriesplugin.pattern_description.value
 
 #######################################################
 # Start

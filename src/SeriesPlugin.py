@@ -224,9 +224,8 @@ class SeriesPlugin(Modules):
 			print "SeriesPluginWorker isAlive", self.worker and self.worker.isAlive()
 			if self.worker and self.worker.isAlive():
 				print "Wait a moment"
-				# Wait for the worker thread (max 1 minute)
-				#self.queue.join()
-				self.queue.join_with_timeout(5) #(1*60)
+				# Wait for the worker thread (in seconds)
+				self.queue.join_with_timeout(10)
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()
 

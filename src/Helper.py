@@ -89,7 +89,7 @@ ChannelReplaceDict = OrderedDict([
 	('HD', ''),
 	('III', 'drei'),
 	('II',  'zwei'),
-	('I',   'eins'),
+	#('I',   'eins'),
 	('ARD', 'DasErste'),
 	('\+', 'Plus'),
 	('0', 'null'),
