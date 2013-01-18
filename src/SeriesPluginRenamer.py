@@ -203,7 +203,8 @@ class SeriesPluginRenameService(object):
 		self.seriesPlugin.getEpisode(
 				self.serviceCallback, 
 				#self.name, begin, end, channel, elapsed=True
-				self.name, begin, end, eServiceReference(rec_ref_str), elapsed=True
+				#self.name, begin, end, eServiceReference(rec_ref_str), elapsed=True
+				self.name, begin, end, rec_ref_str, elapsed=True
 			)
 
 	def serviceCallback(self, data=None):
@@ -230,11 +231,8 @@ class SeriesPluginRenameService(object):
 class SeriesPluginRenamer(object):
 	def __init__(self, session, services, *args, **kwargs):
 		
-		if services:
-			if not isinstance(services, list):
-				services = [services]	
-		else:
-			services = [service]
+		if services and not isinstance(services, list):
+			services = [services]	
 		
 		self.services = services
 		
@@ -251,7 +249,7 @@ class SeriesPluginRenamer(object):
 		)
 
 	def confirm(self, confirmed):
-		if confirmed:
+		if confirmed and self.services:
 			for service in self.services:
 				SeriesPluginRenameService(service, self.renamerCallback)
 

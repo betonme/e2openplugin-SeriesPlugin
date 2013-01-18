@@ -5,6 +5,7 @@ import threading
 import inspect
 import ctypes
 
+from time import time
 
 # Localization
 from . import _

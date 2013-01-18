@@ -61,7 +61,7 @@ class Fernsehserien(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, callback, name, begin, end=None, channels=[]):
+	def getEpisode(self, callback, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		
@@ -70,6 +70,7 @@ class Fernsehserien(IdentifierBase):
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
 		self.end = end
+		self.service = service
 		self.channels = channels
 		self.ids = []
 		
@@ -258,11 +259,17 @@ class Fernsehserien(IdentifierBase):
 								
 								if delta <= max_time_drift:
 									
-									if compareChannels(self.channels, tds[3]):
+									if compareChannels(self.channels, tds[3], self.service):
 										
 										if delta < ydelta:
-										
-											if len(tds) >= 7:
+											
+											print len(tds), tds
+											if len(tds) >= 10:
+												# Second part: s1e1, s1e2,
+												xseason = tds[7]
+												xepisode = tds[8]
+												xtitle = " ".join(tds[10:])  # Use all available titles
+											elif len(tds) >= 7:
 												# Second part: s1e1, s1e2,
 												xseason = tds[4]
 												xepisode = tds[5]
@@ -315,7 +322,7 @@ class Fernsehserien(IdentifierBase):
 
 	def getPageInternal(self, callback, url):
 		
-		if self.checkLicense():
+		if self.checkLicense(url):
 		
 			# PHP Proxy with 3 day Caching
 			# to minimize server requests
@@ -326,7 +333,7 @@ class Fernsehserien(IdentifierBase):
 		else:
 			self.callback( _("No valid license") )
 
-	def checkLicense(self):
+	def checkLicense(self, url):
 		
 		global license
 		if license is not None:
@@ -334,7 +341,7 @@ class Fernsehserien(IdentifierBase):
 		
 		from urllib2 import urlopen, URLError
 		try:
-			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/License.html" , timeout=10).read()
+			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=10).read()
 		except URLError, e:
 			raise
 			

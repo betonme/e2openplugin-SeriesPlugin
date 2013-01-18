@@ -36,7 +36,7 @@ from Plugins.Plugin import PluginDescriptor
 # Plugin internal
 from SeriesPlugin import resetInstance, getInstance
 from EpisodePatterns import readPatternFile
-from Logger import splog
+from Logger import splog, Logger
 
 
 def checkList(cfg):
@@ -50,7 +50,7 @@ def checkList(cfg):
 
 #######################################################
 # Configuration screen
-class SeriesPluginConfiguration(ConfigListScreen, Screen):
+class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 		self.skinName = [ "SeriesServiceConfiguration", "Setup" ]
@@ -63,17 +63,17 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		# Buttons
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("OK"))
-		#self["key_blue"] = StaticText(_("Send Log"))
+		self["key_blue"] = StaticText(_("Send Log"))
 		self["key_blue"] = StaticText("")
 		
 		# Define Actions
 		self["actions"] = ActionMap(["SetupActions", "ChannelSelectBaseActions", "ColorActions"],
 		{
-			"cancel":				self.keyCancel,
-			"save":					self.keySave,
+			"cancel":		self.keyCancel,
+			"save":			self.keySave,
 			"nextBouquet":	self.pageUp,
 			"prevBouquet":	self.pageDown,
-			#"blue":					self.blue,
+			"blue":			self.blue,
 		}, -2) # higher priority
 		
 		resetInstance()
@@ -134,7 +134,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
 			
-			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.channel_file ) )
+			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
+			self.list.append( getConfigListEntry(  _("Ask for channel matching")                   , config.plugins.seriesplugin.channel_popups ) )
 			
 			self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
 			
@@ -149,9 +150,9 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			
 			self.list.append( getConfigListEntry(  _("Debug: Write Log")                           , config.plugins.seriesplugin.write_log ) )
 			if config.plugins.seriesplugin.write_log.value:
-				self.list.append( getConfigListEntry(  _("Debug: Log file path")                      , config.plugins.seriesplugin.log_file ) )
-				#self.list.append( getConfigListEntry(  _("Debug: Forum user name")                   , config.plugins.seriesplugin.log_reply_user ) )
-				#self.list.append( getConfigListEntry(  _("Debug: User mail address")                 , config.plugins.seriesplugin.log_reply_mail ) )
+				self.list.append( getConfigListEntry(  _("Debug: Log file path")                   , config.plugins.seriesplugin.log_file ) )
+				self.list.append( getConfigListEntry(  _("Debug: Forum user name")                 , config.plugins.seriesplugin.log_reply_user ) )
+				self.list.append( getConfigListEntry(  _("Debug: User mail address")               , config.plugins.seriesplugin.log_reply_mail ) )
 
 	def changeConfig(self):
 		self.list = []
@@ -245,6 +246,4 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		self["config"].instance.moveSelection(self["config"].instance.pageDown)
 
 	def blue(self):
-		pass
-		#from Logger import sendLog
-		#sendLog(self.session)
+		self.sendLog()

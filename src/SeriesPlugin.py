@@ -2,7 +2,7 @@
 
 import re
 import os, sys, traceback
-from time import time, gmtime, strftime
+from time import gmtime, strftime
 from datetime import datetime
 
 # Localization
@@ -28,7 +28,7 @@ from Screens.MessageBox import MessageBox
 from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
-from Channels import ChannelsBase, removeEpisodeInfo
+from Channels import ChannelsBase, removeEpisodeInfo, lookupServiceAlternatives
 from Logger import splog
 from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
 
@@ -42,7 +42,7 @@ GUIDE_PATH      = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/Seri
 # Globals
 instance = None
 
-CompiledRegexpNonDecimal = re.compile(r'[^\d.]+')
+CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
 
 
 def getInstance():
@@ -112,14 +112,14 @@ class SeriesPluginWorkerThread(CancelableThread):
 				splog('SeriesPluginWorkerThread has been finished')
 				return
 			
-			identifier, callback, name, begin, end, channels = self.item
+			identifier, callback, name, begin, end, service, channels = self.item
 			splog('SeriesPluginWorkerThread is processing: ', identifier)
 			
 			# do processing stuff here
 			try:
 				identifier.getEpisode(
 					self.workerCallback,
-					name, begin, end, channels
+					name, begin, end, service, channels
 				)
 			except Exception, e:
 				splog("SeriesPluginWorkerThread Exception:", str(e))
@@ -134,7 +134,7 @@ class SeriesPluginWorkerThread(CancelableThread):
 	
 	def workerCallback(self, data=None):
 		splog('SeriesPluginWorkerThread callback')
-		identifier, callback, name, begin, end, channels = self.item
+		identifier, callback, name, begin, end, service, channels = self.item
 		
 		# kill the thread
 		self.queue.task_done()
@@ -252,19 +252,19 @@ class SeriesPlugin(Modules, ChannelsBase):
 				info = self.serviceHandler.info(service)
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
 				service = ServiceReference(ref)
-				splog("SeriesPlugin eServiceReference movie", str(ref))
+				splog("TODO SeriesPlugin eServiceReference movie", str(ref))
 				
 			else:
 				# Service is channel reference
 				ref = eServiceReference(str(service))
 				service = ServiceReference(ref)
-				splog("SeriesPlugin eServiceReference channel", str(ref))
+				splog("TODO SeriesPlugin eServiceReference channel", str(ref))
 		
 		elif isinstance(service, ServiceReference):
 			splog("SeriesPlugin ServiceReference", str(ref))
 			
 			
-		channels = self.lookupServiceAlternatives(service)
+		channels = lookupServiceAlternatives(service)
 		
 		#MAYBE for all valid identifier in identifiers:
 		
@@ -293,7 +293,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 					self.worker.daemon = True
 					self.worker.start()
 				
-				self.queue.put( (identifier, callback, name, begin, end, channels) )
+				self.queue.put( (identifier, callback, name, begin, end, service, channels) )
 				
 			except Exception, e:
 				splog(_("SeriesPlugin getEpisode exception ") + str(e))

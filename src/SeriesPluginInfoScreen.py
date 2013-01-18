@@ -59,6 +59,8 @@ from Logger import splog
 # Constants
 PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Logos/" )
 
+instance = None
+
 
 #######################################################
 # Info screen
@@ -69,6 +71,10 @@ class SeriesPluginInfoScreen(Screen):
 	
 	def __init__(self, session, service=None, event=None):
 		Screen.__init__(self, session)
+		
+		global instance
+		instance = self
+		
 		self.session = session
 		self.skinName = [ "SeriesPluginInfoScreen" ]
 		
@@ -174,21 +180,38 @@ class SeriesPluginInfoScreen(Screen):
 		
 		# Fallbacks
 		if ref is None:
-			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
+			#ref = self.session and self.session.nav.getCurrentService()
+			#ref = eServiceReference(ref.info().getInfoString(iServiceInformation.sServiceref))
+			#ref = eServiceReference(str(ref))
+			
+			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference().toString()
+			#if not ref:
+			#	return
+			#sref = ref.toString()
+			# strip all after last :
+			#pos = sref.rfind(':')
+			#if pos != -1:
+			#	sref = sref[:pos+1]
+			#ref = eServiceReference(str(sref))
+			
+			#ref = ServiceReference(ref)
+			#ref = eServiceReference(ref)
+			
 			channel = ServiceReference(ref).getServiceName() or ""
 			splog("SeriesPluginInfoScreen Fallback ref", str(ref))
 		
 		if not isinstance(self.event, eServiceEvent):
-			self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
+			eref = eServiceReference(ref)
+			self.event = eref.valid() and self.epg.lookupEventTime(eref, -1)
 			#num = event and event.getNumOfLinkageServices() or 0
 			#for cnt in range(num):
 			#	subservice = event.getLinkageService(sref, cnt)
 			# Get information from epg
 			today = True
 			elapsed = False
-			splog("SeriesPluginInfoScreen Fallback event", str(ref))
+			splog("SeriesPluginInfoScreen Fallback event")
 		
-		self.service = ref
+		#self.service = ref
 		
 		
 		if self.event:
@@ -233,7 +256,8 @@ class SeriesPluginInfoScreen(Screen):
 		identifier = self.seriesPlugin.getEpisode(
 				self.episodeCallback, 
 				#self.name, begin, end, channel, today=today, elapsed=elapsed
-				self.name, begin, end, self.service, today=today, elapsed=elapsed
+				#self.name, begin, end, self.service, today=today, elapsed=elapsed
+				self.name, begin, end, ref, today=today, elapsed=elapsed
 			)
 		
 		if identifier:
@@ -331,6 +355,10 @@ class SeriesPluginInfoScreen(Screen):
 
 	# Overwrite Screen close function
 	def close(self):
+		
+		global instance
+		instance = None
+		
 		if self.seriesPlugin:
 			self.seriesPlugin.cancel()
 		# Call baseclass function

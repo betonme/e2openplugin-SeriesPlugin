@@ -48,8 +48,12 @@ class SeriesPluginTimer(object):
 		# Mad Men != Mad_Men
 		epgcache = eEPGCache.getInstance()
 		event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
+		
+		if (not event):
+			splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
+		
 		if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
-			splog("Skip timer because it is already modified", timer.name, name, event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
+			splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
 			return
 		
 		if timer.begin < time() + 60:
@@ -78,7 +82,7 @@ class SeriesPluginTimer(object):
 			self.seriesPlugin.getEpisode(
 					self.timerCallback,
 					#name, begin, end, channel, future=True
-					name, begin, end, timer.service_ref, future=True
+					name, begin, end, str(timer.service_ref), future=True
 				)
 		else:
 			splog("SeriesPluginTimer: No channel specified")

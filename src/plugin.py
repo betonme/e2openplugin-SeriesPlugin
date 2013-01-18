@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.2"
+VERSION = "0.8.3"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -65,6 +65,7 @@ config.plugins.seriesplugin.pattern_title             = ConfigText(default = "{o
 config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{season:02d}E{episode:02d} {title:s} {org:s}", fixed_size = False)
 
 config.plugins.seriesplugin.channel_file              = ConfigText(default = "/etc/enigma2/seriesplugin_channels.xml", fixed_size = False)
+config.plugins.seriesplugin.channel_popups            = ConfigYesNo(default = False)
 
 config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = False)
 
@@ -136,6 +137,11 @@ def extension(session, *args, **kwargs):
 # Movielist menu rename
 def movielist_rename(session, service, services=None, *args, **kwargs):
 	try:
+		if services:
+			if not isinstance(services, list):
+				services = [services]	
+		else:
+			services = [service]
 		SeriesPluginRenamer(session, services)
 	except Exception, e:
 		splog(_("SeriesPlugin renamer exception ") + str(e))

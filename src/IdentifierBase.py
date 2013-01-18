@@ -111,7 +111,7 @@ class IdentifierBase(ModuleBase, Cacher):
 		# False: Service doesn't know future air dates
 		return False
 
-	def getEpisode(self, callback, name, begin, end, channels):
+	def getEpisode(self, callback, name, begin, end, service, channels):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		callback( None )

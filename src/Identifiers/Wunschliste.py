@@ -129,7 +129,7 @@ class Wunschliste(IdentifierBase):
 		# Use the atom feed
 		return True
 
-	def getEpisode(self, callback, name, begin, end=None, channels=[]):
+	def getEpisode(self, callback, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		
@@ -137,6 +137,7 @@ class Wunschliste(IdentifierBase):
 		self.name = name
 		self.begin = begin
 		self.end = end
+		self.service = service
 		self.channels = channels
 		self.ids = []
 		self.when = 0
@@ -260,7 +261,7 @@ class Wunschliste(IdentifierBase):
 								result = CompiledRegexpAtomChannel.search(xtitle)
 								if result and len(result.groups()) >= 1:
 									
-									if compareChannels(self.channels, result.group(1)):
+									if compareChannels(self.channels, result.group(1), self.service):
 										
 										if delta < ydelta:
 											# Slice string to remove channel
@@ -355,7 +356,7 @@ class Wunschliste(IdentifierBase):
 						
 						if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 							
-							if compareChannels(self.channels, xchannel):
+							if compareChannels(self.channels, xchannel, self.service):
 							
 								if delta < ydelta:
 									
@@ -402,7 +403,7 @@ class Wunschliste(IdentifierBase):
 
 	def getPageInternal(self, callback, url):
 		
-		if self.checkLicense():
+		if self.checkLicense(url):
 			
 			# PHP Proxy with 3 day Caching
 			# to minimize server requests
@@ -413,7 +414,7 @@ class Wunschliste(IdentifierBase):
 		else:
 			self.callback( _("No valid license") )
 
-	def checkLicense(self):
+	def checkLicense(self, url):
 		
 		global license
 		if license is not None:
@@ -421,7 +422,7 @@ class Wunschliste(IdentifierBase):
 		
 		from urllib2 import urlopen, URLError
 		try:
-			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/License.html" , timeout=10).read()
+			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=10).read()
 		except URLError, e:
 			raise
 			

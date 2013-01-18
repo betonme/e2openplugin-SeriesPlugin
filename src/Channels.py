@@ -25,6 +25,9 @@ from Components.config import config
 #from enigma import eEPGCache, eServiceReference, eServiceCenter
 from ServiceReference import ServiceReference
 
+from Screens.MessageBox import MessageBox
+from Tools.BoundFunction import boundFunction
+
 # XML
 from xml.etree.cElementTree import ElementTree, tostring, parse, Element, SubElement, Comment
 from Tools.XMLTools import stringToXML
@@ -78,7 +81,6 @@ ChannelReplaceDict = OrderedDict([
 	('\xc3\x9f', 'ss'),
 ])
 CompiledRegexpChannelUnify = re.compile('|'.join(ChannelReplaceDict))
-#CompiledRegexpChannelFilter = re.compile('[\W_]+')
 CompiledRegexpChannelRemoveSpecialChars = re.compile('[^a-zA-Z0-9]')
 def unifyChannel(text):
 	def translate(match):
@@ -87,46 +89,85 @@ def unifyChannel(text):
 	
 	text = CompiledRegexpChannelUnify.sub(translate, text)
 	text = text.decode("utf-8").encode("latin1")
-	#text = CompiledRegexpChannelFilter.sub('', text)
 	text = CompiledRegexpChannelRemoveSpecialChars.sub('', text)
 	return text.strip().lower()
 
 
-def compareChannels(locals, remote):
+channels = {}  # channels[reference] = ( name, [ (name1, uname1), (name2, uname2), ... ] )
+channels_changed = False
 	
-	remote = unifyChannel(remote)		
-	splog(locals, remote, len(remote))
+def lookupServiceAlternatives(service):
+	global channels, channels_changed
 	
-	for local in locals:
-		if local == remote:
+	splog("lookupServiceAlternatives service", service)
+	ref = str(service)
+	ref = re.sub('::.*', ':', ref)
+	splog("lookupServiceAlternatives ref", ref)
+	splog("lookupServiceAlternatives channels before", channels)
+	splog("lookupServiceAlternatives ref in channels", ref in channels)
+	if ref in channels:
+		name, alternatives = channels.get(ref)
+	else:
+		name = ServiceReference(ref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+		alternatives = [ ( name, unifyChannel(name) ), ]
+		channels[ref] = ( name, alternatives )
+		channels_changed = True
+	
+	splog("lookupServiceAlternatives channels", channels, alternatives)
+	return alternatives
+
+def compareChannels(locals, remote, service):
+	#global channels
+	
+	uremote = unifyChannel(remote)		
+	splog(locals, remote, uremote, len(uremote))
+	
+	for name, uname in locals:
+		if uname == uremote:
 			# The channels are equal
 			return True
-		elif local in remote or remote in local:
+		elif uname in uremote or uremote in uname:
 			# Parts of the channels are equal
 			return True
-		elif local == "":
-			# The local channel is empty
-			return True
-		elif "unknown" in local:
+		#elif uname == "":
+		#	# The local channel is empty
+		#	return True
+		elif "unknown" in uname:
 			# The local channel is unknown
 			return True
-	
+	else:
+		# Ask the user only if we are called from SeriesPluginInfoScreen
+		from SeriesPluginInfoScreen import instance
+		if config.plugins.seriesplugin.channel_popups.value and instance:
+			names = [ name for name, uname in locals ]
+			instance.session.openWithCallback(
+				boundFunction(channelEqual, locals, remote, uremote, service),
+				MessageBox,
+				"SeriesPlugin:\nAre these channels equal?\n"+str(remote)+"\n"+str(names),
+				type = MessageBox.TYPE_YESNO
+			)
 	return False
 
-#class Channels(object):
-#	def __init__(self, service, reference, alternatives = []):
-#		self.service = service
-#		self.reference = reference
-#		self.alternatives = alternatives
-#	
-#	def getName(self):
-#		return self.service.getServiceName()
-#	
-#	def getReference(self):
-#		return self.reference
-#	
-#	def getAlternatives(self):
-#		return self.alternatives
+def channelEqual(locals, remote, uremote, service, equal):
+	global channels, channels_changed
+	
+	if equal:
+		# Add remote to alternative channels
+		for reference, namealternatives in channels.iteritems():
+			name, alternatives = namealternatives
+			splog("locals, alternatives:", locals, alternatives)
+			if alternatives == locals:
+				ref = str(service)
+				ref = re.sub('::.*', ':', ref)
+				name = ServiceReference(ref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+				
+				# Maybe we should append the new entry
+				channels[ref] = ( name, [(remote, uremote)] )
+				channels_changed = True
+				splog("SP channel added ", channels)
+				break
+		# The channel will be saved, restart the last request
+		#TODO show message ?!?
 
 
 class ChannelsFile(object):
@@ -204,29 +245,15 @@ class ChannelsBase(ChannelsFile):
 	def __init__(self):
 		ChannelsFile.__init__(self)
 		
-		self.channels = {}  # channels[reference] = ( name, [ (name1, uname1), (name2, uname2), ... ] )
-		
-		self.channels_changed = False
+		global channels, channels_changed
+		channels = {}  # channels[reference] = ( name, [ (name1, uname1), (name2, uname2), ... ] )
+		channels_changed = False
 		
 		self.loadXML()
-
-	def lookupServiceAlternatives(self, service):
-		splog("lookupServiceAlternatives service", service)
-		ref = str(service)
-		splog("lookupServiceAlternatives ref", ref)
-		splog("lookupServiceAlternatives channels", self.channels)
-		if ref in self.channels:
-			name, alternatives = self.channels.get(ref)
-		else:
-			name = service.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
-			alternatives = [ ( name, unifyChannel(name) ), ]
-			self.channels[ref] = ( name, alternatives )
-			self.channels_changed = True
-		
-		splog("lookupServiceAlternatives self.channels", self.channels, alternatives)
-		return [ uname for name, uname in alternatives ]
 	
 	def loadXML(self):
+		global channels
+		
 		# Read xml config file
 		root = self.readXML()
 		if root:
@@ -249,18 +276,16 @@ class ChannelsBase(ChannelsFile):
 			
 			channels = parse( root )
 			splog("loadXML channels", channels)
-			
-			self.channels = channels
 		else:
-			self.channels = {}
+			channels = {}
 
 	def saveXML(self):
+		global channels, channels_changed
 		
-		if self.channels_changed:
+		if channels_changed:
 			
 			# Generate List in RAM
 			root = None
-			channels = self.channels
 			splog("saveXML channels", channels)
 			
 			# Build Header
