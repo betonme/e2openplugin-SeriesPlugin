@@ -248,7 +248,7 @@ class SeriesPluginInfoScreen(Screen):
 		#splog(data)
 		if data:
 			# Episode data available
-			season, episode, title = self.data = data
+			season, episode, title, series = self.data = data
 		
 		#LATER
 		#	self.seriesPlugin.getStates(

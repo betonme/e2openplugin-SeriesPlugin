@@ -37,6 +37,49 @@ from Plugins.Plugin import PluginDescriptor
 from SeriesPlugin import resetInstance, getInstance
 from Logger import splog
 
+scheme_fallback = [
+		("Off", "Disabled"),
+		
+		("{org:s} S{season:02d}E{episode:02d}"            , "Org S01E01"),
+		("{org:s} S{season:02d}E{episode:02d} {title:s}"  , "Org S01E01 Title"),
+		("{title:s} {org:s}"                              , "Title Org"),
+		("S{season:02d}E{episode:02d} {title:s} {org:s}"  , "S01E01 Title Org"),
+		("{title:s} S{season:02d}E{episode:02d} {org:s}"  , "Title S01E01 Org"),
+		
+		("{series:s} S{season:02d}E{episode:02d}"            , "Series S01E01"),
+		("{series:s} S{season:02d}E{episode:02d} {title:s}"  , "Series S01E01 Title"),
+		("{title:s} {series:s}"                              , "Title Series"),
+		("S{season:02d}E{episode:02d} {title:s} {series:s}"  , "S01E01 Title Series"),
+		("{title:s} S{season:02d}E{episode:02d} {series:s}"  , "Title S01E01 Series"),
+	]
+
+def readPatternFile():
+	path = config.plugins.seriesplugin.pattern_file.value
+	obj = None
+	patterns = None
+	
+	if os.path.exists(path):
+		f = None
+		try:
+			import json
+			f = open(path, 'rb')
+			header, patterns = json.load(f)
+			patterns = [tuple(p) for p in patterns]
+		except Exception, e:
+			splog("[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e))
+		finally:
+			if f is not None:
+				f.close()
+	return patterns or scheme_fallback
+
+def checkList(cfg):
+	if cfg.value not in cfg.choices.choices:
+		if cfg.default in cfg.choices.choices:
+			cfg.value = cfg.default
+		else:
+			cfg.value = cfg.choices.choices[0]
+	print cfg.value
+
 
 #######################################################
 # Configuration screen
@@ -78,10 +121,11 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		self.cfg_identifier_future  = NoSave( ConfigSelection(choices = identifiers_future,  default = config.plugins.seriesplugin.identifier_future.value  or identifiers_future[0]) )
 		
 		# Load patterns
-		from plugin import readPatternFile
 		patterns = readPatternFile()
-		self.cfg_pattern_title       = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_title.value       or patterns[0][0] ) )
-		self.cfg_pattern_description = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_description.value or patterns[0][0] ) )
+		self.cfg_pattern_title       = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_title.value ) )
+		self.cfg_pattern_description = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_description.value ) )
+		checkList( self.cfg_pattern_title )
+		checkList( self.cfg_pattern_description )		
 		
 		# Initialize Configuration
 		self.list = []

@@ -65,6 +65,7 @@ class Fernsehserien(IdentifierBase):
 		self.soup = None
 		
 		self.id = 0
+		self.series = ""
 		self.first = None
 		self.last = None
 		self.page = 0
@@ -107,7 +108,7 @@ class Fernsehserien(IdentifierBase):
 				id = line['id']
 				idname = line['value']
 				splog(id, idname)
-				serieslist.append( id )
+				serieslist.append( (id, idname) )
 			serieslist.reverse()
 			data = serieslist
 		
@@ -121,7 +122,7 @@ class Fernsehserien(IdentifierBase):
 	def getNextSeries(self):
 		splog("Fernsehserien getNextSeries", self.ids)
 		if self.ids:
-			self.id = self.ids.pop()
+			self.id, self.series = self.ids.pop()
 			
 			self.page = 0
 			#if self.future:
@@ -251,20 +252,17 @@ class Fernsehserien(IdentifierBase):
 										if delta < ydelta:
 										
 											# Second part: s1e1, s1e2,
-											xepisode = tds[4]
+											xseason = tds[4]
 											xepisode = tds[5]
-											if xepisode and xepisode.find(".") != -1:
-												#xseason, xepisode = xepisode.split(".")
-												xseason = xepisode[:-1]
+											if xseason and xseason.find(".") != -1:
+												xseason = xseason[:-1]
 												xtitle = " ".join(tds[6:])  # Use all available titles
 											else:
 												xseason = "1"
 												xtitle = " ".join(tds[6:])  # Use all available titles
 											
-											yepisode = (xseason, xepisode, xtitle)
+											yepisode = (xseason, xepisode, xtitle, self.series)
 											ydelta = delta
-											#self.callback( yepisode )
-											#return data
 										
 										else: #if delta >= ydelta:
 											break

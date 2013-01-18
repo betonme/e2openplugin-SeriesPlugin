@@ -185,7 +185,7 @@ class Wunschliste(IdentifierBase):
 				if len(values) == 3:
 					idname, countryyear, id = values
 					splog(id, idname)
-					serieslist.append( id )
+					serieslist.append( (id, idname) )
 				else:
 					splog("Wunschliste: ParseError: " + str(line))
 			serieslist.reverse()
@@ -201,7 +201,7 @@ class Wunschliste(IdentifierBase):
 	def getNextSeries(self):
 		splog("Wunschliste getNextSeries", self.ids)
 		if self.ids:
-			id = self.ids.pop()
+			id, self.series = self.ids.pop()
 			
 			if self.when:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
@@ -297,10 +297,8 @@ class Wunschliste(IdentifierBase):
 												if result and len(result.groups()) >= 1:
 													# Extract episode title
 													xtitle = result.group(1)
-													yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'))
+													yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'), self.series.decode('ISO-8859-1').encode('utf8'))
 													ydelta = delta
-													#self.callback( yepisode )
-													#return data
 										
 										else: #if delta >= ydelta:
 											break
@@ -375,10 +373,8 @@ class Wunschliste(IdentifierBase):
 									else:
 										xseason = "1"
 										xepisode = "0"
-									yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'))
+									yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'), self.series.decode('ISO-8859-1').encode('utf8'))
 									ydelta = delta
-									#self.callback( yepisode )
-									#return data
 								
 								else: #if delta >= ydelta:
 									break

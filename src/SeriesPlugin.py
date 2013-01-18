@@ -53,19 +53,22 @@ def getInstance():
 	return instance
 
 def resetInstance():
-#Rename to closeInstance
+	#Rename to closeInstance
 	global instance
 	if instance is not None:
 		splog("SERIESPLUGIN INSTANCE STOP")
 		instance.stop()
 		instance = None
+	from Helper import cache
+	global cache
+	cache = {}
 
 
 def refactorTitle(org, data):
 	if data:
-		season, episode, title = data
+		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
-			return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+			return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 		else:
 			return org
 	else:
@@ -73,15 +76,16 @@ def refactorTitle(org, data):
 
 def refactorDescription(org, data):
 	if data:
-		season, episode, title = data
+		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
-			description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+			description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 			description = description.replace("\n", " ")
 			return description
 		else:
 			return org
 	else:
 		return org
+
 
 class QueueWithTimeOut(Queue):
 	def __init__(self):
@@ -178,11 +182,11 @@ class SeriesPluginWorkerThread(Thread):
 		service, callback, name, begin, end, channel = self.item
 		
 		if data:
-			season, episode, title = data
+			season, episode, title, series = data
 			season = int(ComiledRegexpNonDecimal.sub('', season))
 			episode = int(ComiledRegexpNonDecimal.sub('', episode))
 			title = title.strip()
-			callback( (season, episode, title) )
+			callback( (season, episode, title, series) )
 		else:
 			callback()
 		

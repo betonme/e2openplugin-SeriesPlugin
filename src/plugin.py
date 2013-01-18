@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.6.1"
+VERSION = "0.6.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -38,39 +38,6 @@ ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
 				+ _("  Support: ") + SUPPORT + "\n" \
 				+ _("  Feel free to donate. \n") \
 				+ _("  PayPal: ") + DONATE
-
-scheme_fallback = [
-		("Off", "Disabled"),
-		("{org:s} S{season:02d}E{episode:02d}"            , "Org S01E01"),
-		("{org:s} S{season:02d}E{episode:02d} {title:s}"  , "Org S01E01 Title"),
-		("{title:s} {org:s}"                              , "Title Org"),
-		("S{season:02d}E{episode:02d} {title:s} {org:s}"  , "S01E01 Title Org"),
-		("{title:s} S{season:02d}E{episode:02d} {org:s}"  , "Title S01E01 Org"),
-	]
-
-
-def readPatternFile():
-	path = config.plugins.seriesplugin.pattern_file.value
-	obj = None
-	patterns = None
-	
-	if os.path.exists(path):
-		f = None
-		try:
-			import json
-			f = open(path, 'rb')
-			obj = json.load(f)
-		except Exception, e:
-			splog("[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e))
-			obj = None
-			patterns = scheme_fallback
-		finally:
-			if f is not None:
-				f.close()
-	if obj:
-		header, patterns = obj
-		patterns = [tuple(p) for p in patterns]
-	return patterns
 
 
 #######################################################
