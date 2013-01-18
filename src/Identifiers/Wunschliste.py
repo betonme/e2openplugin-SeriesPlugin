@@ -234,7 +234,7 @@ class Wunschliste(IdentifierBase):
 			
 			data = parser
 		
-		if data and isinstance(data, WLAtomParser):
+		if data: # and isinstance(data, WLAtomParser): #Why is this not working after restarting the SeriesPlugin service
 			trs = data.list
 			if trs:
 			
@@ -309,7 +309,7 @@ class Wunschliste(IdentifierBase):
 			
 			data = parser
 		
-		if data and isinstance(data, WLPrintParser):
+		if data: # and isinstance(data, WLPrintParser): #Why is this not working after restarting the SeriesPlugin service
 			trs = data.list
 			if trs:
 			

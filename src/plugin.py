@@ -24,7 +24,7 @@ from SeriesPluginConfiguration import SeriesPluginConfiguration
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -140,7 +140,7 @@ def setup(session, *args, **kwargs):
 
 #######################################################
 # Event Info
-def info(session, service=None, *args, **kwargs):
+def info(session, service=None, event=None, *args, **kwargs):
 	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
 	#SeriesPluginInfoScreen(session, ref)
 	try:
@@ -149,7 +149,7 @@ def info(session, service=None, *args, **kwargs):
 		#reload(SeriesPluginInfoScreen)
 		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
 		###
-		session.open(SeriesPluginInfoScreen, service)
+		session.open(SeriesPluginInfoScreen, service, event)
 	except Exception, e:
 		print _("SeriesPlugin info exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()

@@ -240,7 +240,7 @@ class Fernsehserien(IdentifierBase):
 			
 			data = parser
 		
-		if data and isinstance(data, FSParser):
+		if data: # and isinstance(data, FSParser): #Why is this not working after restarting the SeriesPlugin service
 			trs = data.list
 			if not trs:
 				# Store self.maxpages as callback parameter

@@ -161,7 +161,14 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		
 		resetInstance()
 		self.close()
-	
+
+	# Overwrite ConfigListScreen keyCancel function
+	def keyCancel(self):
+		if self["config"].isChanged():
+			self.session.openWithCallback(self.cancelConfirm, MessageBox, _("Really close without saving settings?"))
+		else:
+			self.close()
+
 	# Overwrite Screen close function
 	def close(self):
 		from plugin import ABOUT

@@ -21,7 +21,7 @@ import re
 
 # for localized messages
 from . import _
-from time import time
+#from time import time
 from datetime import datetime
 
 # Config
@@ -82,10 +82,10 @@ class SeriesPluginInfoScreen(Screen):
 		self["channel"] = Label()
 		self["duration"] = Label()
 		
-		self["key_red"] = Button("")	#TODO Record if current event or servicelist epg Rename if path exists
-		self["key_green"] = Button(_(""))
-		self["key_yellow"] = Button("")
-		self["key_blue"] = Button("")
+		self["key_red"] = Button("")				# Rename or Record
+		self["key_green"] = Button(_(""))		# Trakt Seen / Not Seen
+		self["key_yellow"] = Button("")			# Show all Episodes of current season
+		self["key_blue"] = Button("")				# Show all Seasons
 		
 		self.redButtonFunction = None
 		
@@ -97,11 +97,12 @@ class SeriesPluginInfoScreen(Screen):
 			"up":        self["event_description"].pageUp,
 			"down":      self["event_description"].pageDown,
 			"red":       self.redButton,
+			"prevEvent": self.prevEpisode,
+			"nextEvent": self.nextEpisode,
+			
 			#TODO
 			#"pageUp":    self.pageUp,
 			#"pageDown":  self.pageDown,
-			#"prevEvent": self.prevEvent,
-			#"nextEvent": self.nextEvent,
 			#"openSimilarList": self.openSimilarList
 		})
 		
@@ -110,33 +111,12 @@ class SeriesPluginInfoScreen(Screen):
 		
 		self.seriesPlugin = getInstance()
 		
-		print service
-		ref, channel = None, None
-		if isinstance(service, ChannelSelectionBase):
-			ref = service.getCurrentSelection()
-			print "SeriesPluginInfoScreen ChannelSelectionBase", str(ref)
-		elif isinstance(service, eServiceReference):
-			ref = eServiceReference(str(service))
-			#ref = eServiceReference(str(service))
-			print "SeriesPluginInfoScreen eServiceReference", str(ref)
-		elif isinstance(service, ServiceReference):
-			ref = service.ref
-			#TODO channel = service.getServiceName()
-			print "SeriesPluginInfoScreen ServiceReference", str(ref)
+		print service, event
+		self.service = service
+		self.event = event
 		
-		if ref is None:
-			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
-			print "SeriesPluginInfoScreen Fallback", str(ref)
-		
-		if isinstance(event, eServiceEvent):
-			self.event = event
-		else:
-			self.event = None
-		
-		self.service = ref
 		self.name = ""
 		self.short = ""
-		self.end = None
 		self.data = None
 		
 		self.onLayoutFinish.append( self.layoutFinished )
@@ -147,86 +127,111 @@ class SeriesPluginInfoScreen(Screen):
 		self.getEpisode()
 
 	def getEpisode(self):
-		name, short = "", ""
-		ref = self.service
-		begin, end = None, None
-		short, ext, channel = "", "", ""
+		self.name = ""
+		self.short = ""
+		self.data = None
+		begin, end, duration = 0, 0, 0
+		ext, channel = "", ""
 		
-		if self.event:
-			# Get information from event
-			today = True #OR future
-			elapsed = False
+		today = True #OR future
+		elapsed = False
 		
-		elif ref:
-			self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
-			if self.event:
-				# Get information from epg
-				today = True
-				elapsed = False
-				
-			else:
-				# Get information from record meta files
-				info = self.serviceHandler.info(ref)
-				name = ref.getName() or info.getName(ref) or ""
-				self.event = info.getEvent(ref)
-				rec_ref_str = info.getInfoString(ref, iServiceInformation.sServiceref)
+		service = self.service
+		
+		ref = None
+		
+		if isinstance(service, eServiceReference):
+			#ref = service  #Problem EPG
+			if service.getPath():
+				ref = service
+				# Service is a movie reference
+				info = self.serviceHandler.info(service)
+				rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
 				channel = ServiceReference(rec_ref_str).getServiceName() or ""
-				
+				# Get information from record meta files
+				self.event = info and info.getEvent(service)
 				today = False
 				elapsed = True
+				print "SeriesPluginInfoScreen eServiceReference movie", str(ref)
+			else:
+				# Service is channel reference
+				ref = eServiceReference(str(service))
+				channel = ServiceReference(ref).getServiceName() or ""
+				#ref = eServiceReference(service.toString())#
+				# Get information from event
+				print "SeriesPluginInfoScreen eServiceReference channel", str(ref)
 		
-		event = self.event
-		if event:
-			name = event.getEventName() or ""
-			begin = event.getBeginTime() or 0
-			duration = event.getDuration() or 0
+		elif isinstance(service, ServiceReference):
+			ref = service.ref
+			channel = service.getServiceName()
+			print "SeriesPluginInfoScreen ServiceReference", str(ref)
+		
+		elif isinstance(service, ChannelSelectionBase):
+			ref = service.getCurrentSelection()
+			channel = ServiceReference(ref).getServiceName() or ""
+			print "SeriesPluginInfoScreen ChannelSelectionBase", str(ref)
+		
+		# Fallbacks
+		if ref is None:
+			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
+			channel = ServiceReference(ref).getServiceName() or ""
+			print "SeriesPluginInfoScreen Fallback ref", str(ref)
+		
+		if not isinstance(self.event, eServiceEvent):
+			self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
+			#num = event and event.getNumOfLinkageServices() or 0
+			#for cnt in range(num):
+			#	subservice = event.getLinkageService(sref, cnt)
+			# Get information from epg
+			today = True
+			elapsed = False
+			print "SeriesPluginInfoScreen Fallback event", str(ref)
+		
+		self.service = ref
+		
+		
+		if self.event:
+			self.name = self.event.getEventName() or ""
+			begin = self.event.getBeginTime() or 0
+			duration = self.event.getDuration() or 0
 			end = begin + duration or 0
 			# We got the exact margins, no need to adapt it
-			short = event.getShortDescription() or ""
-			ext = event.getExtendedDescription() or ""
-			if not channel:
-				channel = ServiceReference(ref.toString()).getServiceName() or ""
+			self.short = self.event.getShortDescription() or ""
+			ext = self.event.getExtendedDescription() or ""
+			print "SeriesPluginInfoScreen event"
 		
 		if not begin:
 			info = self.serviceHandler.info(ref)
-			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
-			if begin != -1:
-				duration = info.getLength(ref) or 0
-				end = begin + duration or 0
-			else:
-				end = os.path.getmtime(ref.getPath())
-				duration = info.getLength(ref) or 0
-				begin = end - duration or 0
-			#MAYBE we could also try to parse the filename
+			print "SeriesPluginInfoScreen info"
+			if info:
+				print "SeriesPluginInfoScreen if info"
+				begin = info.getInfo(ref, iServiceInformation.sTimeCreate) or 0
+				if begin:
+					duration = info.getLength(ref) or 0
+					end = begin + duration or 0
+					print "SeriesPluginInfoScreen sTimeCreate"
+				else:
+					end = os.path.getmtime(ref.getPath()) or 0
+					duration = info.getLength(ref) or 0
+					begin = end - duration or 0
+					print "SeriesPluginInfoScreen sTimeCreate else"
+			elif ref:
+				path = ref.getPath()
+				print "SeriesPluginInfoScreen getPath"
+				if path and os.path.exists(path):
+					begin = os.path.getmtime(path) or 0
+					print "SeriesPluginInfoScreen getctime"
+			#else:
+				#MAYBE we could also try to parse the filename
 			# We don't know the exact margins, we will assume the E2 default margins
 			begin = begin + (config.recording.margin_before.value * 60)
 			end = end - (config.recording.margin_after.value * 60)
 		
-		self.name = name
-		self.short = short
-		self.end = end
-		
-		# Adapted from EventView
-		self["event_title"].setText( name )
-		self["event_episode"].setText( _("Retrieving Season, Episode and Title...") )
-		text = ""
-		if short and short != name:
-			text = short
-		if ext:
-			if text:
-				text += '\n'
-			text += ext
-		self["event_description"].setText(text)
-		
-		self["datetime"].setText( datetime.fromtimestamp(begin).strftime("%d.%m.%Y, %H:%M") )
-		self["duration"].setText(_("%d min")%((duration)/60))
-		self["channel"].setText(channel)
-		
-		#print name, short, ext, begin, end, channel, today, elapsed 
+		self.updateScreen(self.name, _("Retrieving Season, Episode and Title..."), self.short, ext, begin, duration, channel)
 		
 		identifier = self.seriesPlugin.getEpisode(
 				self.episodeCallback, 
-				name, begin, end, channel, today=today, elapsed=elapsed
+				self.name, begin, end, channel, today=today, elapsed=elapsed
 			)
 		
 		if identifier:
@@ -259,6 +264,25 @@ class SeriesPluginInfoScreen(Screen):
 		# Check if the dialog is already closed
 		if self.has_key("event_episode"):
 			self["event_episode"].setText( custom )
+
+
+	def updateScreen(self, name, episode, short, ext, begin, duration, channel):
+		# Adapted from EventView
+		self["event_title"].setText( name )
+		self["event_episode"].setText( episode )
+		
+		text = ""
+		if short and short != name:
+			text = short
+		if ext:
+			if text:
+				text += '\n'
+			text += ext
+		self["event_description"].setText(text)
+		
+		self["datetime"].setText( datetime.fromtimestamp(begin).strftime("%d.%m.%Y, %H:%M") )
+		self["duration"].setText(_("%d min")%((duration)/60))
+		self["channel"].setText(channel)
 
 	def stateCallback(self, show_name, short, description, state=None):
 		pass
@@ -293,14 +317,16 @@ class SeriesPluginInfoScreen(Screen):
 
 
 	def setColorButtons(self):
-		ref = self.service
-		if ref and self.data:
-			path = ref.getPath()
+		print "event eit", self.event and self.event.getEventId()
+		if self.service and self.data:
+			
+			path = self.service.getPath()
+			
 			if path and os.path.exists(path):
 				# Record file exists
 				self["key_red"].setText(_("Rename"))
 				self.redButtonFunction = self.rename
-			elif self.end and self.end > time():
+			elif self.event and self.event.getEventId():
 				# Event exists
 				self["key_red"].setText(_("Record"))
 				self.redButtonFunction = self.record
@@ -315,6 +341,13 @@ class SeriesPluginInfoScreen(Screen):
 		if callable(self.redButtonFunction):
 			self.redButtonFunction()
 
+	def prevEpisode(self):
+		if self.service and self.data:
+			pass
+
+	def nextEpisode(self):
+		if self.service and self.data:
+			pass
 
 	def rename(self):
 		ref = self.service

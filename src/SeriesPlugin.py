@@ -53,7 +53,7 @@ def resetInstance():
 	global instance
 	if instance is not None:
 		#Maybe clear caches?
-		instance.close()
+		instance.stop()
 		instance = None
 
 
@@ -79,15 +79,13 @@ class QueueWithTimeOut(Queue):
 		Queue.__init__(self)
 	def join_with_timeout(self, timeout):
 		self.all_tasks_done.acquire()
-		try:
-			endtime = time() + timeout
-			while self.unfinished_tasks:
-				remaining = endtime - time()
-				if remaining <= 0.0:
-					raise NotFinished
-				self.all_tasks_done.wait(remaining)
-		finally:
-			self.all_tasks_done.release()
+		endtime = time() + timeout
+		while self.unfinished_tasks:
+			remaining = endtime - time()
+			if remaining <= 0.0:
+				break
+			self.all_tasks_done.wait(remaining)
+		self.all_tasks_done.release()
 
 
 ##glock = Lock()
@@ -217,11 +215,14 @@ class SeriesPlugin(Modules):
 			self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
 			print self.guide
 
-	def close(self):
+	def stop(self):
 		if self.queue and not self.queue.empty():
-			# Wait for the worker thread (max 5 minutes)
-			#self.queue.join()
-			self.queue.join_with_timeout(5*60)
+			print "isAlive", self.worker and self.worker.isAlive()
+			print "is_alive", self.worker and self.worker.is_alive()
+			if self.worker and self.worker.isAlive():
+				# Wait for the worker thread (max 1 minute)
+				#self.queue.join()
+				self.queue.join_with_timeout(1*60)
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()
 
@@ -255,6 +256,10 @@ class SeriesPlugin(Modules):
 			#	 ( elapsed and service.knowsElapsed() ):
 			try:
 				#available = True
+				print "self.worker and self.worker.isAlive()", self.worker and self.worker.isAlive()
+				if not (self.worker and self.worker.isAlive()):
+					# Start new worker
+					self.worker = SeriesPluginWorkerThread(self.queue)
 				
 				self.queue.put( (service, callback, name, begin, end, channel) )
 				
