@@ -1,4 +1,54 @@
 <?php
+
+	// Google Analytics without utilizing the clients
+	// 25.04.202 by Frank Glaser
+	// http://tecjunkie.blogspot.de/2012/04/google-analytics-without-utilizing.html
+	// Very helpfull:
+	// https://developers.google.com/analytics/resources/articles/gaTrackingTroubleshooting?hl=de-DE#gifParameters
+	// http://www.slideshare.net/yuhuibc/how-to-check-google-analytics-tags-7532272
+	$GA_ACCOUNT = "MO-31168065-1";
+	$GA_PHP = "ga.php";
+
+	function initPageView() {
+		global $GA_ACCOUNT, $GA_PHP;
+		
+		$_GET["utmac"] = $GA_ACCOUNT;
+		$_GET["utmn"] = rand(0, 0x7fffffff);
+		
+		$referer = $_SERVER["HTTP_REFERER"];
+		$query = $_SERVER["QUERY_STRING"];
+		$path = $_SERVER["REQUEST_URI"];
+		if (empty($referer)) {
+			$referer = "-";
+		}
+		$_GET["utmr"] = $referer;
+		if (!empty($path)) {
+			$_GET["utmp"] = $path;
+		}
+		$_GET["guid"] = "ON";
+		
+		include($GA_PHP);
+		
+		// Only if You want to debug something 
+		//print_r(error_get_last());
+	}
+	
+	// Avoid sending anything before the Google Analytics Code
+	// Else You will get:
+	// Warning: Cannot modify header information - headers already sent by
+	initPageView();
+
+	function setPageEvent($object, $action, $label) {
+		$_GET["utmt"] = 'event';
+		$_GET["utme"] = '5(' . $object . '*' . $action . '*' . $label . ')';
+	}
+
+	function sendPageView() {
+		trackPageView();
+		//print_r(error_get_last());
+	}
+
+
 	/*
 	Copyright (c) 2011 Manuel Strehl
 	
@@ -23,15 +73,15 @@
 	
 	// check preconditions
 	if (! isset($_GET['url'])) {
-	  header('HTTP/1.0 400 Bad Request');
-	  header('Content-Type: application/json');
-	  echo 'null';
-	  exit(1);
+		header('HTTP/1.0 400 Bad Request');
+		header('Content-Type: application/json');
+		echo 'null';
+		exit(1);
 	}
 	
 	// allow requests only to these domains
 	$whitelist = array('www.wunschliste.de', 'www.fernsehserien.de');
-	
+	 
 	// cache ressources for 3 days = one hour * 24 * 3
 	$cache_duration = 60*60 *24*3;
 	$then = mktime() - $cache_duration;
@@ -42,43 +92,46 @@
 	$db = new PDO("sqlite:".dirname(__FILE__)."/cache.sqlite");
 	$stm = $db->prepare('select 1 from cache'); // this is the test
 	if ($stm === False) {
-	    // set up the table
-	    $db->exec('CREATE TABLE cache (url TEXT,
-	                                   type TEXT,
-	                                   content BLOB,
-	                                   age INTEGER,
-	                                   UNIQUE(url))');
+			// set up the table
+			$db->exec('CREATE TABLE cache (url TEXT,
+																		 type TEXT,
+																		 content BLOB,
+																		 age INTEGER,
+																		 UNIQUE(url))');
 	}
 	
-	# Fetch entry from DB
+	// Fetch entry from DB
 	$stm = $db->prepare("SELECT content, type, age FROM cache WHERE url = ? AND age > ?");
 	$stm->execute(array($url, $then));
 	$entry = $stm->fetch(PDO::FETCH_ASSOC);
 	
-	# no entry found in cache
+	// no entry found in cache
 	if ($entry === False) {
 	
-	    # prune cache
-	    $stm = $db->prepare('DELETE FROM cache WHERE url = ? OR age < ?');
-	    $stm->execute(array($url, $then));
+			// prune cache
+			$stm = $db->prepare('DELETE FROM cache WHERE url = ? OR age < ?');
+			$stm->execute(array($url, $then));
 	
-	    # fetch a current version
-	    $entry = fetch_entry($url);
+			// setPageEvent
+			setPageEvent('Cache', 'fetch', 'Fetch Page');
 	
-	    if ($entry['type'] !== NULL) {
-	        $stm = $db->prepare("INSERT INTO cache ( url, type, content, age )
-	                                VALUES (?, ?, ?, strftime('%s', 'now'))");
-	        $stm->execute(array($url, $entry['type'], $entry['content']));
-	    } else {
-	        # something went wrong
-	        $entry = array(
-	            'type' => 'application/json',
-	            'content' => 'null',
-	        );
-	    }
+			// fetch a current version
+			$entry = fetch_entry($url);
+	
+			if ($entry['type'] !== NULL) {
+					$stm = $db->prepare("INSERT INTO cache ( url, type, content, age )
+																	VALUES (?, ?, ?, strftime('%s', 'now'))");
+					$stm->execute(array($url, $entry['type'], $entry['content']));
+			} else {
+					// something went wrong
+					$entry = array(
+							'type' => 'application/json',
+							'content' => 'null',
+					);
+			}
 	} else {
-	    $expires = $entry['age'] + $cache_duration;
-	    $max_age = $entry['age'] - $then;
+			$expires = $entry['age'] + $cache_duration;
+			$max_age = $entry['age'] - $then;
 	}
 	
 	header('Content-Type: '.$entry['type']);
@@ -93,51 +146,53 @@
 	 * @return array MIME type and actual content
 	 */
 	function fetch_entry($url) {
-	    global $whitelist;
-	    $host = parse_url($url, PHP_URL_HOST);
-	    $accepted = False;
-	    foreach ($whitelist as $test) {
-	        // check the host against each whitelist entry
-	        if ($test === $host) {
-	            $accepted = True;
-	            break;
-	        }
-	    }
-	    $t = $c = NULL;
+			global $whitelist;
+			$host = parse_url($url, PHP_URL_HOST);
+			$accepted = False;
+			foreach ($whitelist as $test) {
+					// check the host against each whitelist entry
+					if ($test === $host) {
+							$accepted = True;
+							break;
+					}
+			}
+			$t = $c = NULL;
 	
-	    if ($accepted) {
-	        $ch = curl_init();
-	        curl_setopt($ch, CURLOPT_URL, $url);
-	        curl_setopt($ch, CURLOPT_USERAGENT, "My little cacher");
-	        curl_setopt($ch, CURLOPT_HEADER, 1); // we want the HTTP headers, too
-	        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // we need the stuff as 
-	                                                        // string, not printed out
-	        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // set a timeout for safety
+			if ($accepted) {
+					$ch = curl_init();
+					curl_setopt($ch, CURLOPT_URL, $url);
+					curl_setopt($ch, CURLOPT_USERAGENT, "My little cacher");
+					curl_setopt($ch, CURLOPT_HEADER, 1); // we want the HTTP headers, too
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // we need the stuff as 
+																													// string, not printed out
+					curl_setopt($ch, CURLOPT_TIMEOUT, 10); // set a timeout for safety
 	
-	        // the output is normalized to UNIX line endings (ASCII x10)
-	        $output = str_replace("\r\n", "\n", curl_exec($ch));
-	        curl_close($ch);
+					// the output is normalized to UNIX line endings (ASCII x10)
+					$output = str_replace("\r\n", "\n", curl_exec($ch));
+					curl_close($ch);
 	
-	        // if there is output, try to find out the MIME type and determine the
-	        // content
-	        if ($output) {
-	            list($h, $c) = explode("\n\n", $output, 2);
-	            $h = explode("\n", $h);
-	            $t = "text/plain";
-	            foreach ($h as $line) {
-	                if (substr(strtolower($line), 0, 13) === "content-type:") {
-	                    $t = trim(preg_replace('/^Content-Type:\s*(.*)$/i', '$1', $line));
-	                    break;
-	                }
-	            }
-	        }
-	    } else {
-	        $t = 'application/json';
-	        $c = '{"error":"forbidden"}';
-	    }
-	    return array(
-	        'type' => $t,
-	        'content' => $c
-	    );
+					// if there is output, try to find out the MIME type and determine the
+					// content
+					if ($output) {
+							list($h, $c) = explode("\n\n", $output, 2);
+							$h = explode("\n", $h);
+							$t = "text/plain";
+							foreach ($h as $line) {
+									if (substr(strtolower($line), 0, 13) === "content-type:") {
+											$t = trim(preg_replace('/^Content-Type:\s*(.*)$/i', '$1', $line));
+											break;
+									}
+							}
+					}
+			} else {
+					$t = 'application/json';
+					$c = '{"error":"forbidden"}';
+			}
+			return array(
+					'type' => $t,
+					'content' => $c
+			);
 	}
+	
+	sendPageView();
 ?>
