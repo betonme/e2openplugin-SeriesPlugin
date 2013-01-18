@@ -75,11 +75,11 @@ class GuideBase(ModuleBase):
 		splog("errback", args, kwargs)
 		callback( None )
 
-	def cancel(self):
-		if self.deferreds:
-			for deferred in deferreds:
-				deferred.cancel
-				#connector.disconnect()
+	#def cancel(self):
+	#	if self.deferreds:
+	#		for deferred in deferreds:
+	#			deferred.cancel
+	#			#connector.disconnect()
 
 
 	################################################

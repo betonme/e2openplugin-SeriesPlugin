@@ -53,7 +53,7 @@ ComiledRegexpAtomTitle = re.compile('.+: (.+)')
 # Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
 #ComiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
 
-ComiledRegexpEpisode = re.compile( '((\d+)\.)?(\d+)')
+ComiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
 
 
 class WLAtomParser(HTMLParser):
@@ -205,13 +205,15 @@ class Wunschliste(IdentifierBase):
 			
 			if self.when:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
-				self.getPage(
+				IdentifierBase.getPage(
+								self,
 								self.getEpisodeFutureCallback,
 								url
 							)
 			else:
 				url = EPISODEIDURLPRINT + urlencode({ 's' : id })
-				self.getPage(
+				IdentifierBase.getPage(
+								self,
 								self.getEpisodeTodayCallback,
 								url
 							)
@@ -277,15 +279,17 @@ class Wunschliste(IdentifierBase):
 													xepisode = result.group(1)
 													# Slice string to remove season and episode
 													xtitle = xtitle[:result.start()]
-													result = ComiledRegexpEpisode.search(xepisode)
 													
+													result = ComiledRegexpEpisode.search(xepisode)
 													if result and len(result.groups()) >= 3:
 														xseason = result and result.group(2) or "1"
 														xepisode = result and result.group(3) or "0"
 													else:
+														splog("Wunschliste wrong episode format", xepisode)
 														xseason = "1"
 														xepisode = "0"
 												else:
+													splog("Wunschliste wrong title format", xtitle)
 													xseason = "1"
 													xepisode = "0"
 												result = ComiledRegexpAtomTitle.search(xtitle)

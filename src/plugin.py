@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.5.5"
+VERSION = "0.6.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -77,7 +77,7 @@ def readPatternFile():
 # Initialize Configuration
 config.plugins.seriesplugin = ConfigSubsection()
 
-config.plugins.seriesplugin.enabled                   = ConfigEnableDisable(default = True)
+config.plugins.seriesplugin.enabled                   = ConfigEnableDisable(default = False)
 
 config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
@@ -86,22 +86,16 @@ config.plugins.seriesplugin.menu_movie_rename         = ConfigYesNo(default = Tr
 
 #TODO config.plugins.seriesplugin.open MessageBox or TheTVDB  ConfigSelection if hasTheTVDB
 
-config.plugins.seriesplugin.identifier_elapsed        = ConfigSelection(choices = [("", "")], default = "")
-config.plugins.seriesplugin.identifier_today          = ConfigSelection(choices = [("", "")], default = "")
-config.plugins.seriesplugin.identifier_future         = ConfigSelection(choices = [("", "")], default = "")
-config.plugins.seriesplugin.manager                   = ConfigSelection(choices = [("", "")], default = "")
-config.plugins.seriesplugin.guide                     = ConfigSelection(choices = [("", "")], default = "")
+config.plugins.seriesplugin.identifier_elapsed        = ConfigText(default = "", fixed_size = False)
+config.plugins.seriesplugin.identifier_today          = ConfigText(default = "", fixed_size = False)
+config.plugins.seriesplugin.identifier_future         = ConfigText(default = "", fixed_size = False)
+
+#config.plugins.seriesplugin.manager                   = ConfigSelection(choices = [("", "")], default = "")
+#config.plugins.seriesplugin.guide                     = ConfigSelection(choices = [("", "")], default = "")
 
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
-patterns = readPatternFile()
-#TEST ONLY
-print "SeriesPlugin"
-print patterns
-if not patterns:
-	print "SeriesPlugin Pattern Fallback"
-	patterns = scheme_fallback
-config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = patterns, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
-config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = patterns, default = "S{season:02d}E{episode:02d} {title:s} {org:s}")
+config.plugins.seriesplugin.pattern_title             = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
+config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{season:02d}E{episode:02d} {title:s} {org:s}", fixed_size = False)
 
 config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = False)
 
@@ -114,10 +108,6 @@ config.plugins.seriesplugin.log_reply_mail            = ConfigText(default = "my
 
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
-
-#TEST PATTERNS
-splog(config.plugins.seriesplugin.pattern_title.value)
-splog(config.plugins.seriesplugin.pattern_description.value)
 
 
 #######################################################

@@ -12,7 +12,7 @@ from thread import start_new_thread
 #Twisted All
 #from twisted.python.failure import Failure
 
-from urllib2 import Request, urlopen
+from urllib2 import urlopen #, Request
 
 from Tools.BoundFunction import boundFunction
 
@@ -43,33 +43,17 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 		cached = self.getCached(url, expires)
 		if cached:
 			splog("SSBase cached")
-			#start_new_thread(self.base_callback, (cached, callback, url))
-			self.base_callback(cached, callback, url)
+			callback( cached )
 		
 		else:
 			splog("SSBase not cached")
 			try:
-				#Twisted 12.x use
-				#deferred = twGetPage(url, timeout = 30)
-				#Twisted 8.x
-				#contextFactory = None
-				#scheme, host, port, path = _parse(url)
-				#factory = HTTPClientFactory(url, timeout=30)
-				#if scheme == 'https':
-				#	from twisted.internet import ssl
-				#	if contextFactory is None:
-				#		extFactory = ssl.ClientContextFactory()
-				#	connector = reactor.connectSSL(host, port, factory, contextFactory)
-				#else:
-				#	connector = reactor.connectTCP(host, port, factory)
-				#deferred = factory.deferred
-				
-				#deferred.addCallback(self.base_callback, callback, url)
-				#deferred.addErrback(self.base_errback, callback, url)
-				
-				req = Request(url)
-				response = urlopen(req)
-				self.base_callback(response.read(), callback, url)
+				#req = Request(url)
+				#response = urlopen(req)
+				response = urlopen(url , timeout=30)
+				data = callback( response.read() )
+				if data:
+					self.doCache(url, data)
 				
 			except Exception, e:
 				import os, sys, traceback
@@ -79,49 +63,8 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 				#splog( exc_type, exc_value, exc_traceback.format_exc() )
 				splog( exc_type, exc_value, traceback.format_stack() )
 				
-				self.cancel()
+				#self.cancel()
 				callback()
-
-	def base_callback(self, page, callback, url):
-		splog("base_callback")
-		try:
-			data = callback( page )
-			if data:
-				self.doCache(url, data)
-			
-		except Exception, e:
-			import os, sys, traceback
-			splog(_("SeriesPlugin base_callback exception ") + str(e))
-			exc_type, exc_value, exc_traceback = sys.exc_info()
-			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			#splog( exc_type, exc_value, exc_traceback.format_exc() )
-			#splog( exc_type, exc_value, exc_traceback )
-			#splog( exc_type, exc_value, traceback.format_stack() )
-			#splog( exc_type, exc_value, traceback.extract_stack() )
-			traceback.print_stack(file=sys.stdout)
-			
-			self.cancel()
-			callback()
-
-	def base_errback(self, err, callback, url):
-		splog("base_errback", url)
-		if isinstance(err, Exception):
-			splog(_("Twisted Exception:\n%s\n") % (err.type))
-			splog(str(err.value))
-		#elif isinstance(err, Failure):
-		#	splog(_("Twisted Failure:\n%s\n%s") % (err.type, err.value))
-			#TEST Later
-			#if self.retry(err.type, url):
-			#	# TODO Attention there is no retry counter yet
-			#	splog("RETRY")
-			#	self.getPage(callback, url)
-			#return
-		else:
-			splog(_("Twisted failed\n%s") % str(err))
-		callback( None )
-
-	def cancel(self):
-		pass
 
 	@staticmethod
 	def compareChannels(local, remote):

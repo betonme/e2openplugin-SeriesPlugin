@@ -6,7 +6,10 @@ from time import time, gmtime, strftime
 from datetime import datetime
 
 from Queue import Queue
-from threading import Thread, Lock
+import threading
+import inspect
+import ctypes
+
 
 # Localization
 from . import _
@@ -53,7 +56,7 @@ def resetInstance():
 #Rename to closeInstance
 	global instance
 	if instance is not None:
-		#Maybe clear caches?
+		splog("SERIESPLUGIN INSTANCE STOP")
 		instance.stop()
 		instance = None
 
@@ -86,43 +89,78 @@ class QueueWithTimeOut(Queue):
 	def join_with_timeout(self, timeout):
 		self.all_tasks_done.acquire()
 		endtime = time() + timeout
+		#splog("SeriesPluginWorker for while")
 		while self.unfinished_tasks:
 			remaining = endtime - time()
+			#splog("SeriesPluginWorker while", remaining)
 			if remaining <= 0.0:
 				break
+			#splog("SeriesPluginWorker before all_tasks_done wait")
 			self.all_tasks_done.wait(remaining)
+		#splog("SeriesPluginWorker before all_tasks_done release")
 		self.all_tasks_done.release()
 
 
-##glock = Lock()
+def _async_raise(tid, exctype):
+    """raises the exception, performs cleanup if needed"""
+    if not inspect.isclass(exctype):
+        raise TypeError("Only types can be raised (not instances)")
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
+    if res == 0:
+        raise ValueError("invalid thread id")
+    elif res != 1:
+        # """if it returns a number greater than one, you're in trouble, 
+        # and you should call it again with exc=NULL to revert the effect"""
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+        raise SystemError("PyThreadState_SetAsyncExc failed")
+
+
+class Thread(threading.Thread):
+    def _get_my_tid(self):
+        """determines this (self's) thread id"""
+        if not self.isAlive():
+            raise threading.ThreadError("the thread is not active")
+        
+        # do we have it cached?
+        if hasattr(self, "_thread_id"):
+            return self._thread_id
+        
+        # no, look for it in the _active dict
+        for tid, tobj in threading._active.items():
+            if tobj is self:
+                self._thread_id = tid
+                return tid
+        
+        raise AssertionError("could not determine the thread's id")
+    
+    def raise_exc(self, exctype):
+        """raises the given exception type in the context of this thread"""
+        _async_raise(self._get_my_tid(), exctype)
+    
+    def terminate(self):
+        """raises SystemExit in the context of the given thread, which should 
+        cause the thread to exit silently (unless caught)"""
+        self.raise_exc(SystemExit)
+
 
 class SeriesPluginWorkerThread(Thread):
-	#lock = Lock()
-	
+	# LATER stop thread this way:
+	# http://www.rootninja.com/thread-control-in-python-how-to-safely-stop-a-thread/
 	def __init__(self, queue):
 		Thread.__init__(self)
 		self.queue = queue
 		self.item = None
-		###self.lock = Lock()
 	
 	def run(self):
-		#if True: 
 		while True:
-			###self.lock.acquire()
-			#SeriesPluginWorkerThread.lock.acquire()
-			##glock.acquire()
-			#try:
 			self.item = self.queue.get()
 			if self.item == None:
 			#except queue.Empty:
 				splog('SeriesPluginWorkerThread has been finished')
-				###self.lock.release()
-				#SeriesPluginWorkerThread.lock.release()
-				##glock.release()
 				return
 			
-			splog('SeriesPluginWorkerThread is processing')
 			service, callback, name, begin, end, channel = self.item
+			splog('SeriesPluginWorkerThread is processing: ', service)
 			
 			# do processing stuff here
 			try:
@@ -150,9 +188,6 @@ class SeriesPluginWorkerThread(Thread):
 		
 		# kill the thread
 		self.queue.task_done()
-		###self.lock.release()
-		#SeriesPluginWorkerThread.lock.release()
-		##glock.release()
 		
 		config.plugins.seriesplugin.lookup_counter.value += 1
 		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
@@ -186,65 +221,51 @@ class SeriesPlugin(Modules):
 		self.worker.start()
 		
 		self.identifiers = self.loadModules(IDENTIFIER_PATH, IdentifierBase)
-		if self.identifiers:
-			identifier_elapsed = [k for k,v in self.identifiers.items() if v.knowsElapsed()]
-			if identifier_elapsed:
-				config.plugins.seriesplugin.identifier_elapsed.setChoices( identifier_elapsed )
-				if not config.plugins.seriesplugin.identifier_elapsed.value:
-					config.plugins.seriesplugin.identifier_elapsed.value = identifier_elapsed[0]
-			
-			identifier_today = [k for k,v in self.identifiers.items() if v.knowsToday()]
-			if identifier_today:
-				config.plugins.seriesplugin.identifier_today.setChoices( identifier_today )
-				if not config.plugins.seriesplugin.identifier_today.value:
-					config.plugins.seriesplugin.identifier_today.value = identifier_today[0]
-			
-			identifier_future = [k for k,v in self.identifiers.items() if v.knowsFuture()]
-			if identifier_future:
-				config.plugins.seriesplugin.identifier_future.setChoices( identifier_future )
-				if not config.plugins.seriesplugin.identifier_future.value:
-					config.plugins.seriesplugin.identifier_future.value = identifier_future[0]
 		
 		self.identifier_elapsed = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_elapsed.value )
 		splog(self.identifier_elapsed)
+		
 		self.identifier_today = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_today.value )
 		splog(self.identifier_today)
+		
 		self.identifier_future = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_future.value )
 		splog(self.identifier_future)
 		
-		self.managers = self.loadModules(MANAGER_PATH, ManagerBase)
-		if self.managers:
-			managers = self.managers.keys()
-			config.plugins.seriesplugin.manager.setChoices( managers )
-			if not config.plugins.seriesplugin.manager.value:
-				config.plugins.seriesplugin.manager.value = managers[0]
-		if config.plugins.seriesplugin.manager.value:
-			self.manager = self.instantiateModuleWithName( self.managers, config.plugins.seriesplugin.manager.value )
-			splog(self.manager)
+		#self.managers = self.loadModules(MANAGER_PATH, ManagerBase)
+		#if self.managers:
+		#	managers = self.managers.keys()
+		#	config.plugins.seriesplugin.manager.setChoices( managers )
+		#	if not config.plugins.seriesplugin.manager.value:
+		#		config.plugins.seriesplugin.manager.value = managers[0]
+		#if config.plugins.seriesplugin.manager.value:
+		#	self.manager = self.instantiateModuleWithName( self.managers, config.plugins.seriesplugin.manager.value )
+		#	splog(self.manager)
 		
-		self.guides = self.loadModules(GUIDE_PATH, GuideBase)
-		if self.guides:
-			guides = self.guides.keys()
-			config.plugins.seriesplugin.guide.setChoices( guides )
-			if not config.plugins.seriesplugin.guide.value:
-				config.plugins.seriesplugin.guide.value = guides[0]
-		if config.plugins.seriesplugin.guide.value:
-			self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
-			splog(self.guide)
-
-	def isActive(self):
-		return self.worker and self.worker.isAlive()
+		#self.guides = self.loadModules(GUIDE_PATH, GuideBase)
+		#if self.guides:
+		#	guides = self.guides.keys()
+		#	config.plugins.seriesplugin.guide.setChoices( guides )
+		#	if not config.plugins.seriesplugin.guide.value:
+		#		config.plugins.seriesplugin.guide.value = guides[0]
+		#if config.plugins.seriesplugin.guide.value:
+		#	self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
+		#	splog(self.guide)
 
 	def stop(self):
+		splog("SeriesPluginWorker stop")
+		splog("SeriesPluginWorker stop, queue", self.queue)
+		splog("SeriesPluginWorker stop, queue empty", self.queue.empty())
 		if self.queue and not self.queue.empty():
-			active = self.isActive()
+			active = self.worker and self.worker.isAlive()
 			splog("SeriesPluginWorker isAlive", active)
 			if active:
-				splog("Wait a moment")
-				# Wait for the worker thread (in seconds)
-				self.queue.join_with_timeout(10)
-		#if config.plugins.seriesplugin.lookup_counter.isChanged():
-		#	config.plugins.seriesplugin.lookup_counter.save()
+				splog("SeriesPluginWorker Worker terminate")
+				self.worker.terminate()
+				splog("SeriesPluginWorker Queue join")
+				self.queue.join_with_timeout(1)
+				#self.worker = None
+		if config.plugins.seriesplugin.lookup_counter.isChanged():
+			config.plugins.seriesplugin.lookup_counter.save()
 
 
 	################################################
@@ -276,9 +297,10 @@ class SeriesPlugin(Modules):
 			#	 ( elapsed and service.knowsElapsed() ):
 			try:
 				#available = True
-				splog("self.worker and self.worker.isAlive()", self.worker and self.worker.isAlive())
+				splog("SeriesPlugin Worker isAlive", self.worker and self.worker.isAlive(), self.queue.qsize())
 				if not (self.worker and self.worker.isAlive()):
 					# Start new worker
+					splog("SeriesPlugin Worker startNew")
 					self.worker = SeriesPluginWorkerThread(self.queue)
 					self.worker.daemon = True
 					self.worker.start()
@@ -301,16 +323,17 @@ class SeriesPlugin(Modules):
 	################################################
 	# Manager functions
 	def getStates(self, callback, show_name, season, episode):
-		if self.managers:
-			# Return a season, episode, title tuple
-			for manager in self.managers:
-				name = manager.getName()
-				manager.getState(
-						boundFunction(self.getStatesCallback, callback, name),
-						show_name, season, episode
-					)
-		else:
-			callback()
+		#if self.managers:
+		#	# Return a season, episode, title tuple
+		#	for manager in self.managers:
+		#		name = manager.getName()
+		#		manager.getState(
+		#				boundFunction(self.getStatesCallback, callback, name),
+		#				show_name, season, episode
+		#			)
+		#else:
+			
+		callback()
 
 	def getStatesCallback(self, callback, name, state):
 		splog("SeriesPlugin getStatesCallback")
@@ -323,9 +346,4 @@ class SeriesPlugin(Modules):
 		callback( (name, state) )
 
 	def cancel(self):
-		if self.identifier_elapsed:
-			self.identifier_elapsed.cancel()
-		if self.identifier_today:
-			self.identifier_today.cancel()
-		if self.identifier_future:
-			self.identifier_future.cancel()
+		self.stop()

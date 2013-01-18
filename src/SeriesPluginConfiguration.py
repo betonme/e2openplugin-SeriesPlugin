@@ -65,27 +65,23 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			"blue":					self.blue,
 		}, -2) # higher priority
 		
-		#self.seriesPlugin = getInstance()
-		#if self.seriesPlugin.isActive():
-		#	#TBD Show warning before reset
-		# For reloading modules
 		resetInstance()
 		self.seriesPlugin = getInstance()
+		
+		# Create temporary identifier config elements
+		identifiers = self.seriesPlugin.identifiers
+		identifiers_elapsed = [k for k,v in identifiers.items() if v.knowsElapsed()]
+		identifiers_today   = [k for k,v in identifiers.items() if v.knowsToday()]
+		identifiers_future  = [k for k,v in identifiers.items() if v.knowsFuture()]
+		self.cfg_identifier_elapsed = NoSave( ConfigSelection(choices = identifiers_elapsed, default = config.plugins.seriesplugin.identifier_elapsed.value or identifiers_elapsed[0]) )
+		self.cfg_identifier_today   = NoSave( ConfigSelection(choices = identifiers_today,   default = config.plugins.seriesplugin.identifier_today.value   or identifiers_today[0]) )
+		self.cfg_identifier_future  = NoSave( ConfigSelection(choices = identifiers_future,  default = config.plugins.seriesplugin.identifier_future.value  or identifiers_future[0]) )
 		
 		# Load patterns
 		from plugin import readPatternFile
 		patterns = readPatternFile()
-		splog("SeriesPluginConfiguration")
-		if patterns:
-			for p in patterns:
-				splog(p)
-		splog(config.plugins.seriesplugin.pattern_title.value)
-		splog(config.plugins.seriesplugin.pattern_description.value)
-		if patterns:
-			config.plugins.seriesplugin.pattern_title.setChoices(patterns)
-			config.plugins.seriesplugin.pattern_description.setChoices(patterns)
-		splog(config.plugins.seriesplugin.pattern_title.value)
-		splog(config.plugins.seriesplugin.pattern_description.value)
+		self.cfg_pattern_title       = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_title.value       or patterns[0][0] ) )
+		self.cfg_pattern_description = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_description.value or patterns[0][0] ) )
 		
 		# Initialize Configuration
 		self.list = []
@@ -111,11 +107,11 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Show Rename in movie list menu")             , config.plugins.seriesplugin.menu_movie_rename ) )
 			
 			#if len( config.plugins.seriesplugin.identifier_elapsed.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for elapsed events")       , config.plugins.seriesplugin.identifier_elapsed ) )
+			self.list.append( getConfigListEntry(  _("Select identifier for elapsed events")       , self.cfg_identifier_elapsed ) )
 			#if len( config.plugins.seriesplugin.identifier_today.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for today events")         , config.plugins.seriesplugin.identifier_today ) )
+			self.list.append( getConfigListEntry(  _("Select identifier for today events")         , self.cfg_identifier_today ) )
 			#if len( config.plugins.seriesplugin.identifier_future.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for future events")        , config.plugins.seriesplugin.identifier_future ) )
+			self.list.append( getConfigListEntry(  _("Select identifier for future events")        , self.cfg_identifier_future ) )
 			
 			#if len( config.plugins.seriesplugin.manager.choices ) > 1:
 #			self.list.append( getConfigListEntry(  _("Select manager service")                     , config.plugins.seriesplugin.manager ) )
@@ -123,8 +119,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 #			self.list.append( getConfigListEntry(  _("Select guide service")                       , config.plugins.seriesplugin.guide ) )
 			
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
-			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , config.plugins.seriesplugin.pattern_title ) )
-			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , config.plugins.seriesplugin.pattern_description ) )
+			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
+			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
 			
 			self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
 			
@@ -152,8 +148,12 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 	def keySave(self):
 		self.saveAll()
 		
-		splog(config.plugins.seriesplugin.pattern_title.value)
-		splog(config.plugins.seriesplugin.pattern_description.value)
+		config.plugins.seriesplugin.identifier_elapsed.value = self.cfg_identifier_elapsed.value
+		config.plugins.seriesplugin.identifier_today.value   = self.cfg_identifier_today.value
+		config.plugins.seriesplugin.identifier_future.value  = self.cfg_identifier_future.value
+		config.plugins.seriesplugin.pattern_title.value       = self.cfg_pattern_title.value
+		config.plugins.seriesplugin.pattern_description.value = self.cfg_pattern_description.value
+		config.plugins.seriesplugin.save()
 		
 		from plugin import overwriteAutoTimer, recoverAutoTimer
 		
