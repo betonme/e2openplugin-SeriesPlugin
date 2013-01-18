@@ -43,8 +43,14 @@ class Modules(object):
 			if root not in sys.path:
 				sys.path.append(root)
 		
+		# List files
+		files = [fname[:-3] for fname in os.listdir(path) if fname.endswith(".py") and not fname.startswith("__")]
+		print files
+		if not files:
+			files = [fname[:-4] for fname in os.listdir(path) if fname.endswith(".pyo")]
+			print files
+		
 		# Import PushService modules
-		files = [fname[:-3] for fname in os.listdir(path) if fname.endswith(".py")]
 		for name in files:
 			module = None
 			

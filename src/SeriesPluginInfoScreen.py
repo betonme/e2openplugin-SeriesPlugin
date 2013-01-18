@@ -214,8 +214,10 @@ class SeriesPluginInfoScreen(Screen):
 				boundFunction(self.episodeCallback, name, short, ext), 
 				name, short, ext, begin, end, channel, today=today, elapsed=elapsed
 			)
-		
-		self.loadPixmap("logo", os.path.join(PIXMAP_PATH, identifier+".png") )
+		if identifier:
+			path = os.path.join(PIXMAP_PATH, identifier+".png")
+			if os.path.exists(path):
+				self.loadPixmap("logo", path )
 
 	def episodeCallback(self, show_name, short, ext, data=None):
 		#TODO episode list handling
