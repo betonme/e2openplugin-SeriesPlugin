@@ -27,19 +27,16 @@
 	$page = new GoogleAnalytics\Page($_SERVER["REQUEST_URI"]);
 	$page->setTitle('SeriesPlugin Proxy');
 
-	// Could we load the request from cache
-	$fromcache = false;
-
-	function sendGoogleAnalyticsPageView($fromcache) {
-		global $tracker, $page, $session, $visitor;
+	function addGACustomVariable($index, $name, $value) {
+		global $tracker;
 		
-		if ($fromcache){
-				$name = 'Cache';
-		} else {
-				$name = 'Server';
-		}
-		$custom = new GoogleAnalytics\CustomVariable(1, $name);
+		// Assemble Visitor information
+		$custom = new GoogleAnalytics\CustomVariable($index, $name, $value);
 		$tracker->addCustomVariable($custom);
+	}
+	
+	function sendGAPageView() {
+		global $tracker, $page, $session, $visitor;
 		
 		// Track page view
 		$tracker->trackPageview($page, $session, $visitor);
@@ -47,7 +44,6 @@
 		// Only if You want to debug something 
 		//print_r(error_get_last());
 	}
-
 
 
 	/*
@@ -109,8 +105,6 @@
 	
 	// no entry found in cache
 	if ($entry === False) {
-			$fromcache = false;
-			
 			// prune cache
 			$stm = $db->prepare('DELETE FROM cache WHERE url = ? OR age < ?');
 			$stm->execute(array($url, $then));
@@ -129,10 +123,11 @@
 							'content' => 'null',
 					);
 			}
+			addGACustomVariable(1, 'Cached', 'Yes');
 	} else {
-			$fromcache = true;
 			$expires = $entry['age'] + $cache_duration;
 			$max_age = $entry['age'] - $then;
+			addGACustomVariable(1, 'Cached', 'No');
 	}
 	
 	header('Content-Type: '.$entry['type']);
@@ -197,5 +192,5 @@
 
 
 	// GoogleAnalytics
-	sendGoogleAnalyticsPageView($fromcache);
+	sendGAPageView();
 ?>
