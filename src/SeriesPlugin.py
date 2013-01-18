@@ -123,11 +123,6 @@ class SeriesPluginWorkerThread(CancelableThread):
 				)
 			except Exception, e:
 				splog("SeriesPluginWorkerThread Exception:", str(e))
-				exc_type, exc_value, exc_traceback = sys.exc_info()
-				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				#splog( exc_type, exc_value, exc_traceback.format_exc() )
-				#splog( exc_type, exc_value, "\n".join(traceback.format_stack()) )
-				splog( exc_type, exc_value, traceback.format_exc() )
 				
 				# Exception finish job with error
 				self.workerCallback( str(e) )
@@ -135,9 +130,6 @@ class SeriesPluginWorkerThread(CancelableThread):
 	def workerCallback(self, data=None):
 		splog('SeriesPluginWorkerThread callback')
 		identifier, callback, name, begin, end, service, channels = self.item
-		
-		# kill the thread
-		self.queue.task_done()
 		
 		if data and len(data) == 4:
 			season, episode, title, series = data
@@ -160,6 +152,9 @@ class SeriesPluginWorkerThread(CancelableThread):
 				0,
 				'SP_PopUp_ID_About'
 			)
+		
+		# kill the thread
+		self.queue.task_done()
 		
 		# Queue empty check
 		if self.queue.empty():

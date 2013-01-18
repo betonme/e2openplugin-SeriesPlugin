@@ -50,6 +50,8 @@ def splog(*args):
 	if sys.exc_info()[0]:
 		print "Unexpected error:", sys.exc_info()[0]
 		traceback.print_exc(file=sys.stdout)
+	
+	sys.exc_clear()
 
 
 ## {{{ http://code.activestate.com/recipes/146306/ (r1)

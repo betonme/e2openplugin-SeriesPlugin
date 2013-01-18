@@ -177,21 +177,29 @@ class Fernsehserien(IdentifierBase):
 				for trnode in table.find_all('tr'):
 					# TODO skip first header row
 					tdnodes = trnode and trnode.find_all('td')
-					# Filter for known rows
-					#if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
-					if len(tdnodes) >= 6 and len(tdnodes[2].string) >= 15:
-						tds = []
-						for tdnode in tdnodes:
-							tds.append(tdnode.string)
-						trs.append( tds )
-					# This row belongs to the previous
-					elif trs and len(tdnodes) == 5:
-						trs[-1][5] += ' ' + tdnodes[3].string
-						trs[-1][6] += ' ' + tdnodes[4].string
+					
+					if tdnodes:
+						# Filter for known rows
+						#if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
+						
+						if len(tdnodes) >= 6 and tdnodes[2].string and len(tdnodes[2].string) >= 15:
+							tds = []
+							for tdnode in tdnodes:
+								tds.append(tdnode.string)
+							trs.append( tds )
+						# This row belongs to the previous
+						elif trs and len(tdnodes) == 5:
+							trs[-1][5] += ' ' + tdnodes[3].string
+							trs[-1][6] += ' ' + tdnodes[4].string
+						else:
+							splog( "tdnodes", len(tdnodes), tdnodes )
+					
+					else:
+						splog( "tdnodes", tdnodes )
 			
 			splog(trs)
 			data = trs
-			print data
+			#print data
 		
 		if data: # and isinstance(data, FSParser): #Why is this not working after restarting the SeriesPlugin service
 			
@@ -243,7 +251,7 @@ class Fernsehserien(IdentifierBase):
 								
 								# First part: date, times, channel
 								xdate, xbegin = tds[1:3]
-								print "tds", tds
+								splog( "tds", tds )
 								
 								#xend = xbegin[6:11]
 								xbegin = xbegin[0:5]
@@ -263,7 +271,7 @@ class Fernsehserien(IdentifierBase):
 										
 										if delta < ydelta:
 											
-											print len(tds), tds
+											splog( "tds", len(tds), tds )
 											if len(tds) >= 10:
 												# Second part: s1e1, s1e2,
 												xseason = tds[7]
@@ -283,8 +291,9 @@ class Fernsehserien(IdentifierBase):
 												xseason = "0"
 												xepisode = "0"
 												xtitle = tds[5]
-											yepisode = (xseason, xepisode, xtitle, self.series)
-											ydelta = delta
+											if xseason and xepisode and xtitle and self.series:
+												yepisode = (xseason, xepisode, xtitle, self.series)
+												ydelta = delta
 										
 										else: #if delta >= ydelta:
 											break
