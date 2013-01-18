@@ -141,7 +141,7 @@ def renameFile(service, name, data):
 		splog(e)
 
 
-class SeriesPluginService(object):
+class SeriesPluginRenameService(object):
 	def __init__(self, service, callback=None):
 		self.callback = callback
 		
@@ -204,12 +204,16 @@ class SeriesPluginService(object):
 		splog("SeriesPluginTimer serviceCallback")
 		splog(data)
 		
-		result = self.service
+		result = None
 		
-		if data:
+		if data and len(data) == 4:
 			if rename(self.service, self.name, self.short, data):
 				# Rename was successfully
 				result = None
+		elif data:
+			result = service.getPath() + " : " + str( data )
+		else:
+			result = service.getPath()
 		
 		if callable(self.callback):
 			self.callback(result)
@@ -236,13 +240,13 @@ class SeriesPluginRenamer(object):
 	def confirm(self, confirmed):
 		if confirmed:
 			for service in self.services:
-				SeriesPluginService(service, self.renamerCallback)
+				SeriesPluginRenameService(service, self.renamerCallback)
 
-	def renamerCallback(self, service=None):
+	def renamerCallback(self, result=None):
 		self.returned += 1
-		if service:
+		if result:
 			#Maybe later self.failed.append( name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
-			self.failed.append( service.getPath() )
+			self.failed.append( result )
 		
 		if self.returned == len(self.services):
 			if self.failed:

@@ -1,5 +1,6 @@
 # by betonme @2012
 
+import os, sys, traceback
 from time import time
 
 from twisted.web.client import getPage as twGetPage
@@ -44,7 +45,6 @@ class GuideBase(ModuleBase):
 				deferred.addErrback(boundFunction(self.base_errback, callback))
 				self.deferreds.append(deferred)
 			except Exception, e:
-				import os, sys, traceback
 				splog(_("SeriesPlugin getPage exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
@@ -64,7 +64,6 @@ class GuideBase(ModuleBase):
 			else:
 				callback( None )
 		except Exception, e:
-			import os, sys, traceback
 			splog(_("SeriesPlugin base_callback exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)

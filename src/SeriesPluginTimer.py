@@ -26,6 +26,9 @@ from ServiceReference import ServiceReference
 
 from Tools.BoundFunction import boundFunction
 
+from Screens.MessageBox import MessageBox
+from Tools.Notifications import AddPopup
+
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 from Logger import splog
@@ -58,9 +61,28 @@ class SeriesPluginTimer(object):
 		splog("SeriesPluginTimer timerCallback")
 		splog(data)
 		timer = self.timer
-		if data and timer:
+		
+		if data and len(data) == 4 and timer:
 			# Episode data available, refactor name and description
 			from SeriesPluginRenamer import newLegacyEncode
 			timer.name = refactorTitle(timer.name, data)
 			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = refactorDescription(timer.description, data)
+		
+		#TODO avoid to many PopUps
+		
+		elif data:
+			AddPopup(
+				_("SeriesPlugin: Timer lookup failed\n") + str( data ) + " : " + timer.name + "\n",
+				MessageBox.TYPE_ERROR,
+				0,
+				'SP_PopUp_ID_TimerFinished'
+			)
+		
+		else:
+			AddPopup(
+				_("SeriesPlugin: Timer lookup failed\n") + timer.name,
+				MessageBox.TYPE_ERROR,
+				0,
+				'SP_PopUp_ID_TimerFinished'
+			)

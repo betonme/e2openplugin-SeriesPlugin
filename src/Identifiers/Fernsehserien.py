@@ -9,7 +9,6 @@ from Tools.BoundFunction import boundFunction
 # Imports
 from urlparse import urljoin
 from urllib import urlencode
-from urllib2 import Request, urlopen, URLError
 
 #from HTMLParser import HTMLParser
 from bs4 import BeautifulSoup
@@ -139,11 +138,10 @@ class Fernsehserien(IdentifierBase):
 			self.callback()
 
 	def getNextPage(self):
-		splog("page", self.page)
-		
 		url = EPISODEIDURL % (self.id, self.page)
-		#self.getPage(
-		IdentifierBase.getPage(		self,
+		
+		self.getPage(
+		#IdentifierBase.getPage(		self,
 									self.getEpisodeFromPage,
 									url
 								)
@@ -295,7 +293,7 @@ class Fernsehserien(IdentifierBase):
 		self.getNextSeries()
 		return data
 
-	def getPage(self, callback, url, expires=None):
+	def getPage1(self, callback, url, expires=None):
 		# PHP Proxy with 3 day Caching
 		# to minimize server requests
 		url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })

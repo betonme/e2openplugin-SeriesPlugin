@@ -174,21 +174,26 @@ class SeriesPluginWorkerThread(Thread):
 				)
 			except Exception, e:
 				splog("SeriesPluginWorkerThread Exception:", str(e))
+				exc_type, exc_value, exc_traceback = sys.exc_info()
+				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+				#splog( exc_type, exc_value, exc_traceback.format_exc() )
+				splog( exc_type, exc_value, "\n".join(traceback.format_stack()) )
+				
 				# Exception finish job with error
-				self.workerCallback()
+				self.workerCallback( str(e) )
 	
 	def workerCallback(self, data=None):
 		splog('SeriesPluginWorkerThread callback')
 		service, callback, name, begin, end, channel = self.item
 		
-		if data:
+		if data and len(data) == 4:
 			season, episode, title, series = data
 			season = int(ComiledRegexpNonDecimal.sub('', season))
 			episode = int(ComiledRegexpNonDecimal.sub('', episode))
 			title = title.strip()
 			callback( (season, episode, title, series) )
 		else:
-			callback()
+			callback( data )
 		
 		# kill the thread
 		self.queue.task_done()
@@ -317,12 +322,12 @@ class SeriesPlugin(Modules):
 				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
 				#splog( exc_type, exc_value, exc_traceback.format_exc() )
 				splog( exc_type, exc_value, exc_traceback )
-				callback()
+				callback( str(e) )
 			return service.getName()
 			
 		#if not available:
 		else:
-			callback()
+			callback( "No identifier available" )
 
 	################################################
 	# Manager functions

@@ -9,7 +9,7 @@ from Components.config import config
 def splog(*args):
 	strargs = ""
 	for arg in args:
-		if strargs: strargs += ", "
+		if strargs: strargs += "\n"
 		strargs += str(arg)
 	print strargs
 	

@@ -246,7 +246,7 @@ class SeriesPluginInfoScreen(Screen):
 		
 		splog("SeriesPluginInfoScreen episodeCallback")
 		#splog(data)
-		if data:
+		if data and len(data) == 4:
 			# Episode data available
 			season, episode, title, series = self.data = data
 		
@@ -263,6 +263,8 @@ class SeriesPluginInfoScreen(Screen):
 			except Exception, e:
 				# Screen already closed
 				splog("SeriesPluginInfoScreen:", str(e))
+		elif data:
+			custom = str( data )
 		else:
 			custom = _("No matching episode found")
 		

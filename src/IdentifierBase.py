@@ -12,7 +12,9 @@ from thread import start_new_thread
 #Twisted All
 #from twisted.python.failure import Failure
 
-from urllib2 import urlopen #, Request
+from time import sleep
+from urllib import urlencode
+from urllib2 import urlopen, URLError, Request
 
 from Tools.BoundFunction import boundFunction
 
@@ -20,6 +22,9 @@ from Tools.BoundFunction import boundFunction
 from ModuleBase import ModuleBase
 from Helper import Cacher, INTER_QUERY_TIME  #, Retry
 from Logger import splog
+
+
+import recipeMemUse as MemoryUsage
 
 
 class IdentifierBase(ModuleBase, Cacher):  #, Retry):
@@ -36,35 +41,66 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 
 	################################################
 	# Twisted functions
-	def getPage(self, callback, url, expires=INTER_QUERY_TIME):
-		splog("SSBase getPage")
-		splog(url)
+	def getPage(self, callback, url, expires=INTER_QUERY_TIME, counter=0):
+		splog("SSBase getPage", url)
 		
 		cached = self.getCached(url, expires)
+		
+		
+		VmSize = MemoryUsage.memory()
+		splog("SP VmSize: "+str(VmSize/1024/1024)+" Mb" )
+		VmRSS  = MemoryUsage.resident()
+		splog("SP VmRSS:  "+str(VmRSS/1024/1024)+" Mb" )
+		VmStk  = MemoryUsage.stacksize()
+		splog("SP VmStk:  "+str(VmStk/1024/1024)+" Mb" )
+		
+		
 		if cached:
 			splog("SSBase cached")
 			callback( cached )
 		
 		else:
 			splog("SSBase not cached")
+			
 			try:
 				#req = Request(url)
 				#response = urlopen(req)
-				response = urlopen(url , timeout=30)
-				data = callback( response.read() )
-				if data:
-					self.doCache(url, data)
+				#response = urlopen(url , timeout=30).read()
 				
-			except Exception, e:
-				import os, sys, traceback
-				splog(_("SeriesPlugin getPage exception ") + str(e))
-				exc_type, exc_value, exc_traceback = sys.exc_info()
-				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				#splog( exc_type, exc_value, exc_traceback.format_exc() )
-				splog( exc_type, exc_value, traceback.format_stack() )
+				#values = {'name' : 'A B'}
+				headers = {
+								'User-Agent' : 'Mozilla/5.0',
+								'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+								'Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+								'Accept-Encoding':'',
+								'Accept-Language':'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4',
+								'Cache-Control':'no-cache',
+								'Connection':'keep-alive',
+								'Host':'www.fernsehserien.de',
+								'Pragma':'no-cache'
+							}
+
+				#data = urlencode(values)
+				#req = Request(url, data, headers)
+				req = Request(url, headers=headers)
+				response = urlopen(req).read()
 				
-				#self.cancel()
-				callback()
+			except URLError, e:
+				if counter > 2:
+					raise
+					return
+				elif hasattr(e, "code"):
+					print e.code, e.msg, counter
+					sleep(2)
+					self.getPage(callback, url, expires, counter+1)
+					return
+				else:
+					raise
+			
+			data = callback( response )
+			splog("SSBase data to cache: ", data) 
+			if data:
+				self.doCache(url, data)
 
 	@staticmethod
 	def compareChannels(local, remote):
