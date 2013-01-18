@@ -105,7 +105,12 @@ class SeriesPluginRenamer(Screen):
 				self.appendText( _("File does not exist: ") + name )
 				return self.renameNext()
 			
-			name = ref.getName() or "" #info and info.getName(ref)
+			info = self.serviceHandler.info(ref)
+			if not info:
+				print _("SeriesPluginRenamer: No info available")
+				return self.renameNext()
+			
+			name = ref.getName() or info.getName(ref) or ""
 			print "name", name
 			
 			# Remove Series Episode naming
@@ -115,11 +120,6 @@ class SeriesPluginRenamer(Screen):
 				print m.group(0)       # The entire match
 				print m.group(1)       # The first parenthesized subgroup.
 				name = m.group(1)
-			
-			info = self.serviceHandler.info(ref)
-			if not info:
-				print _("SeriesPluginRenamer: No info available")
-				return self.renameNext()
 			
 			rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
 			channel = ServiceReference(rec_ref_str).getServiceName()

@@ -24,33 +24,36 @@ EPISODEIDURLATOM  = "http://www.wunschliste.de/xml/atom.pl?"
 EPISODEIDURLPRINT = "http://www.wunschliste.de/epg_print.pl?"
 
 
-TAGS = ['title', 'updated']
 class WLAtomParser(HTMLParser):
-
 	def __init__(self):
 		HTMLParser.__init__(self)
-		self.entry= False
-		self.sub= False
-		self.data = []
+		self.title = False
+		self.updated = False
+		self.titlestr = ''
+		self.updatedstr = ''
 		self.list = []
 
 	def handle_starttag(self, tag, attributes):
-		if tag in TAGS:
-			self.sub= True
-		elif tag == 'entry':
-			self.entry= True
+		if tag == 'title':
+			self.title = True
+		elif tag == 'updated':
+			self.updated = True
 
 	def handle_endtag(self, tag):
-		if tag in TAGS:
-			self.sub= False
+		if tag == 'title':
+			self.title = False
+		elif tag == 'updated':
+			self.updated = False
 		elif tag == 'entry':
-			self.entry= False
-			self.list.append(self.data)
-			self.data= []
+			self.list.append( (self.titlestr, self.updatedstr) )
+			self.titlestr = ''
+			self.updatedstr = ''
 
 	def handle_data(self, data):
-		if self.entry and self.sub:
-			self.data.append(data)
+		if self.title:
+			self.titlestr += data
+		elif self.updated:
+			self.updatedstr = data
 
 
 class WLPrintParser(HTMLParser):
@@ -200,6 +203,9 @@ class Wunschliste(IdentifierBase):
 		channel = self.unifyChannel(channel)
 		
 		if data is not None:
+			# Handle malformed HTML issues
+			data = data.replace('&amp;','&')  # target=\"_blank\"&amp;
+			
 			parser = WLAtomParser()
 			parser.feed(data)
 			#print parser.list

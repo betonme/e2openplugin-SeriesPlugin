@@ -156,7 +156,7 @@ class SeriesPluginInfoScreen(Screen):
 		#		self["key_green"].setText(_("Add timer"))
 		else:
 			# Get information from record meta files
-			name = ref.getName()
+			name = ref.getName() or info.getName(ref) or ""
 			
 			# Remove Series Episode naming
 			#MAYBE read SeriesPlugin config and parse it ??

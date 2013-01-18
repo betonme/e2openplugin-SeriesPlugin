@@ -20,7 +20,7 @@ from Plugins.Plugin import PluginDescriptor
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.3"
+VERSION = "0.3.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -196,10 +196,7 @@ def Plugins(**kwargs):
 	
 	if config.plugins.seriesplugin.enabled.value:
 		
-		descriptors.append( PluginDescriptor(
-																				where = PluginDescriptor.WHERE_SESSIONSTART,	#.WHERE_AUTOSTART, 
-																				fnc   = sessionstart,													# fnc=autostart,
-																				needsRestart = False) )
+		overwriteAutoTimer()
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			descriptors.append( PluginDescriptor(
@@ -267,33 +264,69 @@ def removeSeriesPlugin(menu, title):
 
 
 #######################################################
-# Sessionstart
+# Overwrite AutoTimer support functions
 
-sptest = None
-def sessionstart(reason, **kwargs):
-	if reason == 0: # startup
-		if kwargs.has_key("session"):
-			global sptest
-			session = kwargs["session"]
-			# Initialize seriesplugin
-			#sptest = SPTest(session)
+try:
+	from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
+except:
+	pass
+
+ATmodifyTimer = None
+ATcheckSimilarity = None
+
+def overwriteAutoTimer():
+	global ATmodifyTimer, ATcheckSimilarity
+	if ATmodifyTimer is None:
+		# Backup original function
+		ATmodifyTimer = AutoTimer.modifyTimer
+		# Overwrite function
+		AutoTimer.modifyTimer = SPmodifyTimer
+	if ATcheckSimilarity is None:
+		# Backup original function
+		ATcheckSimilarity = AutoTimer.checkSimilarity
+		# Overwrite function
+		AutoTimer.checkSimilarity = SPcheckSimilarity
+
+def recoverAutoTimer():
+	global ATmodifyTimer, ATcheckSimilarity
+	if ATmodifyTimer:
+		AutoTimer.modifyTimer = ATmodifyTimer
+		ATmodifyTimer = None
+	if ATcheckSimilarity:
+		AutoTimer.checkSimilarity = ATcheckSimilarity
+		ATcheckSimilarity = None
+
+
+#######################################################
+# Customized support functions
+
+from difflib import SequenceMatcher
+from ServiceReference import ServiceReference
+
+def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref):
+	# Never overwrite existing names, You will lost Your series informations
+	#timer.name = name
+	# Only overwrite non existing descriptions
+	timer.description = timer.description or shortdesc
+	timer.begin = int(begin)
+	timer.end = int(end)
+	timer.service_ref = ServiceReference(serviceref)
+
+def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc1, extdesc2):
+	# Check if the new title is part of the existing one
+	foundTitle = name1 in name2
 	
-	# Shutdown
-	elif reason == 1:
-		if sptest:
-			sptest.close()
-			sptest = None
-
-import os
-from SeriesPlugin import SeriesPlugin
-
-class SPTest(SeriesPlugin):
-	def __init__(self, session):
-		self.session = session
-		SeriesPlugin.__init__(self)
-		self.appendEvents()
+	if timer.searchForDuplicateDescription > 0:
+		foundShort = shortdesc1 in shortdesc2
+	else:
+		foundShort = True
 	
-	def close(self):
-		self.removeEvents()
-	
+	foundExt = True
+	# NOTE: only check extended if short description already is a match because otherwise
+	# it won't evaluate to True anyway
+	if timer.searchForDuplicateDescription == 2 and foundShort:
+		# Some channels indicate replays in the extended descriptions
+		# If the similarity percent is higher then 0.8 it is a very close match
+		foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
 
+	return foundTitle and foundShort and foundExt

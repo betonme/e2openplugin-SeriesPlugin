@@ -39,6 +39,7 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, Retry, ChannelUnifi
 		
 		# Handle throttling
 		#while True:
+		self.throttle(url)
 		cached = self.getCached(url, expires)
 		#	if cached:
 		#		break

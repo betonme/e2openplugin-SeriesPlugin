@@ -67,21 +67,19 @@ class Throttler(object):
 	# a specific amount of seconds. The first request to the server
 	# always gets made immediately
 	# Also throttle if there are already to many open requests 
-	def __init__(self, throttleDelay=5, requestLimit=5):
+	def __init__(self, throttleDelay=5):
 		# The number of seconds to wait between subsequent requests
 		self.throttleDelay = throttleDelay
-		self.requestLimit = requestLimit
-		self.alreadyRequested = {}
+		self.lastRequestTime = {}
 
 	def throttle(self, url):
-		throttled = False
-		if url in self.alreadyRequested:
-			if self.alreadyRequested[url] <= self.requestLimit:
-				print "Throttle for %s seconds %s" % (self.throttleDelay, url)
-				throttled = True
-				sleep(self.throttleDelay)
-		self.alreadyRequested[url] = self.alreadyRequested.get(url,0) + 1
-		return throttled
+		currentTime = time()
+		if ((url in self.lastRequestTime)
+			and (time() - self.lastRequestTime[url] < self.throttleDelay)):
+			throttleTime = (self.throttleDelay - (currentTime - self.lastRequestTime[url]))
+			print "Throttle for %s seconds %s" % (throttleTime, url)
+			sleep(throttleTime)
+		self.lastRequestTime[url] = currentTime
 
 
 class Limiter(object):

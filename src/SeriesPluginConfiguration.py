@@ -126,8 +126,17 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 	def keySave(self):
 		self.saveAll()
 		
+		from plugin import overwriteAutoTimer, recoverAutoTimer
+		
+		if config.plugins.seriesplugin.enabled.value:
+			overwriteAutoTimer()
+		else:
+			recoverAutoTimer()
+		
 		# Set new configuration
 		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, info, extension, movielist_info, movielist_rename
+		
+		#TODO handle plugin entries like IBTS
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			addSeriesPlugin(PluginDescriptor.WHERE_EVENTINFO, SHOWINFO, info)
@@ -189,8 +198,7 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 				f = open(path, 'rb')
 				obj = json.load(f)
 			except Exception, e:
-				#print "[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e)
-				#self.session.open(MessageBox, _("Error reading config file:"), str(e), MessageBox.TYPE_ERROR)
+				print "[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e)
 				obj = None
 				from plugin import scheme_fallback
 				patterns = scheme_fallback
