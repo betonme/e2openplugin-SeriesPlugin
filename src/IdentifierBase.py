@@ -9,63 +9,51 @@ from thread import start_new_thread
 #Twisted 8.x
 from twisted.web.client import _parse, HTTPClientFactory
 from twisted.internet import reactor
+from twisted.python.failure import Failure
 
 from Tools.BoundFunction import boundFunction
 
 # Internal
 from ModuleBase import ModuleBase
-from Helper import Connector, Cacher, Throttler, Limiter, Retry, ChannelUnifier, INTER_QUERY_TIME
+from Helper import Cacher, Retry, INTER_QUERY_TIME
 
 
-class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, Retry, ChannelUnifier):
+class IdentifierBase(ModuleBase, Cacher, Retry):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
-		Throttler.__init__(self)
-		Limiter.__init__(self)
-		ChannelUnifier.__init__(self)
 		Retry.__init__(self)
-		
-		#Twisted 12.x use
-		#self.deferreds = []
-		#Twisted 8.x
-		self.connectors = defaultdict(list)
+		self.callback = None
+		self.name = ""
+		self.begin = None
+		self.end = None
+		self.channel = ""
+		self.ids = []
 
 	################################################
 	# Twisted functions
-	def getPage(self, callback, id, url, expires=INTER_QUERY_TIME):
+	def getPage(self, callback, url, expires=INTER_QUERY_TIME):
 		print "SSBase getPage"
 		print url
 		
-		# Handle throttling
-		#while True:
-		self.throttle(url)
 		cached = self.getCached(url, expires)
-		#	if cached:
-		#		break
-		#	elif not self.throttle(url):
-		#		break
-		
 		if cached:
 			print "SSBase cached"
-			#self.base_callback(None, callback, url, cached)
-			connector = Connector()
-			self.connectors[id].append(connector)
-			start_new_thread(self.base_callback, (connector, callback, id, url, cached))
+			#start_new_thread(self.base_callback, (cached, callback, url))
+			self.base_callback(cached, callback, url)
 		
 		else:
 			print "SSBase not cached"
-			#self.increment(url)
 			try:
 				#Twisted 12.x use
 				#deferred = twGetPage(url, timeout = 5)
-				#deferred.addCallback(boundFunction(self.base_callback, deferred, callback, url))
-				#deferred.addErrback(boundFunction(self.base_errback, deferred, callback))
+				#deferred.addCallback(self.base_callback, deferred, callback, url)
+				#deferred.addErrback(self.base_errback, deferred, callback)
 				#self.deferreds.append(deferred)
 				#Twisted 8.x
 				contextFactory = None
 				scheme, host, port, path = _parse(url)
-				factory = HTTPClientFactory(url,                           timeout=30)  # Change later
+				factory = HTTPClientFactory(url, timeout=30)
 				if scheme == 'https':
 					from twisted.internet import ssl
 					if contextFactory is None:
@@ -74,92 +62,46 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, Retry, ChannelUnifi
 				else:
 					connector = reactor.connectTCP(host, port, factory)
 				deferred = factory.deferred
-				self.connectors[id].append(connector)
-				#End Twisted 8.x
-				
-				deferred.addCallback(boundFunction(self.base_callback, connector, callback, id, url))
-				deferred.addErrback(boundFunction(self.base_errback, connector, callback, id, url))
+				deferred.addCallback(self.base_callback, callback, url)
+				deferred.addErrback(self.base_errback, callback, url)
 				
 			except Exception, e:
 				import os, sys, traceback
 				print _("SeriesPlugin getPage exception ") + str(e)
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				self.cancel(id)
+				self.cancel()
 				callback()
 
-	def base_callback(self, connector, callback, id, url, page=None, *args, **kwargs):
-		print "callback", args, kwargs
+	def base_callback(self, page, callback, url):
 		try:
-			#self.decrement()
-			if connector and connector in self.connectors.get(id, []):
-				self.connectors[id].remove(connector)
-			if page:
-				self.doCache(url, page)
-			callback( page )
+			data = callback( page )
+			if data:
+				self.doCache(url, data)
+			
 		except Exception, e:
 			import os, sys, traceback
 			print _("SeriesPlugin getPage exception ") + str(e)
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
 
-	def base_errback(self, connector, callback, id, url, *args, **kwargs):
-		#self.decrement()
-		if connector in self.connectors.get(id, []):
-			self.connectors[id].remove(connector)
-		print "errback", args, kwargs
-		for arg in args:
-			if self.retry(arg, url):
+	def base_errback(self, err, callback, url):
+		print "errback", url
+		if isinstance(err, Exception):
+			print _("Twisted Exception:\n%s\n%s") % (err.type, err.value)
+		elif isinstance(err, Failure):
+			#TEST Later
+			if self.retry(err.type, url):
 				# TODO Attention there is no retry counter yet
 				print "RETRY"
-				start_new_thread(self.getPage(callback, id, url))
-				return
-			elif isinstance(arg, Exception):
-				print _("Twisted failed:\n%s\n%s") % (arg.type, arg.value)
-			elif arg:
-				print _("Twisted failed\n%s") % str(arg)
-		#TODO Wait and Retry on twisted.internet.error.ConnectionDone
-		#TODO Wait and Retry on twisted.internet.error.TimeOut
-		#TODO Wait and Retry on Page contains: Server is busy or similar
-		self.cancel(id)
+				self.getPage(callback, url)
+			return
+		elif err:
+			print _("Twisted failed\n%s") % str(err)
 		callback( None )
 
-	def cancel(self, id=""):
-		try:
-			#Twisted 12.x use
-			#if self.deferreds:
-			#	for deferred in self.deferreds:
-			#		deferred.cancel()
-			#Twisted 8.x
-			if self.connectors:
-				#
-				if id:
-					# Cancel only 
-					keys = [id]
-				else:
-					keys = self.connectors.keys()
-				
-				for key in keys:
-					connectors = self.connectors.pop(key, [])
-					#while connectors:
-					for connector in connectors:
-					#for connector in connectors[:]:
-						#connector = connectors.pop()
-						connector.disconnect()
-						#self.connectors.remove(connector)
-		except Exception, e:
-			print "CANCEL ", str(e)
-
-	def foundEpisode(self, callback, id, episode=None, *args, **kwargs):
-		print "foundEpisode", id, episode, args, kwargs, self.connectors
-		if episode:
-			# We found a matching episode
-			self.cancel(id)
-			callback(episode)
-		else:
-			if not self.connectors.get(id, []):
-				# There are no pending requests
-				callback( None )
+	def cancel(self):
+		pass
 
 
 	################################################
@@ -182,12 +124,7 @@ class IdentifierBase(ModuleBase, Cacher, Throttler, Limiter, Retry, ChannelUnifi
 		# False: Service doesn't know future air dates
 		return False
 
-	def getSeriesList(self, callback, show_name):
-		# On Success: Return a series list of id, name tuples
-		# On Failure: Return a empty list or None
-		callback( None )
-		
-	def getEpisode(self, callback, show_name, short, description, begin, end, channel):
+	def getEpisode(self, callback, name, begin, end, channel):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		callback( None )

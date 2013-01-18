@@ -97,11 +97,11 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 			self.list.append( getConfigListEntry(  _("Show Rename in movie list menu")             , config.plugins.seriesplugin.menu_movie_rename ) )
 			
 			#if len( config.plugins.seriesplugin.identifier_elapsed.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for elapsed events")     , config.plugins.seriesplugin.identifier_elapsed ) )
+			self.list.append( getConfigListEntry(  _("Select identifier for elapsed events")       , config.plugins.seriesplugin.identifier_elapsed ) )
 			#if len( config.plugins.seriesplugin.identifier_today.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for today events")       , config.plugins.seriesplugin.identifier_today ) )
+			self.list.append( getConfigListEntry(  _("Select identifier for today events")         , config.plugins.seriesplugin.identifier_today ) )
 			#if len( config.plugins.seriesplugin.identifier_future.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for future events")      , config.plugins.seriesplugin.identifier_future ) )
+			self.list.append( getConfigListEntry(  _("Select identifier for future events")        , config.plugins.seriesplugin.identifier_future ) )
 			
 			#if len( config.plugins.seriesplugin.manager.choices ) > 1:
 #			self.list.append( getConfigListEntry(  _("Select manager service")                     , config.plugins.seriesplugin.manager ) )
@@ -111,6 +111,8 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , config.plugins.seriesplugin.pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , config.plugins.seriesplugin.pattern_description ) )
+			
+			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
 
 	def changeConfig(self):
 		self.list = []
@@ -148,15 +150,15 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_EXTENSIONSMENU, SHOWINFO)
 		
-		if config.plugins.seriesplugin.menu_movie_rename.value:
-			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES, movielist_info)
-		else:
-			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES)
-
 		if config.plugins.seriesplugin.menu_movie_info.value:
-			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, SHOWINFO, movielist_rename)
+			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, SHOWINFO, movielist_info)
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, SHOWINFO)
+		
+		if config.plugins.seriesplugin.menu_movie_rename.value:
+			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES, movielist_rename)
+		else:
+			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES)
 		
 		resetInstance()
 		self.close()

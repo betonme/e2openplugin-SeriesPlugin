@@ -19,6 +19,10 @@ from twisted.web.client import PartialDownloadError
 # Max Age (in seconds) of each feed in the cache
 INTER_QUERY_TIME = 60*60*24
 
+# Global cache
+# Do we have to cleanup it
+cache = {}
+
 
 # Dummy Connector for cached pages
 class Connector(object):
@@ -30,12 +34,17 @@ class Cacher(object):
 	def __init__(self):
 		# This dict structure will be the following:
 		# { 'URL': (TIMESTAMP, value) }
-		self.cache = {}
+		#self.cache = {}
+		#global cache
+		#cache = {}
+		pass
 
 	def getCached(self, url, expires):
+		#pullCache
+		global cache
 		# Try to get the tuple (TIMESTAMP, FEED_STRUCT) from the dict if it has
 		# already been downloaded. Otherwise assign None to already_got
-		already_got = self.cache.get(url, None)
+		already_got = cache.get(url, None)
 		
 		# Ok guys, we got it cached, let's see what we will do
 		if already_got:
@@ -59,57 +68,29 @@ class Cacher(object):
 			return None
 
 	def doCache(self, url, page):
-		self.cache[url] = (time(), page)
+		#pushCache
+		global cache
+		cache[url] = (time(), page)
 
 
-class Throttler(object):
-	# Causes subsequent requests to the same web server to be delayed
-	# a specific amount of seconds. The first request to the server
-	# always gets made immediately
-	# Also throttle if there are already to many open requests 
-	def __init__(self, throttleDelay=5):
-		# The number of seconds to wait between subsequent requests
-		self.throttleDelay = throttleDelay
-		self.lastRequestTime = {}
-
-	def throttle(self, url):
-		currentTime = time()
-		if ((url in self.lastRequestTime)
-			and (time() - self.lastRequestTime[url] < self.throttleDelay)):
-			throttleTime = (self.throttleDelay - (currentTime - self.lastRequestTime[url]))
-			print "Throttle for %s seconds %s" % (throttleTime, url)
-			sleep(throttleTime)
-		self.lastRequestTime[url] = currentTime
+ComiledRegexpSeries = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 OR 01x01 + optional title
+def unifyName(text):
+	# Remove Series Episode naming
+	m = ComiledRegexpSeries.match(text)
+	if m:
+		#print m.group(0)     # Entire match
+		#print m.group(1)     # First parenthesized subgroup
+		if m.group(1):
+			text = m.group(1)
+	return text
 
 
-class Limiter(object):
-	# Causes subsequent requests to the same web server to be delayed
-	# a specific amount of seconds. The first request to the server
-	# always gets made immediately
-	# Also throttle if there are already to many open requests 
-	def __init__(self, limitDelay=3, limitRequests=3):
-		# The number of seconds to wait between subsequent requests
-		self.limitDelay = limitDelay
-		self.limitRequests = limitRequests
-		self.openRequests = 0
-
-	def increment(self, url):
-		print "Open requests: %s" % self.openRequests
-		while (self.openRequests >= self.limitRequests):
-			print "Limiter: Sleeping for %s seconds %s" % (self.limitDelay, url)
-			sleep(self.limitDelay)
-		self.openRequests += 1
-
-	def decrement(self):
-		self.openRequests = max(0, self.openRequests-1)
-
-
-ChannelDict = OrderedDict([
-	(' I$',   '1'),
-	(' II$',  '2'),
-	(' III$', '3'),
-	(' HD', ''),
-	('ARD', 'Das Erste'),
+ChannelReplaceDict = OrderedDict([
+	('HD', ''),
+	('III', 'drei'),
+	('II',  'zwei'),
+	('I',   'eins'),
+	('ARD', 'DasErste'),
 	('\+', 'Plus'),
 	('0', 'null'),
 	('1', 'eins'),
@@ -135,17 +116,16 @@ ChannelDict = OrderedDict([
 	('/', ''),
 	('\\', ''),
 	('\'', ''),
+	# Remove unicode start end of area
+	('\xc2\x86', ''),
+	('\xc2\x87', '')
 ])
-
-
-class ChannelUnifier(object):
-	def __init__(self):
-		self.rc = re.compile('|'.join(map(re.escape, ChannelDict)))
-	
-	def unifyChannel(self, text):
-		def translate(match):
-			return ChannelDict[match.group(0)]
-		return self.rc.sub(translate, text).lower()
+ComiledRegexpChannel = re.compile('|'.join(ChannelReplaceDict))
+def unifyChannel(text):
+	def translate(match):
+		m = match.group(0)
+		return ChannelReplaceDict.get(m, m)
+	return ComiledRegexpChannel.sub(translate, text).lower()
 
 
 class Retry(object):
@@ -168,8 +148,3 @@ class Retry(object):
 				return True
 		# No retry because of major failure or retry limit has been reached
 		return False
-	
-	def unifyChannel(self, text):
-		def translate(match):
-			return ChannelDict[match.group(0)]
-		return self.rc.sub(translate, text).lower()

@@ -18,8 +18,6 @@
 
 import os
 import re
-from thread import start_new_thread
-from datetime import datetime
 
 # for localized messages
 from . import _
@@ -28,10 +26,7 @@ from . import _
 from Components.config import *
 
 from Screens.MessageBox import MessageBox
-from Screens.Screen import Screen
-from Screens.Setup import SetupSummary
-from Components.ActionMap import ActionMap
-from Components.ScrollLabel import ScrollLabel
+from Tools.Notifications import AddPopup
 
 from Tools.BoundFunction import boundFunction
 
@@ -39,152 +34,12 @@ from enigma import eServiceCenter, iServiceInformation, eServiceReference
 from ServiceReference import ServiceReference
 
 # Plugin internal
-from SeriesPlugin import getInstance
+from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 
 
-#######################################################
-# Configuration screen
-class SeriesPluginRenamer(Screen):
-	def __init__(self, session, service, services=None, *args, **kwargs):
-		Screen.__init__(self, session)
-		self.skinName = ["SeriesPluginRenamer", "Console"]
-		
-		self["text"] = ScrollLabel("")
-		self["actions"] = ActionMap(["WizardActions", "DirectionActions"], 
-		{
-			"ok":    self.cancel,
-			"back":  self.cancel,
-			"up":    self["text"].pageUp,
-			"down":  self["text"].pageDown
-		}, -1)
-		
-		self.regexp_seriesepisodes = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 01x01
-		
-		#self.parent = session.current_dialog
-		#print "SeriesPluginRenamer"
-		#print self.parent
-		
-		self.serviceHandler = eServiceCenter.getInstance()
-		
-		if services:
-			if not isinstance(services, list):
-				services = [services]	
-		else:
-			services = [service]
-		
-		self.services = services
-		self.goal = len(services)
-		self.progress = 0
-		
-		self.seriesPlugin = getInstance()
-		
-		self.onLayoutFinish.append( self.layoutFinished )
-
-	def layoutFinished(self):
-		self.setTitle( _("SeriesPlugin Renamer") + ' %d/%d' % (self.progress, self.goal) )
-		start_new_thread(self.renameNext, ())
-
-	def renameNext(self):
-		#TEST Run renaming parallel
-		#for service in self.services:
-		if self.services:
-			service = self.services.pop()
-			if isinstance(service, eServiceReference):
-				ref = service
-				print "SeriesPluginRenamer eServiceReference" + str(ref)
-			elif isinstance(service, ServiceReference):
-				ref = service.ref
-				print "SeriesPluginRenamer ServiceReference" + str(ref)
-			else:
-				print _("SeriesPluginRenamer: No instance of eServiceReference")
-				return self.renameNext()
-			
-			if not os.path.exists( ref.getPath() ):
-				self.progress += 1
-				self.setTitle( _("SeriesPlugin Renamer") + ' %d/%d' % (self.progress, self.goal) )
-				self.appendText( _("File does not exist: ") + name )
-				return self.renameNext()
-			
-			info = self.serviceHandler.info(ref)
-			if not info:
-				print _("SeriesPluginRenamer: No info available")
-				return self.renameNext()
-			
-			name = ref.getName() or info.getName(ref) or ""
-			print "name", name
-			
-			# Remove Series Episode naming
-			#MAYBE read SeriesPlugin config and parse it ??
-			m = self.regexp_seriesepisodes.match(name)
-			if m:
-				print m.group(0)       # The entire match
-				print m.group(1)       # The first parenthesized subgroup.
-				name = m.group(1)
-			
-			rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-			channel = ServiceReference(rec_ref_str).getServiceName()
-			print "channel", channel
-			
-			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
-			if begin != -1:
-				end = begin + (info.getLength(ref) or 0)
-			else:
-				end = os.path.getmtime(ref.getPath())
-				begin = end - (info.getLength(ref) or 0)
-				#MAYBE we could also try to parse the filename
-			
-			begin = datetime.fromtimestamp(begin)
-			end = datetime.fromtimestamp(end)
-			print begin
-			print end
-			
-			event = info.getEvent(ref)
-			short = event and event.getShortDescription() or ""
-			print "short", short
-			
-			description = "TODO Don't worry Not used"
-			
-			self.appendText( _("Search: ") + name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
-			
-			self.seriesPlugin.getEpisode(
-					boundFunction(self.episodeCallback, ref, name, short, description), 
-					name, short, description, begin, end, channel, elapsed=True
-				)
-
-	def episodeCallback(self, ref, name, short, description, data=None):
-		try:
-			self.progress += 1
-			self.setTitle( _("SeriesPlugin Renamer") + ' %d/%d' % (self.progress, self.goal) )
-		except:
-			pass
-		
-		if data:
-			# Episode data available
-			print data
-			
-			name = self.seriesPlugin.refactorTitle(name, data)
-			short = self.seriesPlugin.refactorDescription(short, data)
-			print name
-			print short
-			
-			#MAYBE Check if it is already renamed?
-			self.renameSeries(ref, name, short)
-			self.renameFile(ref, name)
-			
-			try:
-				self.appendText( _("Finished: ") + name )
-			except:
-				pass
-		else:
-			try:
-				self.appendText( _("Failed: ") + name )
-			except:
-				pass
-		
-		self.renameNext()
-
-	# Adapted from MovieRetitle setTitleDescr
-	def renameSeries(self, service, title, descr):
+# Adapted from MovieRetitle setTitleDescr
+def renameSeries(service, title, descr):
+	try:
 		#TODO Use MetaSupport EitSupport classes from EMC ?
 		if service.getPath().endswith(".ts"):
 			meta_file = service.getPath() + ".meta"
@@ -204,7 +59,7 @@ class SeriesPluginRenamer(Screen):
 			metafile = open(meta_file, "w")
 			metafile.write("%s\n%s\n%s\n%s\n%s" % (_sid, _title, _descr, _time, _tags))
 			metafile.close()
-
+	
 		if os.path.exists(meta_file):
 			metafile = open(meta_file, "r")
 			sid = metafile.readline()
@@ -219,29 +74,135 @@ class SeriesPluginRenamer(Screen):
 			metafile = open(meta_file, "w")
 			metafile.write("%s%s\n%s\n%s" % (sid, title, descr, rest))
 			metafile.close()
+	except Exception, e:
+		print e
 
-	def renameFile(self, service, new_name):
-		try:
-			path = os.path.dirname(service.getPath())
-			file_name = os.path.basename(os.path.splitext(service.getPath())[0])
-			src = os.path.join(path, file_name)
-			dst = os.path.join(path, new_name)
-			import glob
-			for f in glob.glob(os.path.join(path, src + "*")):
-				os.rename(f, f.replace(src, dst))
-		except Exception, e:
-			print e
+def renameFile(service, new_name):
+	try:
+		path = os.path.dirname(service.getPath())
+		file_name = os.path.basename(os.path.splitext(service.getPath())[0])
+		src = os.path.join(path, file_name)
+		dst = os.path.join(path, new_name)
+		import glob
+		for f in glob.glob(os.path.join(path, src + "*")):
+			os.rename(f, f.replace(src, dst))
+	except Exception, e:
+		print e
 
-	def appendText(self, text):
-		self["text"].setText( self["text"].getText() + text + '\n')
 
-	def cancel(self):
-		self.services = []
-		self.seriesPlugin.cancel()
-		self.close()
+class SeriesPluginService(object):
+	def __init__(self, service, callback):
+		self.callback = callback
+		self.seriesPlugin = getInstance()
+		self.serviceHandler = eServiceCenter.getInstance()
+		
+		if isinstance(service, eServiceReference):
+			ref = service
+		elif isinstance(service, ServiceReference):
+			ref = service.ref
+		else:
+			print _("SeriesPluginRenamer: Wrong instance")
+			return self.callback(service)
+		self.ref = ref
+		
+		if not os.path.exists( ref.getPath() ):
+			print _("SeriesPluginRenamer: File not exists: ") + ref.getPath()
+			return self.callback(service)
+		
+		info = self.serviceHandler.info(ref)
+		if not info:
+			print _("SeriesPluginRenamer: No info available: ") + ref.getPath()
+			return self.callback(service)
+		
+		self.name = name = ref.getName() or info.getName(ref) or ""
+		print "name", name
+		
+		begin = info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
+		if begin != -1:
+			end = begin + (info.getLength(ref) or 0)
+		else:
+			end = os.path.getmtime(ref.getPath())
+			begin = end - (info.getLength(ref) or 0)
+			#MAYBE we could also try to parse the filename
+		self.begin = begin
+		#self.end
+		
+		rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
+		self.channel = channel = ServiceReference(rec_ref_str).getServiceName()
+		print channel
+		
+		event = info.getEvent(ref)
+		self.short = short = event and event.getShortDescription() or ""
+		
+		self.seriesPlugin.getEpisode(
+				self.serviceCallback, 
+				name, begin, end, channel, elapsed=True
+			)
 
-	def close(self):
-		if self.seriesPlugin:
-			print "SeriesPluginRenamer cancel"
-			self.seriesPlugin.cancel()
-		Screen.close(self)
+	def serviceCallback(self, data=None):
+		print "SeriesPluginTimer serviceCallback"
+		print data
+		
+		if data:
+			# Episode data available
+			print data
+			name = refactorTitle(self.name, data)
+			short = refactorDescription(self.short, data)
+			print name
+			print short
+			
+			#MAYBE Check if it is already renamed?
+			try:
+				# Before renaming change content
+				renameSeries(self.ref, name, short)
+				renameFile(self.ref, name)
+				return self.callback()
+			except:
+				pass
+		self.callback(service)
+
+
+#######################################################
+# Rename movies
+class SeriesPluginRenamer(object):
+	def __init__(self, session, services, *args, **kwargs):
+		self.services = services
+		
+		self.failed = 0
+		self.returned = 0
+		
+		session.openWithCallback(
+			self.confirm,
+			MessageBox,
+			_("Do You want to start renaming?"),
+			MessageBox.TYPE_YESNO,
+			timeout = 15,
+			default = False
+		)
+
+	def confirm(self, confirmed):
+		if confirmed:
+			for service in self.services:
+				SeriesPluginService(service, self.renamerCallback)
+
+	def renamerCallback(self, service=None):
+		self.returned += 1
+		if service:
+			self.failed += 1
+		
+		if self.returned == len(self.services):
+			if self.failed:
+				AddPopup(
+					_("Movie rename has been finished with %d errors") % (self.failed),
+					MessageBox.TYPE_ERROR,
+					0,
+					'SP_PopUp_ID_RenameFinished'
+				)
+			else:
+				AddPopup(
+					_("Movie rename has been finished successfully"),
+					MessageBox.TYPE_INFO,
+					10,
+					'SP_PopUp_ID_RenameFinished'
+				)
+

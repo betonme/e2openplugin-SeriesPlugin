@@ -1,8 +1,10 @@
 # by betonme @2012
 
 import os, sys, traceback
+from datetime import datetime
 
-from thread import start_new_thread
+from Queue import Queue
+from threading import Thread, Lock
 
 # Localization
 from . import _
@@ -22,6 +24,8 @@ from Screens.MessageBox import MessageBox
 from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
+from Helper import unifyName, unifyChannel
+
 
 # Constants
 IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
@@ -40,17 +44,83 @@ def getInstance():
 		instance = SeriesPlugin()
 	return instance
 
-
 def resetInstance():
 	global instance
 	if instance is not None:
+		#TODO clear caches?
+		instance.save()
 		instance = None
+
+
+def refactorTitle(org, data):
+	season, episode, title = data
+	if config.plugins.seriesplugin.pattern_title.value:
+		return config.plugins.seriesplugin.pattern_title.value.format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+	else:
+		return org
+
+def refactorDescription(org, data):
+	season, episode, title = data
+	if config.plugins.seriesplugin.pattern_description.value:
+		description = config.plugins.seriesplugin.pattern_description.value.format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+		description = description.replace("\n", " ")
+		return description
+	else:
+		return org
+
+
+class SeriesPluginWorkerThread(Thread):
+	def __init__(self, queue):
+		Thread.__init__(self)
+		self.queue = queue
+		self.item = None
+		self.lock = Lock()
+	
+	def run(self):
+		while True:
+			self.lock.acquire()
+			self.item = self.queue.get()
+			print 'SeriesPluginWorkerThread is processing'
+			service, callback, name, begin, end, channel = self.item
+			
+			# do processing stuff here
+			service.getEpisode(
+				self.workerCallback,
+				name, begin, end, channel
+			)
+	
+	def workerCallback(self, data=None):
+		print 'SeriesPluginWorkerThread callback'
+		service, callback, name, begin, end, channel = self.item
+		callback(data)
+		# kill the thread
+		self.queue.task_done()
+		#self.run()
+		self.lock.release()
+		
+		config.plugins.seriesplugin.lookup_counter.value += 1
+		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
+			or (config.plugins.seriesplugin.lookup_counter.value == 100) \
+			or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
+			from plugin import ABOUT
+			about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
+			AddPopup(
+				about,
+				MessageBox.TYPE_INFO,
+				0,
+				'SP_PopUp_ID_About'
+			)
 
 
 class SeriesPlugin(Modules):
 	def __init__(self):
 		print "SeriesPlugin"
 		Modules.__init__(self)
+		self.queue = Queue()
+		#self.worker = Thread(target=fetchEpisodeInformation, args=(self.queue,))
+		self.worker = SeriesPluginWorkerThread(self.queue)
+		self.worker.daemon = True
+		self.worker.start()
 		
 		self.identifiers = self.loadModules(IDENTIFIER_PATH, IdentifierBase)
 		if self.identifiers:
@@ -96,112 +166,55 @@ class SeriesPlugin(Modules):
 			self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
 			print self.guide
 
-	def loadServices(self, path, base):
-		services = []
-		modules = self.loadModules(path, base)
-		for module in modules.itervalues():
-			service = self.instantiateModule(module)
-			if service:
-				# Add to service list
-				services.append(service)
-		return services
-
-	def close(self):
-		#TODO later on shutdown ? entering config
+	def save(self):
 		config.plugins.seriesplugin.lookup_counter.save()
-		#TEST
-
-#	def getServices(self):
-#		# Return a services list of id, name tuples
-#		services = [ ("None", "Not used") ]
-#		services.extend( [ (id, service.getName()) for (id, service) in self.identifiers.items() ] )
-#		return services
-
-#	def getSeriesList(self, service, name):
-#		# Return a series list of id, name tuples
-#		if service in self.identifiers:
-#			return self.identifiers[service].getSeriesList(name)
-#		return []
 
 
 	################################################
 	# Identifier functions
-	def getEpisode(self, callback, show_name, short, description, begin, end=None, channel=None, future=False, today=False, elapsed=False):
-		available = False
+	def getEpisode(self, callback, name, begin, end=None, channel=None, future=False, today=False, elapsed=False):
+		#available = False
 		
-		if self.identifiers:
-			# Return a season, episode, title tuple
-			
-			if elapsed:
-				service = self.identifier_elapsed
-			elif today:
-				service = self.identifier_today
-			elif future:
-				service = self.identifier_future
-			else:
-				service = None
-			
-			if service:
-				#if ( future and service.knowsFuture() ) or \
-				#	 ( today and service.knowsToday() ) or \
-				#	 ( elapsed and service.knowsElapsed() ):
-				try:
-					available = True
-					start_new_thread(
-						service.getEpisode,
-						(
-							boundFunction(self.getEpisodeCallback, callback),
-							show_name, short, description, begin, end, channel
-						)
-					)
-				except Exception, e:
-					print _("SeriesPlugin getEpisode exception ") + str(e)
-					exc_type, exc_value, exc_traceback = sys.exc_info()
-					traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-					callback()
-				return service.getName()
+		name = unifyName(name)
+		channel = unifyChannel(channel)
+		begin = datetime.fromtimestamp(begin + config.recording.margin_before.value * 60)
+		end = datetime.fromtimestamp(end + config.recording.margin_after.value * 60)
+		
+		#MAYBE for all valid service in services:
+		
+		# Return a season, episode, title tuple
+		
+		if elapsed:
+			service = self.identifier_elapsed
+		elif today:
+			service = self.identifier_today
+		elif future:
+			service = self.identifier_future
+		else:
+			service = None
+		
+		if service:
+			#if ( future and service.knowsFuture() ) or \
+			#	 ( today and service.knowsToday() ) or \
+			#	 ( elapsed and service.knowsElapsed() ):
+			try:
+				#available = True
+				#service.getEpisode(
+				#	boundFunction(getEpisodeCallback, callback),
+				#	name, begin, end, channel
+				#)
 				
-			if not available:
+				self.queue.put( (service, callback, name, begin, end, channel) )
+			except Exception, e:
+				print _("SeriesPlugin getEpisode exception ") + str(e)
+				exc_type, exc_value, exc_traceback = sys.exc_info()
+				traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
 				callback()
+			return service.getName()
+			
+		#if not available:
 		else:
 			callback()
-		
-
-	def getEpisodeCallback(self, callback, episode=None):
-		print "SeriesPlugin getEpisodeCallback"
-		print episode
-		
-		# Problem we have to collect all deferreds or cancel them
-		if episode:
-			config.plugins.seriesplugin.lookup_counter.value += 1
-			if (config.plugins.seriesplugin.lookup_counter.value == 10) \
-				or (config.plugins.seriesplugin.lookup_counter.value == 100) \
-				or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
-				from plugin import ABOUT
-				about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
-				AddPopup(
-					about,
-					MessageBox.TYPE_INFO,
-					0,
-					'SP_PopUp_ID_About'
-				)
-		callback( episode )
-
-	def refactorTitle(self, org, data):
-		season, episode, title = data
-		if config.plugins.seriesplugin.pattern_title.value:
-			return config.plugins.seriesplugin.pattern_title.value.format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
-		else:
-			return org
-
-	def refactorDescription(self, org, data):
-		season, episode, title = data
-		if config.plugins.seriesplugin.pattern_description.value:
-			description = config.plugins.seriesplugin.pattern_description.value.format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
-			description = description.replace("\n", " ")
-			return description
-		else:
-			return org
 
 	################################################
 	# Manager functions

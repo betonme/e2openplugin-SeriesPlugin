@@ -8,7 +8,7 @@ from . import _
 from Screens.MessageBox import MessageBox
 
 # Config
-from Components.config import config, ConfigSubsection, ConfigEnableDisable, ConfigNumber, ConfigSelection, ConfigYesNo, ConfigText
+from Components.config import config, ConfigSubsection, ConfigEnableDisable, ConfigNumber, ConfigSelection, ConfigYesNo, ConfigText, ConfigSelectionNumber
 
 # Plugin
 from Components.PluginComponent import plugins
@@ -49,7 +49,7 @@ scheme_fallback = [
 # Initialize Configuration
 config.plugins.seriesplugin = ConfigSubsection()
 
-config.plugins.seriesplugin.enabled                   = ConfigEnableDisable(default = False)
+config.plugins.seriesplugin.enabled                   = ConfigEnableDisable(default = True)
 
 config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
@@ -67,12 +67,26 @@ config.plugins.seriesplugin.guide                     = ConfigSelection(choices 
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
 
 config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = scheme_fallback, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
-config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = scheme_fallback, default = "S{season:02d}E{episode:02d} {title:s}\n{org:s}")
+config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = scheme_fallback, default = "S{season:02d}E{episode:02d} {title:s} {org:s}")
+config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
 
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
 
-#TODO Show messagebox before rename in movielist
+
+#######################################################
+# Session start
+def sessionstart(reason, **kwargs):
+	# Startup
+	if reason == 0:
+		# Start on demand if is requested
+		#from SeriesPlugin import getInstance
+		#getInstance()
+		pass
+	# Shutdown
+	elif reason == 1:
+		from SeriesPlugin import resetInstance
+		resetInstance()
 
 
 #######################################################
@@ -131,14 +145,22 @@ def extension(session, *args, **kwargs):
 #######################################################
 # Movielist menu rename
 def movielist_rename(session, service, services=None, *args, **kwargs):
-	#from SeriesPluginRenamer import SeriesPluginRenamer
-	#SeriesPluginRenamer(session, service)
 	try:
 		### For testing only
 		import SeriesPluginRenamer
 		reload(SeriesPluginRenamer)
 		###
-		session.open(SeriesPluginRenamer.SeriesPluginRenamer, service, services)
+		
+		if services:
+			if not isinstance(services, list):
+				services = [services]	
+		else:
+			services = [service]
+		
+		SeriesPluginRenamer.SeriesPluginRenamer(session, services)
+		
+		#from SeriesPluginRenamer import SeriesPluginRenamer
+		#SeriesPluginRenamer(session, services)
 	except Exception, e:
 		print _("SeriesPlugin renamer exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -164,6 +186,24 @@ def movielist_info(session, service, services=None, *args, **kwargs):
 
 #######################################################
 # Timer labeling
+def modifyTimer(timer, name, *args, **kwargs):
+	if timer.name == name: # or len(timer.name) <= len(name):
+		#from SeriesPluginTimer import SeriesPluginTimer
+		#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
+		try:
+			### For testing only
+			import SeriesPluginTimer
+			reload(SeriesPluginTimer)
+			###
+			SeriesPluginTimer.SeriesPluginTimer(timer)
+		except Exception, e:
+			print _("SeriesPlugin label exception ") + str(e)
+			exc_type, exc_value, exc_traceback = sys.exc_info()
+			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+	else:
+		print "Skip timer because it is already modified", name
+
+# For compatibility reasons
 def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 	#from SeriesPluginTimer import SeriesPluginTimer
 	#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
@@ -172,7 +212,7 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 		import SeriesPluginTimer
 		reload(SeriesPluginTimer)
 		###
-		SeriesPluginTimer.SeriesPluginTimer(timer, begin, end)
+		SeriesPluginTimer.SeriesPluginTimer(timer)
 	except Exception, e:
 		print _("SeriesPlugin label exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -183,8 +223,6 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 # Plugin main function
 def Plugins(**kwargs):
 	descriptors = []
-	
-	#TODO TEST for recording nameing schema
 	
 	#TODO icon
 	descriptors.append( PluginDescriptor(
@@ -197,6 +235,11 @@ def Plugins(**kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		
 		overwriteAutoTimer()
+		
+		descriptors.append( PluginDescriptor(
+																				where = PluginDescriptor.WHERE_SESSIONSTART,
+																				needsRestart = False,
+																				fnc = sessionstart) )
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			descriptors.append( PluginDescriptor(
@@ -269,32 +312,34 @@ def removeSeriesPlugin(menu, title):
 try:
 	from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
 except:
-	pass
+	AutoTimer = None
 
 ATmodifyTimer = None
 ATcheckSimilarity = None
 
 def overwriteAutoTimer():
 	global ATmodifyTimer, ATcheckSimilarity
-	if ATmodifyTimer is None:
-		# Backup original function
-		ATmodifyTimer = AutoTimer.modifyTimer
-		# Overwrite function
-		AutoTimer.modifyTimer = SPmodifyTimer
-	if ATcheckSimilarity is None:
-		# Backup original function
-		ATcheckSimilarity = AutoTimer.checkSimilarity
-		# Overwrite function
-		AutoTimer.checkSimilarity = SPcheckSimilarity
+	if AutoTimer:
+		if ATmodifyTimer is None:
+			# Backup original function
+			ATmodifyTimer = AutoTimer.modifyTimer
+			# Overwrite function
+			AutoTimer.modifyTimer = SPmodifyTimer
+		if ATcheckSimilarity is None:
+			# Backup original function
+			ATcheckSimilarity = AutoTimer.checkSimilarity
+			# Overwrite function
+			AutoTimer.checkSimilarity = SPcheckSimilarity
 
 def recoverAutoTimer():
 	global ATmodifyTimer, ATcheckSimilarity
-	if ATmodifyTimer:
-		AutoTimer.modifyTimer = ATmodifyTimer
-		ATmodifyTimer = None
-	if ATcheckSimilarity:
-		AutoTimer.checkSimilarity = ATcheckSimilarity
-		ATcheckSimilarity = None
+	if AutoTimer:
+		if ATmodifyTimer:
+			AutoTimer.modifyTimer = ATmodifyTimer
+			ATmodifyTimer = None
+		if ATcheckSimilarity:
+			AutoTimer.checkSimilarity = ATcheckSimilarity
+			ATcheckSimilarity = None
 
 
 #######################################################

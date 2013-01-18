@@ -19,71 +19,49 @@
 # for localized messages
 from . import _
 
-from datetime import datetime
-
 # Config
 from Components.config import *
 
-from enigma import eEPGCache
 from ServiceReference import ServiceReference
 
 from Tools.BoundFunction import boundFunction
 
 # Plugin internal
-from SeriesPlugin import getInstance
+from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 
 
 #######################################################
 # Label timer
 class SeriesPluginTimer(object):
-	def __init__(self, timer, begin=None, end=None):
-		
+	def __init__(self, timer):
+		self.timer = timer
 		self.seriesPlugin = getInstance()
-		
-		self.epgCache = eEPGCache.getInstance()
-		
-		self.labelTimer(timer, begin, end)
+		self.labelTimer(timer)
 
-	def labelTimer(self, timer, begin=None, end=None):
+	def labelTimer(self, timer):
 		print "SeriesPluginTimer label"
-		#TODO Later timer list handling
+		print timer.name
 		
-		# Overwrite begin / end or use timer values
-		begin = begin or timer.begin
-		end = end or timer.end
-		
-		begin = datetime.fromtimestamp(begin)
-		end = datetime.fromtimestamp(end)
-		
-		short = timer.description
-		print short
-		
-		if hasattr(timer, 'extdesc'):
-			print "hasattr"
-			extdesc = timer.extdesc
+		if timer.service_ref:
+			channel = timer.service_ref.getServiceName()
+			print channel
+			
+			self.seriesPlugin.getEpisode(
+					self.timerCallback,
+					timer.name, timer.begin, timer.end, channel, future=True
+				)
 		else:
-			print "epgcache"
-			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
-			extdesc = event and event.getExtendedDescription() or ''
-		print extdesc
-		
-		print timer.service_ref
-		channel = timer.service_ref and timer.service_ref.getServiceName()
-		print channel
-		
-		
-		self.seriesPlugin.getEpisode(
-				boundFunction(self.callback, timer), 
-				timer.name, short, extdesc, begin, end, channel, future=True
-			)
+			print "SeriesPluginTimer: No channel specified"
+			self.callback()
 
-	def callback(self, timer, data=None):
-		print "SeriesPluginTimer callback"
+	def timerCallback(self, data=None):
+		print "SeriesPluginTimer timerCallback"
 		print data
-		if data:
+		timer = self.timer
+		if data and timer:
 			# Episode data available, refactor name and description
-			timer.name = self.seriesPlugin.refactorTitle(timer.name, data)
+			timer.name = refactorTitle(timer.name, data)
 			print timer.name
-			timer.description = self.seriesPlugin.refactorDescription(timer.description, data)
+			timer.description = refactorDescription(timer.description, data)
 			print timer.description
 

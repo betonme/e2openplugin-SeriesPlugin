@@ -21,7 +21,6 @@ import re
 
 # for localized messages
 from . import _
-
 from datetime import datetime
 
 # Config
@@ -49,8 +48,6 @@ from Screens.TimerEdit import TimerSanityConflict
 
 from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS
-
-from thread import start_new_thread
 
 
 # Plugin internal
@@ -108,8 +105,6 @@ class SeriesPluginInfoScreen(Screen):
 		self.epg = eEPGCache.getInstance()
 		self.serviceHandler = eServiceCenter.getInstance()
 		
-		self.regexp_seriesepisodes = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 01x01
-		
 		self.service = service
 		
 		self.seriesPlugin = getInstance()
@@ -118,7 +113,7 @@ class SeriesPluginInfoScreen(Screen):
 
 	def layoutFinished(self):
 		self.setTitle( _("SeriesPlugin Info") )
-		start_new_thread(self.getEpisode, ())
+		self.getEpisode()
 
 	def getEpisode(self):
 		service = self.service
@@ -158,14 +153,6 @@ class SeriesPluginInfoScreen(Screen):
 			# Get information from record meta files
 			name = ref.getName() or info.getName(ref) or ""
 			
-			# Remove Series Episode naming
-			#MAYBE read SeriesPlugin config and parse it ??
-			m = self.regexp_seriesepisodes.match(name)
-			if m:
-				print m.group(0)       # The entire match
-				print m.group(1)       # The first parenthesized subgroup.
-				name = m.group(1)
-			
 			info = self.serviceHandler.info(ref)
 			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
 			if begin != -1:
@@ -188,9 +175,7 @@ class SeriesPluginInfoScreen(Screen):
 			
 			self.event = None
 			self.currentService = None
-		
-		begin = datetime.fromtimestamp(begin)
-		end = datetime.fromtimestamp(end)
+		print channel
 		
 		# Adapted from EventView
 		self["event_title"].setText( name )
@@ -204,32 +189,25 @@ class SeriesPluginInfoScreen(Screen):
 			text += ext
 		self["event_description"].setText(text)
 		
-		self["datetime"].setText( begin.strftime("%d.%m.%Y, %H:%M") )
+		self["datetime"].setText( datetime.fromtimestamp(begin).strftime("%d.%m.%Y, %H:%M") )
 		self["duration"].setText(_("%d min")%((duration)/60))
 		self["channel"].setText(channel)
 		
-		print name, short, ext, begin, end, channel, today, elapsed 
-		
-		import time
-		global starttime
-		starttime = time.time()
+		#print name, short, ext, begin, end, channel, today, elapsed 
 		
 		identifier = self.seriesPlugin.getEpisode(
-				boundFunction(self.episodeCallback, name, short, ext), 
-				name, short, ext, begin, end, channel, today=today, elapsed=elapsed
+				self.episodeCallback, 
+				name, begin, end, channel, today=today, elapsed=elapsed
 			)
+		
 		if identifier:
 			path = os.path.join(PIXMAP_PATH, identifier+".png")
 			if os.path.exists(path):
 				self.loadPixmap("logo", path )
 
-	def episodeCallback(self, show_name, short, ext, data=None):
+	def episodeCallback(self, data=None):
 		#TODO episode list handling
 		#store the list and just open the first one
-		
-		import time
-		global starttime
-		print 'Code time %.6f seconds' % (time.time() - starttime)
 		
 		print "SeriesPluginInfoScreen episodeCallback"
 		#print data
