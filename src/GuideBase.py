@@ -48,7 +48,8 @@ class GuideBase(ModuleBase):
 				splog(_("SeriesPlugin getPage exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				splog( exc_type, exc_value, exc_traceback.format_exc() )
+				#splog( exc_type, exc_value, exc_traceback.format_exc() )
+				splog( exc_type, exc_value, exc_traceback )
 				callback()
 
 	def base_callback(self, callback, url, page=None, *args, **kwargs):
@@ -64,10 +65,11 @@ class GuideBase(ModuleBase):
 				callback( None )
 		except Exception, e:
 			import os, sys, traceback
-			splog(_("SeriesPlugin getPage exception ") + str(e))
+			splog(_("SeriesPlugin base_callback exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			splog( exc_type, exc_value, exc_traceback.format_exc() )
+			#splog( exc_type, exc_value, exc_traceback.format_exc() )
+			splog( exc_type, exc_value, exc_traceback )
 
 	def base_errback(self, callback, *args, **kwargs):
 		splog("errback", args, kwargs)

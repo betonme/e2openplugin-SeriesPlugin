@@ -53,7 +53,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		# Buttons
 		self["key_red"] = StaticText(_("Cancel"))
 		self["key_green"] = StaticText(_("OK"))
-		#self["key_blue"] = StaticText(_("Send Log"))
+		self["key_blue"] = StaticText(_("Send Log"))
 		
 		# Define Actions
 		self["actions"] = ActionMap(["SetupActions", "ChannelSelectBaseActions", "ColorActions"],
@@ -62,7 +62,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			"save":					self.keySave,
 			"nextBouquet":	self.pageUp,
 			"prevBouquet":	self.pageDown,
-			#"blue":					self.blue,
+			"blue":					self.blue,
 		}, -2) # higher priority
 		
 		#self.seriesPlugin = getInstance()
@@ -224,4 +224,3 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 	def blue(self):
 		from Logger import sendLog
 		sendLog(self.session)
-	

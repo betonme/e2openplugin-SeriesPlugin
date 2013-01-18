@@ -51,8 +51,7 @@ ComiledRegexpAtomTitle = re.compile('.+: (.+)')
 # Galileo: Die schaerfste Chili der Welt
 # Galileo: Jumbo auf Achse: Muelltonnenkoch
 # Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
-ComiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
-
+#ComiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
 
 ComiledRegexpEpisode = re.compile( '((\d+)\.)?(\d+)')
 
@@ -181,7 +180,6 @@ class Wunschliste(IdentifierBase):
 		serieslist = []
 		
 		if data and isinstance(data, basestring):
-		#if data and not isinstance(data, list):
 			for line in data.splitlines():
 				values = line.split("|")
 				if len(values) == 3:
@@ -203,7 +201,6 @@ class Wunschliste(IdentifierBase):
 	def getNextSeries(self):
 		splog("Wunschliste getNextSeries", self.ids)
 		if self.ids:
-			#for id_name in data:
 			id = self.ids.pop()
 			
 			if self.when:
@@ -339,11 +336,10 @@ class Wunschliste(IdentifierBase):
 				
 				for tds in trs:
 					if tds and len(tds) >= 5:
-						xchannel, xdate, xbegin, xend = tds[:4]
+						#print tds
+						xchannel, xday, xdate, xbegin, xend = tds[:5]
 						xtitle = "".join(tds[4:])
-						
-						xdate    = xdate[3:]+year
-						xbegin   = datetime.strptime( xdate+xbegin, "%d.%m.%Y%H.%M Uhr" )
+						xbegin   = datetime.strptime( xdate+year+xbegin, "%d.%m.%Y%H.%M Uhr" )
 						#xend     = datetime.strptime( xdate+xend, "%d.%m.%Y%H.%M Uhr" )
 						#splog(xchannel, xdate, xbegin, xend, xtitle)
 						#splog(datebegin, xbegin, abs((datebegin - xbegin)))
@@ -361,28 +357,24 @@ class Wunschliste(IdentifierBase):
 							if self.compareChannels(self.channel, xchannel):
 							
 								if delta < ydelta:
-									result = ComiledRegexpPrintTitle.search(xtitle)
+									xepisode, xtitle = tds[5:7]
 									
-									if result and len(result.groups()) >= 2:
-										xepisode = result and result.group(1)
-										xtitle = result and result.group(2)
+									if xepisode:
+										result = ComiledRegexpEpisode.search(xepisode)
 										
-										if xepisode:
-											result = ComiledRegexpEpisode.search(xepisode)
-											
-											if result and len(result.groups()) >= 3:
-												xseason = result and result.group(2) or "1"
-												xepisode = result and result.group(3) or "0"
-											else:
-												xseason = "1"
-												xepisode = "0"
+										if result and len(result.groups()) >= 3:
+											xseason = result and result.group(2) or "1"
+											xepisode = result and result.group(3) or "0"
 										else:
 											xseason = "1"
 											xepisode = "0"
-										yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'))
-										ydelta = delta
-										#self.callback( yepisode )
-										#return data
+									else:
+										xseason = "1"
+										xepisode = "0"
+									yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'))
+									ydelta = delta
+									#self.callback( yepisode )
+									#return data
 								
 								else: #if delta >= ydelta:
 									break

@@ -188,19 +188,22 @@ class SeriesPlugin(Modules):
 		self.identifiers = self.loadModules(IDENTIFIER_PATH, IdentifierBase)
 		if self.identifiers:
 			identifier_elapsed = [k for k,v in self.identifiers.items() if v.knowsElapsed()]
-			config.plugins.seriesplugin.identifier_elapsed.setChoices( identifier_elapsed )
-			if not config.plugins.seriesplugin.identifier_elapsed.value:
-				config.plugins.seriesplugin.identifier_elapsed.value = identifier_elapsed[0]
+			if identifier_elapsed:
+				config.plugins.seriesplugin.identifier_elapsed.setChoices( identifier_elapsed )
+				if not config.plugins.seriesplugin.identifier_elapsed.value:
+					config.plugins.seriesplugin.identifier_elapsed.value = identifier_elapsed[0]
 			
 			identifier_today = [k for k,v in self.identifiers.items() if v.knowsToday()]
-			config.plugins.seriesplugin.identifier_today.setChoices( identifier_today )
-			if not config.plugins.seriesplugin.identifier_today.value:
-				config.plugins.seriesplugin.identifier_today.value = identifier_today[0]
+			if identifier_today:
+				config.plugins.seriesplugin.identifier_today.setChoices( identifier_today )
+				if not config.plugins.seriesplugin.identifier_today.value:
+					config.plugins.seriesplugin.identifier_today.value = identifier_today[0]
 			
 			identifier_future = [k for k,v in self.identifiers.items() if v.knowsFuture()]
-			config.plugins.seriesplugin.identifier_future.setChoices( identifier_future )
-			if not config.plugins.seriesplugin.identifier_future.value:
-				config.plugins.seriesplugin.identifier_future.value = identifier_future[0]
+			if identifier_future:
+				config.plugins.seriesplugin.identifier_future.setChoices( identifier_future )
+				if not config.plugins.seriesplugin.identifier_future.value:
+					config.plugins.seriesplugin.identifier_future.value = identifier_future[0]
 		
 		self.identifier_elapsed = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_elapsed.value )
 		splog(self.identifier_elapsed)
@@ -286,7 +289,8 @@ class SeriesPlugin(Modules):
 				splog(_("SeriesPlugin getEpisode exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				splog( exc_type, exc_value, exc_traceback.format_exc() )
+				#splog( exc_type, exc_value, exc_traceback.format_exc() )
+				splog( exc_type, exc_value, exc_traceback )
 				callback()
 			return service.getName()
 			

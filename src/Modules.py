@@ -61,39 +61,39 @@ class Modules(object):
 			try:
 				fp, pathname, description = imp.find_module(name, [path])
 			except Exception, e:
-				splog(_("[SeriesService] Find module exception: ") + str(e))
+				splog("[SeriesService] Find module exception: " + str(e))
 				fp = None
 			
 			if not fp:
-				splog(_("[SeriesService] No module found: ") + str(name))
+				splog("[SeriesService] No module found: " + str(name))
 				continue
 			
 			try:
 				module = imp.load_module( name, fp, pathname, description)
 			except Exception, e:
-				splog(_("[SeriesService] Load exception: ") + str(e))
+				splog("[SeriesService] Load exception: " + str(e))
 			finally:
 				# Since we may exit via an exception, close fp explicitly.
 				if fp: fp.close()
 			
 			if not module:
-				splog(_("[SeriesService] No module available: ") + str(name))
+				splog("[SeriesService] No module available: " + str(name))
 				continue
 			
 			# Continue only if the attribute is available
 			if not hasattr(module, name):
-				splog(_("[SeriesService] Warning attribute not available: ") + str(name))
+				splog("[SeriesService] Warning attribute not available: " + str(name))
 				continue
 			
 			# Continue only if attr is a class
 			attr = getattr(module, name)
 			if not inspect.isclass(attr):
-				splog(_("[SeriesService] Warning no class definition: ") + str(name))
+				splog("[SeriesService] Warning no class definition: " + str(name))
 				continue
 			
 			# Continue only if the class is a subclass of the corresponding base class
 			if not issubclass( attr, base):
-				splog(_("[SeriesService] Warning no subclass of base: ") + str(name))
+				splog("[SeriesService] Warning no subclass of base: " + str(name))
 				continue
 			
 			# Add module to the module list
@@ -107,13 +107,13 @@ class Modules(object):
 			try:
 				return module()
 			except Exception, e:
-				splog(_("[SeriesService] Instantiate exception: ") + str(module) + "\n" + str(e))
+				splog("[SeriesService] Instantiate exception: " + str(module) + "\n" + str(e))
 				if sys.exc_info()[0]:
-					splog(_("Unexpected error: "), sys.exc_info()[0])
+					splog("Unexpected error: ", sys.exc_info()[0])
 					traceback.print_exc(file=sys.stdout)
 					return None
 		else:
-			splog(_("[SeriesService] Module is not callable: ") + str(name))
+			splog("[SeriesService] Module is not callable: " + str(name))
 			return None
 
 	def instantiateModule(self, module):
@@ -122,11 +122,11 @@ class Modules(object):
 			try:
 				return module()
 			except Exception, e:
-				splog(_("[SeriesService] Instantiate exception: ") + str(module) + "\n" + str(e))
+				splog("[SeriesService] Instantiate exception: " + str(module) + "\n" + str(e))
 				if sys.exc_info()[0]:
-					splog(_("Unexpected error: "), sys.exc_info()[0])
+					splog("Unexpected error: ", sys.exc_info()[0])
 					traceback.print_exc(file=sys.stdout)
 					return None
 		else:
-			splog(_("[SeriesService] Module is not callable: ") + str(module.getClass()))
+			splog("[SeriesService] Module is not callable: " + str(module.getClass()))
 			return None

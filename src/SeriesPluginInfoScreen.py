@@ -84,7 +84,7 @@ class SeriesPluginInfoScreen(Screen):
 		self["duration"] = Label()
 		
 		self["key_red"] = Button("")				# Rename or Record
-		self["key_green"] = Button(_(""))		# Trakt Seen / Not Seen
+		self["key_green"] = Button("")			# Trakt Seen / Not Seen
 		self["key_yellow"] = Button("")			# Show all Episodes of current season
 		self["key_blue"] = Button("")				# Show all Seasons
 		
@@ -343,10 +343,10 @@ class SeriesPluginInfoScreen(Screen):
 				self["key_red"].setText(_("Record"))
 				self.redButtonFunction = self.record
 			else:
-				self["key_red"].setText(_(""))
+				self["key_red"].setText("")
 				self.redButtonFunction = None
 		else:
-			self["key_red"].setText(_(""))
+			self["key_red"].setText("")
 			self.redButtonFunction = None
 
 	def redButton(self):

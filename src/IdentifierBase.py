@@ -76,7 +76,9 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 				splog(_("SeriesPlugin getPage exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				splog( exc_type, exc_value, exc_traceback.format_exc() )
+				#splog( exc_type, exc_value, exc_traceback.format_exc() )
+				splog( exc_type, exc_value, traceback.format_stack() )
+				
 				self.cancel()
 				callback()
 
@@ -89,15 +91,23 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 			
 		except Exception, e:
 			import os, sys, traceback
-			splog(_("SeriesPlugin getPage exception ") + str(e))
+			splog(_("SeriesPlugin base_callback exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			splog( exc_type, exc_value, exc_traceback.format_exc() )
+			#splog( exc_type, exc_value, exc_traceback.format_exc() )
+			#splog( exc_type, exc_value, exc_traceback )
+			#splog( exc_type, exc_value, traceback.format_stack() )
+			#splog( exc_type, exc_value, traceback.extract_stack() )
+			traceback.print_stack(file=sys.stdout)
+			
+			self.cancel()
+			callback()
 
 	def base_errback(self, err, callback, url):
 		splog("base_errback", url)
 		if isinstance(err, Exception):
-			splog(_("Twisted Exception:\n%s\n%s") % (err.type, err.value))
+			splog(_("Twisted Exception:\n%s\n") % (err.type))
+			splog(str(err.value))
 		#elif isinstance(err, Failure):
 		#	splog(_("Twisted Failure:\n%s\n%s") % (err.type, err.value))
 			#TEST Later

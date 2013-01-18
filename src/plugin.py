@@ -151,7 +151,8 @@ def setup(session, *args, **kwargs):
 		splog(_("SeriesPlugin setup exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		splog( exc_type, exc_value, exc_traceback.format_exc() )
+		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -170,7 +171,8 @@ def info(session, service=None, event=None, *args, **kwargs):
 		splog(_("SeriesPlugin info exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		splog( exc_type, exc_value, exc_traceback.format_exc() )
+		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -189,7 +191,8 @@ def extension(session, *args, **kwargs):
 		splog(_("SeriesPlugin extension exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		splog( exc_type, exc_value, exc_traceback.format_exc() )
+		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -212,7 +215,8 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 		splog(_("SeriesPlugin renamer exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		splog( exc_type, exc_value, exc_traceback.format_exc() )
+		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -229,7 +233,8 @@ def movielist_info(session, service, *args, **kwargs):
 		splog(_("SeriesPlugin extension exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		splog( exc_type, exc_value, exc_traceback.format_exc() )
+		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -254,7 +259,8 @@ def renameTimer(timer, name, begin, end, *args, **kwargs):
 			splog(_("SeriesPlugin label exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			splog( exc_type, exc_value, exc_traceback.format_exc() )
+			#splog( exc_type, exc_value, exc_traceback.format_exc() )
+			splog( exc_type, exc_value, exc_traceback )
 	else:
 		splog("Skip timer because it is already modified", timer.name) #, name, len(timer.name), len(name)
 
@@ -270,7 +276,8 @@ def modifyTimer(timer, name, *args, **kwargs):
 			splog(_("SeriesPlugin label exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-			splog( exc_type, exc_value, exc_traceback.format_exc() )
+			#splog( exc_type, exc_value, exc_traceback.format_exc() )
+			splog( exc_type, exc_value, exc_traceback )
 	else:
 		splog("Skip timer because it is already modified", name)
 
@@ -285,7 +292,8 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 		splog(_("SeriesPlugin label exception ") + str(e))
 		exc_type, exc_value, exc_traceback = sys.exc_info()
 		#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-		splog( exc_type, exc_value, exc_traceback.format_exc() )
+		#splog( exc_type, exc_value, exc_traceback.format_exc() )
+		splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################

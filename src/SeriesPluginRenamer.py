@@ -247,7 +247,7 @@ class SeriesPluginRenamer(object):
 		if self.returned == len(self.services):
 			if self.failed:
 				AddPopup(
-					_("Movie rename has been finished with %d errors:\n%s") % (len(self.failed), "\n".join(self.failed)),
+					_("Movie rename has been finished with %d errors:\n") % (len(self.failed)) + "\n".join(self.failed),
 					MessageBox.TYPE_ERROR,
 					0,
 					'SP_PopUp_ID_RenameFinished'

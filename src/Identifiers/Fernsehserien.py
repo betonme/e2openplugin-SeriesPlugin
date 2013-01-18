@@ -4,17 +4,20 @@ import math
 from sys import maxint
 
 from Components.config import config
+from Tools.BoundFunction import boundFunction
 
 # Imports
 from urlparse import urljoin
 from urllib import urlencode
 from urllib2 import Request, urlopen, URLError
 
-from HTMLParser import HTMLParser
+#from HTMLParser import HTMLParser
+from bs4 import BeautifulSoup
 
-from datetime import datetime
+from time import time
+from datetime import datetime, timedelta
 
-from Tools.BoundFunction import boundFunction
+import json
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
@@ -23,91 +26,29 @@ from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 
 # Constants
-SERIESLISTURL = "http://www.wunschliste.de/ajax/search_dropdown.pl?"
-EPISODEIDURL = 'http://www.fernsehserien.de/'
-EPISODEIDPARAMETER = 'index.php?serie=%s&seite=%d&sender=%s&start=%d'
+SERIESLISTURL = "http://www.fernsehserien.de/suche?"
+EPISODEIDURL = 'http://www.fernsehserien.de%s/sendetermine/%d'
 
-
-class FSParser(HTMLParser):
-	def __init__(self):
-		HTMLParser.__init__(self)
-		# Hint: xpath from Firebug without tbody elements
-		xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td'
-		self.xpath = [ e for e in xpath.split('/') if e ]
-		self.xpath.reverse()
-
-		self.lookfor = self.xpath.pop()
-		self.waitforendtag = 0
-
-		self.start = False
-		self.table = False
-		self.tr= False
-		self.td= False
-		self.data = []
-		self.list = []
-
-	def handle_starttag(self, tag, attributes):
-		if self.waitforendtag == 0:
-			if tag == self.lookfor:
-				if self.xpath:
-					self.lookfor = self.xpath.pop()
-					s = self.lookfor.split('[')
-					if len(s) == 2:
-						self.lookfor = s[0]
-						self.waitforendtag = int( s[1].split(']' )[0]) - 1
-				else:
-					self.start = True
-
-		if self.start and tag == 'table':
-			self.table = True
-
-		if self.table:
-			if tag == 'td':
-				self.td= True
-			elif tag == 'tr':
-				self.tr= True
-
-	def handle_endtag(self, tag):
-		if self.table:
-			if tag == 'td':
-				self.td= False
-			elif tag == 'tr':
-				self.tr= False
-				self.list.append(self.data)
-				self.data= []
-
-		if tag == 'table':
-			self.table = False
-
-		if tag == self.lookfor:
-			if self.waitforendtag > 0: self.waitforendtag -= 1
-
-	def handle_data(self, data):
-		if self.tr and self.td:
-			self.data.append(data)
+max_time_drift = int(config.plugins.seriesplugin.max_time_drift.value) * 60
 
 
 class Fernsehserien(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
 		self.id = 0
-		self.when = 0
 		self.page = 0
-		self.lastpage = 0
-		self.minpages = -1
-		self.maxpages = maxint
 
 	@classmethod
 	def knowsElapsed(cls):
 		return True
 
-#	@classmethod
-#	def knowsToday(cls):
-#		return True
+	@classmethod
+	def knowsToday(cls):
+		return True
 
-#	@classmethod
-#	def knowsFuture(cls):
-#		return True
+	@classmethod
+	def knowsFuture(cls):
+		return True
 
 	def getEpisode(self, callback, name, begin, end=None, channel=None):
 		# On Success: Return a single season, episode, title tuple
@@ -116,17 +57,15 @@ class Fernsehserien(IdentifierBase):
 		self.callback = callback
 		self.name = name
 		self.begin = begin
+		#self.year = datetime.fromtimestamp(begin).year
 		self.end = end
 		self.channel = channel
 		self.ids = []
 		
 		self.id = 0
-		self.when = 0
-		
+		self.first = None
+		self.last = None
 		self.page = 0
-		self.lastpage = 0
-		self.minpages = -1
-		self.maxpages = maxint
 		
 		# Check preconditions
 		if not name:
@@ -136,20 +75,12 @@ class Fernsehserien(IdentifierBase):
 			splog(_("Skip Fernsehserien: No begin timestamp specified"))
 			return callback()
 		
-		splog("Fernsehserien getEpisode")
-		
-		#Py2.6
-		delta = abs(datetime.now() - self.begin)
-		delta = delta.seconds + delta.days * 24 * 3600
-		#Py2.7 delta = abs(datetime.now() - self.begin).total_seconds()
-		if delta > 3*60*60:
-		#if self.begin - time.time() < -2*60*60:
-			# Older than 3 hours
-			splog("Past events")
-			self.when = 6 # Past events
+		if datetime.now() > self.begin:
+			self.future = False
 		else:
-			splog("Today events")
-			self.when = 8 # Today events
+			self.future = True
+		
+		splog("Fernsehserien getEpisode")
 		self.getSeries()
 
 	def getAlternativeSeries(self):
@@ -162,7 +93,7 @@ class Fernsehserien(IdentifierBase):
 	def getSeries(self):
 		self.getPage(
 						self.getSeriesCallback,
-						SERIESLISTURL + urlencode({ 'q' : self.name })
+						SERIESLISTURL + urlencode({ 'term' : self.name })
 					)
 
 	def getSeriesCallback(self, data=None):
@@ -170,15 +101,11 @@ class Fernsehserien(IdentifierBase):
 		serieslist = []
 		
 		if data and isinstance(data, basestring):
-		#if data and not isinstance(data, list):
-			for line in data.splitlines():
-				values = line.split("|")
-				if len(values) == 3:
-					idname, countryyear, id = values
-					splog(id, idname)
-					serieslist.append( id )
-				else:
-					splog("Fernsehserien: ParseError: " + str(line))
+			for line in json.loads(data):
+				id = line['id']
+				idname = line['value']
+				splog(id, idname)
+				serieslist.append( id )
 			serieslist.reverse()
 			data = serieslist
 		
@@ -192,13 +119,15 @@ class Fernsehserien(IdentifierBase):
 	def getNextSeries(self):
 		splog("Fernsehserien getNextSeries", self.ids)
 		if self.ids:
-			#for id_name in data:
 			self.id = self.ids.pop()
 			
-			self.page = 0
-			self.lastpage = 0
-			self.minpages = -1
-			self.maxpages = maxint
+			if self.future:
+				self.page = 0
+			else:
+				self.page = -1
+			
+			self.first = None
+			self.last = None
 			
 			self.getNextPage()
 		
@@ -206,111 +135,122 @@ class Fernsehserien(IdentifierBase):
 			self.callback()
 
 	def getNextPage(self):
-		splog("page, lastpage, minpages, maxpages ", self.page, self.lastpage, self.minpages, self.maxpages)
-		nextpage = int(self.page)
-		if self.maxpages <= nextpage: nextpage = self.maxpages - 1
-		if nextpage <= self.minpages: nextpage = self.minpages + 1
-		self.lastpage = nextpage
-		start = nextpage * 100 or -1 # Norm to x00 -> Caching is only working for equal URLs
-		splog("page, lastpage, minpages, maxpages, start ", self.page, self.lastpage, self.minpages, self.maxpages, start)
+		splog("page ", self.page)
 		
-		url = urljoin(EPISODEIDURL, EPISODEIDPARAMETER % (self.id, self.when, "", start))
-		if ( self.minpages < nextpage < self.maxpages ):
-			self.getPage(
+		url = EPISODEIDURL % (self.id, self.page)
+		#self.getPage(
+		IdentifierBase.getPage(		self,
 									self.getEpisodeFromPage,
 									url
 								)
-		
-		else:
-			self.getNextSeries()
 
 	def getEpisodeFromPage(self, data=None):
-		splog("Fernsehserien getEpisodeCallback")
+		splog("Fernsehserien getEpisodeFromPage")
+		trs = []
 		
 		if data and isinstance(data, basestring):
-		#if data and not isinstance(data, FSParser):
-		#if data is not None:
 			
 			# Handle malformed HTML issues
 			data = data.replace('\\"','"')  # target=\"_blank\"
 			data = data.replace('\'+\'','') # document.write('<scr'+'ipt
 			
-			parser = FSParser()
-			parser.feed(data)
-			#splog(parser.list)
+			soup = BeautifulSoup(data)
 			
-			data = parser
+			for trnode in soup.find('table', 'sendetermine').find_all('tr'):
+				tdnodes = trnode.find_all('td')
+				# Filter for known rows
+				if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
+					tds = []
+					for tdnode in tdnodes:
+						tds.append(tdnode.string)
+					trs.append( tds )
+				# This row belongs to the previous
+				elif len(tdnodes) == 5:
+					trs[-1][5] += ' ' + tdnodes[3].string
+					trs[-1][6] += ' ' + tdnodes[4].string
+			
+			splog(trs)
+			data = trs
+			print data
 		
-		if data: # and isinstance(data, FSParser): #Why is this not working after restarting the SeriesPlugin service
-			trs = data.list
+		if data and trs: # and isinstance(data, FSParser): #Why is this not working after restarting the SeriesPlugin service
+			
+			# trs[x] = [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
 			if not trs:
-				# Store self.maxpages as callback parameter
-				splog("minpages < maxpages", (self.minpages < self.maxpages))
-				if self.minpages < self.maxpages:
-					self.maxpages = min(self.maxpages, self.lastpage) if self.maxpages else self.lastpage
-					splog("min, max, lastpage, ", self.minpages, self.maxpages, self.lastpage)
-					#self.lastpage
-					#calculate next fallback page:
-					diffpages = (self.maxpages-self.minpages) // 2 # integer division = floor = round down            # TEST / 4 !!!     # diffpages = diffpages / 2 #/ 100 * 100 # Norm to x00
-					
-					#TEST
-					#self.lastpage = self.page
-					self.page = self.minpages + diffpages
-					self.lastpage = self.page
-					#TEST END
-					splog("min, max, lastpage, diffpages, page, ", self.minpages, self.maxpages, self.lastpage, diffpages, self.page)
-					self.getNextPage()
-					return data
+				pass
 			
 			else:
 				yepisode = None
 				ydelta = maxint
 				
-				first = trs[0]
-				first = datetime.strptime( first[1]+first[2].split("-")[0], "%d.%m.%y%H:%M" )
-				last = trs[-1]
-				last = datetime.strptime( last[1]+last[2].split("-")[0], "%d.%m.%y%H:%M" )
+				first = trs[0][2]
+				last = trs[-1][2]
+				
+				#print first[0:5]
+				#print last[6:11] 
+				
+				# trs[0] first line [2] second element = timestamps [a:b] use first time
+				first = datetime.strptime( first[0:5] + trs[0][1], "%H:%M%d.%m.%Y" )
+				# trs[-1] last line [2] second element = timestamps [a:b] use second time
+				last = datetime.strptime( last[6:11] + trs[-1][1], "%H:%M%d.%m.%Y" )
+				
+				first = first - timedelta(seconds=max_time_drift)
+				last = last + timedelta(seconds=max_time_drift)
 				
 				splog("first, self.begin, last, if ", first, self.begin, last, ( first <= self.begin and self.begin <= last ))
 				if ( first <= self.begin and self.begin <= last ):
 					#search in page for matching datetime
 					for tds in trs:
-						if tds and len(tds) >= 6:
-							#'Sa', '19.05.12', '15:00-15:30', 'SuperRTL', '1.12a', '1.12b', 'Das Gef\xe4ngnis Cabana /', ' Das Bootel'] 
+						if tds and len(tds) >= 7:
+							# Grey's Anathomy
+							# [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
+							# 
+							# Gute Zeiten 
+							# [None, u'20.11.2012', u'06:40\u201307:20 Uhr', u'NDR', None, u'4187', u'Folge 4187']
+							# [None, u'01.12.2012', u'10:45\u201313:15 Uhr', u'RTL', None, u'5131', u'Folge 5131']
+							# [None, u'\xa0', None, u'5132', u'Folge 5132']
+							# [None, u'\xa0', None, u'5133', u'Folge 5133']
+							# [None, u'\xa0', None, u'5134', u'Folge 5134']
+							# [None, u'\xa0', None, u'5135', u'Folge 5135']
 							
-							# Complete line
-							# Di	27.03.12	08:50-09:15	ProSieben	3.01	Der Nordpol-Plan
-							# Mi	02.05.12	16:15-17:05	RTL II	105	Folge 105
+							# Wahnfried
+							# [u'Sa', u'26.12.1987', u'\u2013', u'So', u'27.12.1987', u'1Plus', None]
 							
-							# First part: day, date, times, channel
-							xday, xdate, xbegin, xchannel = tds[:4]
+							# First part: date, times, channel
+							xdate, xbegin = tds[1:3]
+							print "tds", tds
 							
-							xbegin, xend = xbegin.split("-")
-							xbegin = datetime.strptime( xdate+xbegin, "%d.%m.%y%H:%M" )
-							#xend = datetime.strptime( xdate+xend, "%d.%m.%y%H:%M" )
+							#xend = xbegin[6:11]
+							xbegin = xbegin[0:5]
+							xbegin = datetime.strptime( xbegin+xdate, "%H:%M%d.%m.%Y" )
+							#xend = datetime.strptime( xend+xdate, "%H:%M%d.%m.%Y" )
+							#print "xbegin", xbegin
 							
 							#Py2.6
 							delta = abs(self.begin - xbegin)
 							delta = delta.seconds + delta.days * 24 * 3600
 							#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-							splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
+							splog(self.begin, xbegin, delta, max_time_drift)
 							
-							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
-								xchannel = unifyChannel(xchannel)
+							if delta <= max_time_drift:
+								xchannel = unifyChannel(tds[3])
 								splog(self.channel, xchannel, len(self.channel), len(xchannel))
 								
 								if self.compareChannels(self.channel, xchannel):
 									
 									if delta < ydelta:
-										# Second part: s1e1, s1e2, ..., title1, title2, ...
-										xepisode = tds[4]                      # Use only the first one
-										xtitle = "".join(tds[(len(tds)-4)/2+4:])  # Use all available titles
-										
-										if xepisode.find(".") != -1:
-											xseason, xepisode = xepisode.split(".")
+									
+										# Second part: s1e1, s1e2,
+										xepisode = tds[4]
+										xepisode = tds[5]
+										if xepisode and xepisode.find(".") != -1:
+											#xseason, xepisode = xepisode.split(".")
+											xseason = xepisode[:-1]
+											xtitle = " ".join(tds[6:])  # Use all available titles
 										else:
 											xseason = "1"
-											xepisode = "0"
+											xtitle = " ".join(tds[6:])  # Use all available titles
+										
 										yepisode = (xseason or "1", xepisode or "0", xtitle.decode('iso-8859-1').encode('utf8'))
 										ydelta = delta
 										#self.callback( yepisode )
@@ -325,31 +265,22 @@ class Fernsehserien(IdentifierBase):
 					if yepisode:
 						self.callback( yepisode )
 						return data
+					
+					#else:
+					#	self.callback()
+					#	return data
 				
 				else:
-					#calculate next page : use firtsrow lastrow datetime
-					splog("( first > begin )", ( first > self.begin ))
-					splog("( begin > last )", ( self.begin > last ))
-					if ( first > self.begin ):
-						self.maxpages = min(self.maxpages, self.lastpage) if self.maxpages else self.lastpage
-					elif ( self.begin > last ):
-						self.minpages = max(self.minpages, self.lastpage) if self.minpages else self.lastpage
+					#calculate next page : use firstrow lastrow datetime
+					if first > self.begin:
+						self.page -= 1
+						self.getNextPage()
+						return data
 					
-					#Py2.6
-					diff = abs(self.begin - last)
-					diff = diff.seconds + diff.days * 24 * 3600
-					#Py2.7 diff = abs(self.begin - last).total_seconds()
-					
-					#Py2.6
-					pageination = abs(last - first)
-					pageination = pageination.seconds + pageination.days * 24 * 3600
-					#Py2.7 pageination = abs(last - first).total_seconds()
-					
-					diffpages = abs(diff / pageination)
-					self.page = self.lastpage + diffpages
-					splog("minpages, pageination, diff, diffpages, page ", self.minpages, pageination, diff, diffpages, self.page)
-					self.getNextPage()
-					return data
+					elif self.begin > last:
+						self.page += 1
+						self.getNextPage()
+						return data
 		
 		self.getNextSeries()
 		return data
