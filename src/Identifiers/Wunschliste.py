@@ -170,7 +170,7 @@ class Wunschliste(IdentifierBase):
 			self.callback()
 	
 	def getSeries(self):
-		self.getPage(
+		self.getPageInternal(
 						self.getSeriesCallback,
 						SERIESLISTURL + urlencode({ 'q' : self.name })
 					)
@@ -205,13 +205,13 @@ class Wunschliste(IdentifierBase):
 			
 			if self.when:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
-				self.getPage(
+				self.getPageInternal(
 								self.getEpisodeFutureCallback,
 								url
 							)
 			else:
 				url = EPISODEIDURLPRINT + urlencode({ 's' : id })
-				self.getPage(
+				self.getPageInternal(
 								self.getEpisodeTodayCallback,
 								url
 							)
@@ -357,20 +357,28 @@ class Wunschliste(IdentifierBase):
 							if self.compareChannels(self.channel, xchannel):
 							
 								if delta < ydelta:
-									xepisode, xtitle = tds[5:7]
 									
-									if xepisode:
-										result = ComiledRegexpEpisode.search(xepisode)
-										
-										if result and len(result.groups()) >= 3:
-											xseason = result and result.group(2) or "1"
-											xepisode = result and result.group(3) or "0"
+									if len(tds) >= 7:
+										xepisode, xtitle = tds[5:7]
+									
+										if xepisode:
+											result = ComiledRegexpEpisode.search(xepisode)
+											
+											if result and len(result.groups()) >= 3:
+												xseason = result and result.group(2) or "1"
+												xepisode = result and result.group(3) or "0"
+											else:
+												xseason = "1"
+												xepisode = "0"
 										else:
 											xseason = "1"
 											xepisode = "0"
-									else:
-										xseason = "1"
+									
+									elif len(tds) == 6:
+										xtitle = tds[5]
+										xseason = "0"
 										xepisode = "0"
+									
 									yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'), self.series.decode('ISO-8859-1').encode('utf8'))
 									ydelta = delta
 								
@@ -387,8 +395,9 @@ class Wunschliste(IdentifierBase):
 		self.getNextSeries()
 		return data
 
-	def getPage(self, callback, url):
+	def getPageInternal(self, callback, url):
 		# PHP Proxy with 3 day Caching
 		# to minimize server requests
 		#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-		IdentifierBase.getPage(self, callback, url)
+		#IdentifierBase.getPage(self, callback, url)
+		self.getPage(callback, url)

@@ -80,7 +80,7 @@ class IdentifierBase(ModuleBase, Cacher):  #, Retry):
 				elif hasattr(e, "code"):
 					print e.code, e.msg, counter
 					sleep(2)
-					self.getPage(callback, url, expires, counter+1)
+					self.getPage(callback, url, headers, expires, counter+1)
 					return
 				else:
 					raise

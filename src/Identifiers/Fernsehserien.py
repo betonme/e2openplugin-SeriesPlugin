@@ -105,7 +105,7 @@ class Fernsehserien(IdentifierBase):
 			self.callback()
 	
 	def getSeries(self):
-		self.getPage(
+		self.getPageInternal(
 						self.getSeriesCallback,
 						SERIESLISTURL + urlencode({ 'term' : self.name })
 					)
@@ -152,7 +152,7 @@ class Fernsehserien(IdentifierBase):
 	def getNextPage(self):
 		url = EPISODEIDURL % (self.id, self.page)
 		
-		self.getPage(
+		self.getPageInternal(
 						self.getEpisodeFromPage,
 						url
 					)
@@ -174,7 +174,8 @@ class Fernsehserien(IdentifierBase):
 				for trnode in table.find_all('tr'):
 					tdnodes = trnode and trnode.find_all('td')
 					# Filter for known rows
-					if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
+					#if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
+					if len(tdnodes) >= 6 and len(tdnodes[2].string) >= 15:
 						tds = []
 						for tdnode in tdnodes:
 							tds.append(tdnode.string)
@@ -221,7 +222,7 @@ class Fernsehserien(IdentifierBase):
 					if ( first <= self.begin and self.begin <= last ):
 						#search in page for matching datetime
 						for tds in trs:
-							if tds and len(tds) >= 7:
+							if tds and len(tds) >= 6:  #7:
 								# Grey's Anathomy
 								# [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
 								# 
@@ -260,16 +261,20 @@ class Fernsehserien(IdentifierBase):
 										
 										if delta < ydelta:
 										
-											# Second part: s1e1, s1e2,
-											xseason = tds[4]
-											xepisode = tds[5]
-											if xseason and xseason.find(".") != -1:
-												xseason = xseason[:-1]
-												xtitle = " ".join(tds[6:])  # Use all available titles
-											else:
-												xseason = "1"
-												xtitle = " ".join(tds[6:])  # Use all available titles
-											
+											if len(tds) >= 7:
+												# Second part: s1e1, s1e2,
+												xseason = tds[4]
+												xepisode = tds[5]
+												if xseason and xseason.find(".") != -1:
+													xseason = xseason[:-1]
+													xtitle = " ".join(tds[6:])  # Use all available titles
+												else:
+													xseason = "1"
+													xtitle = " ".join(tds[6:])  # Use all available titles
+											elif len(tds) == 6:
+												xseason = "0"
+												xepisode = "0"
+												xtitle = tds[5]
 											yepisode = (xseason, xepisode, xtitle, self.series)
 											ydelta = delta
 										
@@ -304,8 +309,9 @@ class Fernsehserien(IdentifierBase):
 		self.getNextSeries()
 		return data
 
-	def getPage(self, callback, url):
+	def getPageInternal(self, callback, url):
 		# PHP Proxy with 3 day Caching
 		# to minimize server requests
 		#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-		IdentifierBase.getPage(self, callback, url, Headers)
+		#IdentifierBase.getPage(self, callback, url, Headers)
+		self.getPage(callback, url, Headers)

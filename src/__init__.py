@@ -6,9 +6,9 @@ import gettext
 def localeInit():
 	lang = language.getLanguage()[:2]  # getLanguage returns e.g. "fi_FI" for "language_country"
 	os_environ["LANGUAGE"] = lang      # Enigma doesn't set this (or LC_ALL, LC_MESSAGES, LANG). gettext needs it!
-	gettext.bindtextdomain("SP", resolveFilename(SCOPE_PLUGINS, "Extensions/SeriesPlugin/locale"))
+	gettext.bindtextdomain("SeriesPlugin", resolveFilename(SCOPE_PLUGINS, "Extensions/SeriesPlugin/locale"))
 
-_ = lambda txt: gettext.dgettext("SP", txt) if txt else ""
+_ = lambda txt: gettext.dgettext("SeriesPlugin", txt) if txt else ""
 
 localeInit()
 language.addCallback(localeInit)
