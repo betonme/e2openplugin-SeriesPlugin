@@ -117,18 +117,20 @@ class SeriesPluginInfoScreen(Screen):
 
 	def getEpisode(self):
 		service = self.service
+		print service
 		if isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
-			print "SeriesPluginInfoScreen ChannelSelectionBase" + str(ref)
+			print "SeriesPluginInfoScreen ChannelSelectionBase " + str(ref)
 		elif isinstance(service, eServiceReference):
 			ref = service
-			print "SeriesPluginInfoScreen eServiceReference" + str(ref)
+			#ref = eServiceReference(str(service))
+			print "SeriesPluginInfoScreen eServiceReference " + str(ref)
 		elif isinstance(service, ServiceReference):
 			ref = service.ref
-			print "SeriesPluginInfoScreen ServiceReference" + str(ref)
+			print "SeriesPluginInfoScreen ServiceReference " + str(ref)
 		else:
 			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
-			print "SeriesPluginInfoScreen else" + str(ref)
+			print "SeriesPluginInfoScreen else " + str(ref)
 		
 		event = ref and ref.valid() and self.epg.lookupEventTime(ref, -1)
 		if event:
@@ -151,9 +153,8 @@ class SeriesPluginInfoScreen(Screen):
 		#		self["key_green"].setText(_("Add timer"))
 		else:
 			# Get information from record meta files
-			name = ref.getName() or info.getName(ref) or ""
-			
 			info = self.serviceHandler.info(ref)
+			name = ref.getName() or info.getName(ref) or ""
 			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
 			if begin != -1:
 				duration = info.getLength(ref) or 0
@@ -163,7 +164,6 @@ class SeriesPluginInfoScreen(Screen):
 				duration = info.getLength(ref) or 0
 				begin = end - duration or 0
 				#MAYBE we could also try to parse the filename
-			
 			
 			event = info.getEvent(ref)
 			short = event and event.getShortDescription() or ""

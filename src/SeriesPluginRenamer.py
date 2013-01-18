@@ -159,7 +159,7 @@ class SeriesPluginService(object):
 				return self.callback()
 			except:
 				pass
-		self.callback(service)
+		self.callback(self.ref)
 
 
 #######################################################
@@ -168,13 +168,13 @@ class SeriesPluginRenamer(object):
 	def __init__(self, session, services, *args, **kwargs):
 		self.services = services
 		
-		self.failed = 0
+		self.failed = []
 		self.returned = 0
 		
 		session.openWithCallback(
 			self.confirm,
 			MessageBox,
-			_("Do You want to start renaming?"),
+			_("Do You want to start background renaming?"),
 			MessageBox.TYPE_YESNO,
 			timeout = 15,
 			default = False
@@ -188,12 +188,13 @@ class SeriesPluginRenamer(object):
 	def renamerCallback(self, service=None):
 		self.returned += 1
 		if service:
-			self.failed += 1
+			#Maybe later self.failed.append( name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
+			self.failed.append( service.getPath() )
 		
 		if self.returned == len(self.services):
 			if self.failed:
 				AddPopup(
-					_("Movie rename has been finished with %d errors") % (self.failed),
+					_("Movie rename has been finished with %d errors:\n%s") % (len(self.failed), "\n".join(self.failed)),
 					MessageBox.TYPE_ERROR,
 					0,
 					'SP_PopUp_ID_RenameFinished'

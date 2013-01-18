@@ -20,7 +20,7 @@ from Plugins.Plugin import PluginDescriptor
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.3.1"
+VERSION = "0.4.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -318,28 +318,34 @@ ATmodifyTimer = None
 ATcheckSimilarity = None
 
 def overwriteAutoTimer():
-	global ATmodifyTimer, ATcheckSimilarity
-	if AutoTimer:
-		if ATmodifyTimer is None:
-			# Backup original function
-			ATmodifyTimer = AutoTimer.modifyTimer
-			# Overwrite function
-			AutoTimer.modifyTimer = SPmodifyTimer
-		if ATcheckSimilarity is None:
-			# Backup original function
-			ATcheckSimilarity = AutoTimer.checkSimilarity
-			# Overwrite function
-			AutoTimer.checkSimilarity = SPcheckSimilarity
+	try:
+		global ATmodifyTimer, ATcheckSimilarity
+		if AutoTimer:
+			if ATmodifyTimer is None:
+				# Backup original function
+				ATmodifyTimer = AutoTimer.modifyTimer
+				# Overwrite function
+				AutoTimer.modifyTimer = SPmodifyTimer
+			if ATcheckSimilarity is None:
+				# Backup original function
+				ATcheckSimilarity = AutoTimer.checkSimilarity
+				# Overwrite function
+				AutoTimer.checkSimilarity = SPcheckSimilarity
+	except:
+		print "SeriesPlugin found old AutoTimer"
 
 def recoverAutoTimer():
-	global ATmodifyTimer, ATcheckSimilarity
-	if AutoTimer:
-		if ATmodifyTimer:
-			AutoTimer.modifyTimer = ATmodifyTimer
-			ATmodifyTimer = None
-		if ATcheckSimilarity:
-			AutoTimer.checkSimilarity = ATcheckSimilarity
-			ATcheckSimilarity = None
+	try:
+		global ATmodifyTimer, ATcheckSimilarity
+		if AutoTimer:
+			if ATmodifyTimer:
+				AutoTimer.modifyTimer = ATmodifyTimer
+				ATmodifyTimer = None
+			if ATcheckSimilarity:
+				AutoTimer.checkSimilarity = ATcheckSimilarity
+				ATcheckSimilarity = None
+	except:
+		print "SeriesPlugin found old AutoTimer"
 
 
 #######################################################
