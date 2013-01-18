@@ -12,6 +12,9 @@ from datetime import datetime
 
 from Components.config import config
 
+from enigma import eServiceReference, iServiceInformation, eServiceCenter
+from ServiceReference import ServiceReference
+
 # Plugin framework
 from Modules import Modules
 
@@ -172,6 +175,8 @@ class SeriesPlugin(Modules, ChannelsBase):
 		Modules.__init__(self)
 		ChannelsBase.__init__(self)
 		
+		self.serviceHandler = eServiceCenter.getInstance()
+		
 		self.queue = QueueWithTimeOut()
 		
 		#http://bugs.python.org/issue7980
@@ -240,6 +245,25 @@ class SeriesPlugin(Modules, ChannelsBase):
 		name = removeEpisodeInfo(name)
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
+		
+		if isinstance(service, eServiceReference):
+			if service.getPath():
+				# Service is a movie reference
+				info = self.serviceHandler.info(service)
+				ref = info.getInfoString(service, iServiceInformation.sServiceref)
+				service = ServiceReference(ref)
+				splog("SeriesPlugin eServiceReference movie", str(ref))
+				
+			else:
+				# Service is channel reference
+				ref = eServiceReference(str(service))
+				service = ServiceReference(ref)
+				splog("SeriesPlugin eServiceReference channel", str(ref))
+		
+		elif isinstance(service, ServiceReference):
+			splog("SeriesPlugin ServiceReference", str(ref))
+			
+			
 		channels = self.lookupServiceAlternatives(service)
 		
 		#MAYBE for all valid identifier in identifiers:

@@ -148,6 +148,7 @@ class SeriesPluginInfoScreen(Screen):
 				info = self.serviceHandler.info(service)
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
 				channel = ServiceReference(ref).getServiceName() or ""
+				ref = eServiceReference(str(service))
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
 				today = False

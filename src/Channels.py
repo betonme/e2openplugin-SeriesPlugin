@@ -211,9 +211,10 @@ class ChannelsBase(ChannelsFile):
 		self.loadXML()
 
 	def lookupServiceAlternatives(self, service):
-		service = ServiceReference(service)
+		splog("lookupServiceAlternatives service", service)
 		ref = str(service)
-		splog("lookupServiceAlternatives ref", ref, self.channels)
+		splog("lookupServiceAlternatives ref", ref)
+		splog("lookupServiceAlternatives channels", self.channels)
 		if ref in self.channels:
 			name, alternatives = self.channels.get(ref)
 		else:

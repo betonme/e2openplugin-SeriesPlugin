@@ -16,6 +16,8 @@
 #
 #######################################################################
 
+import os, sys, traceback
+
 from Components.config import config
 
 #class Logger(object):
@@ -37,11 +39,18 @@ def splog(*args):
 		try:
 			f = open(config.plugins.seriesplugin.log_file.value, 'a')
 			f.write(strargs)
+			if sys.exc_info()[0]:
+				print "Unexpected error:", sys.exc_info()[0]
+				traceback.print_exc(file=f)
 		except Exception, e:
 			print "SeriesPlugin splog exception " + str(e)
 		finally:
 			if f:
 				f.close()
+	
+	if sys.exc_info()[0]:
+		print "Unexpected error:", sys.exc_info()[0]
+		traceback.print_exc(file=sys.stdout)
 
 def sendLog(session):
 	print "[SP sendLog] - send_mail"

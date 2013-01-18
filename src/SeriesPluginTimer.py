@@ -21,6 +21,7 @@ from . import _
 
 from time import time
 from enigma import eEPGCache
+from ServiceReference import ServiceReference
 
 # Config
 from Components.config import *
