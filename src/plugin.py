@@ -1,300 +1,299 @@
-# for localized messages
+
+import os, sys, traceback
+
+# Localization
 from . import _
 
 # GUI (Screens)
 from Screens.MessageBox import MessageBox
 
 # Config
-from Components.config import config, ConfigSubsection, ConfigEnableDisable, \
-	ConfigNumber, ConfigSelection, ConfigYesNo
+from Components.config import config, ConfigSubsection, ConfigEnableDisable, ConfigNumber, ConfigSelection, ConfigYesNo, ConfigText
 
 # Plugin
 from Components.PluginComponent import plugins
 from Plugins.Plugin import PluginDescriptor
 
-# Webinterface
-from Plugins.Extensions.WebInterface.WebChilds.Toplevel import addExternalChild
-from Plugins.Extensions.WebInterface.WebChilds.Screenpage import ScreenPage
+# Plugin internal
 
-# Twisted
-from twisted.web import static
-from twisted.python import util
 
+#######################################################
+# Constants
+NAME = "SeriesPlugin"
+VERSION = "0.1"
+DESCRIPTION = _("SeriesPlugin")
+SHOWINFO = _("Show series info")
+RENAMESERIES = _("Rename serie(s)")
+SUPPORT = "http://bit.ly/seriespluginihad"
+DONATE = "http://bit.ly/seriespluginpaypal"
+ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
+				+ _("  (C) 2012 by betonme @ IHAD \n\n") \
+				+ _("  {lookups:d} successful lookups.\n") \
+				+ _("  How much time have You saved?\n\n") \
+				+ _("  Support: ") + SUPPORT + "\n" \
+				+ _("  Feel free to donate. \n") \
+				+ _("  PayPal: ") + DONATE
+
+scheme_fallback = [
+		("", ""),
+		("{org:s} S{season:02d}E{episode:02d}"            , "Org S01E01"),
+		("{org:s} S{season:02d}E{episode:02d} {title:s}"  , "Org S01E01 Title"),
+		("{title:s} {org:s}"                             , "Title Org"),
+		("S{season:02d}E{episode:02d} {title:s} {org:s}" , "S01E01 Title Org"),
+		("{title:s} S{season:02d}E{episode:02d} {org:s}" , "Title S01E01 Org"),
+		("{title:s} S{season:d}E{episode:d} {org:s}"     , "Title S1E1 Org"),
+	]
+
+
+#######################################################
 # Initialize Configuration
-config.plugins.autotimer = ConfigSubsection()
-config.plugins.autotimer.autopoll = ConfigEnableDisable(default = False)
-config.plugins.autotimer.interval = ConfigNumber(default = 3)
-config.plugins.autotimer.refresh = ConfigSelection(choices = [
-		("none", _("None")),
-		("auto", _("Only AutoTimers created during this session")),
-		("all", _("All non-repeating timers"))
-	], default = "none"
-)
-config.plugins.autotimer.try_guessing = ConfigEnableDisable(default = True)
-config.plugins.autotimer.editor = ConfigSelection(choices = [
-		("plain", _("Classic")),
-		("wizard", _("Wizard"))
-	], default = "wizard"
-)
-config.plugins.autotimer.addsimilar_on_conflict = ConfigEnableDisable(default = False)
-config.plugins.autotimer.disabled_on_conflict = ConfigEnableDisable(default = False)
-config.plugins.autotimer.show_in_extensionsmenu = ConfigYesNo(default = False)
-config.plugins.autotimer.fastscan = ConfigYesNo(default = False)
-config.plugins.autotimer.notifconflict = ConfigYesNo(default = True)
-config.plugins.autotimer.notifsimilar = ConfigYesNo(default = True)
-config.plugins.autotimer.maxdaysinfuture = ConfigNumber(default = 0)
-config.plugins.autotimer.show_help = ConfigYesNo(default = True)
-config.plugins.autotimer.episode_scheme = ConfigSelection(choices = [
-		(" S{season:02d}E{episode:02d}",  _("S01E01")),
-		(" S{season:d}E{episode:d}",      _("S1E1")),
-		(" S{season:02d}xE{episode:02d}", _("S01xE01")),
-		(" S{season:d}xE{episode:d}",     _("S1xE1")),
-		(" S{season:02d}.E{episode:02d}", _("S01.E01")),
-		(" S{season:d}.E{episode:d}",     _("S1.E1")),
-		(" S{season:02d} E{episode:02d}", _("S01 E01")),
-		(" S{season:d} E{episode:d}",     _("S1 E1")),
-		(" {season:02d}{episode:02d}",    _("0101")),
-		(" {season:d}{episode:02d}",      _("101")),
-		(" {season:02d}x{episode:02d}",   _("01x01")),
-		(" {season:d}x{episode:d}",       _("1x1")),
-		(" {season:02d}.{episode:02d}",   _("01.01")),
-		(" {season:d}.{episode:d}",       _("1.1")),
-		(" {season:02d} {episode:02d}",   _("01 01")),
-		(" {season:d} {episode:d}",       _("1 1")),
-		("_S{season:02d}E{episode:02d}",  _("_S01E01")),
-		("_S{season:d}E{episode:d}",      _("_S1E1")),
-		("_S{season:02d}xE{episode:02d}", _("_S01xE01")),
-		("_S{season:d}xE{episode:d}",     _("_S1xE1")),
-		("_S{season:02d}.E{episode:02d}", _("_S01.E01")),
-		("_S{season:d}.E{episode:d}",     _("_S1.E1")),
-		("_S{season:02d} E{episode:02d}", _("_S01 E01")),
-		("_S{season:d} E{episode:d}",     _("_S1 E1")),
-		("_{season:02d}{episode:02d}",    _("_0101")),
-		("_{season:d}{episode:02d}",      _("_101")),
-		("_{season:02d}x{episode:02d}",   _("_01x01")),
-		("_{season:d}x{episode:d}",       _("_1x1")),
-		("_{season:02d}.{episode:02d}",   _("_01.01")),
-		("_{season:d}.{episode:d}",       _("_1.1")),
-		("_{season:02d} {episode:02d}",   _("_01 01")),
-		("_{season:d} {episode:d}",       _("_1 1")),
+config.plugins.seriesplugin = ConfigSubsection()
 
-		(" S{season:02d}E{episode:02d} {title:s}",  _("S01E01 title")),
-		(" S{season:d}E{episode:d} {title:s}",      _("S1E1 title")),
-		(" S{season:02d}xE{episode:02d} {title:s}", _("S01xE01 title")),
-		(" S{season:d}xE{episode:d} {title:s}",     _("S1xE1 title")),
-		(" S{season:02d}.E{episode:02d} {title:s}", _("S01.E01 title")),
-		(" S{season:d}.E{episode:d} {title:s}",     _("S1.E1 title")),
-		(" S{season:02d} E{episode:02d} {title:s}", _("S01 E01 title")),
-		(" S{season:d} E{episode:d} {title:s}",     _("S1 E1 title")),
-		(" {season:02d}{episode:02d} {title:s}",    _("0101 title")),
-		(" {season:d}{episode:02d} {title:s}",      _("101 title")),
-		(" {season:02d}x{episode:02d} {title:s}",   _("01x01 title")),
-		(" {season:d}x{episode:d} {title:s}",       _("1x1 title")),
-		(" {season:02d}.{episode:02d} {title:s}",   _("01.01 title")),
-		(" {season:d}.{episode:d} {title:s}",       _("1.1 title")),
-		(" {season:02d} {episode:02d} {title:s}",   _("01 01 title")),
-		(" {season:d} {episode:d} {title:s}",       _("1 1 title")),
-		("_S{season:02d}E{episode:02d}_{title:s}",  _("_S01E01_title")),
-		("_S{season:d}E{episode:d}_{title:s}",      _("_S1E1_title")),
-		("_S{season:02d}xE{episode:02d}_{title:s}", _("_S01xE01_title")),
-		("_S{season:d}xE{episode:d}_{title:s}",     _("_S1xE1_title")),
-		("_S{season:02d}.E{episode:02d}_{title:s}", _("_S01.E01_title")),
-		("_S{season:d}.E{episode:d}_{title:s}",     _("_S1.E1_title")),
-		("_S{season:02d} E{episode:02d}_{title:s}", _("_S01 E01_title")),
-		("_S{season:d} E{episode:d}_{title:s}",     _("_S1 E1_title")),
-		("_{season:02d}{episode:02d}_{title:s}",    _("_0101_title")),
-		("_{season:d}{episode:02d}_{title:s}",      _("_101_title")),
-		("_{season:02d}x{episode:02d}_{title:s}",   _("_01x01_title")),
-		("_{season:d}x{episode:d}_{title:s}",       _("_1x1_title")),
-		("_{season:02d}.{episode:02d}_{title:s}",   _("_01.01_title")),
-		("_{season:d}.{episode:d}_{title:s}",       _("_1.1_title")),
-		("_{season:02d} {episode:02d}_{title:s}",   _("_01 01_title")),
-		("_{season:d} {episode:d}_{title:s}",       _("_1 1_title")),
-	], default = " S{season:02d}E{episode:02d} {title:s}"
-)
+config.plugins.seriesplugin.enabled                   = ConfigEnableDisable(default = False)
 
-autotimer = None
-autopoller = None
-autotimerseries = None
+config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
+config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
+config.plugins.seriesplugin.menu_movie_info           = ConfigYesNo(default = True)
+config.plugins.seriesplugin.menu_movie_rename         = ConfigYesNo(default = True)
 
-#pragma mark - Help
-try:
-	from Plugins.SystemPlugins.MPHelp import registerHelp, XMLHelpReader
-	from Tools.Directories import resolveFilename, SCOPE_PLUGINS
-	reader = XMLHelpReader(resolveFilename(SCOPE_PLUGINS, "Extensions/AutoTimer/mphelp.xml"))
-	autotimerHelp = registerHelp(*reader)
-except Exception as e:
-	print("[AutoTimer] Unable to initialize MPHelp:", e,"- Help not available!")
-	autotimerHelp = None
-#pragma mark -
+#TODO config.plugins.seriesplugin.open MessageBox or TheTVDB  ConfigSelection if hasTheTVDB
 
-# Autostart
-def autostart(reason, **kwargs):
-	global autotimer
-	global autopoller
-	global autotimerseries
+config.plugins.seriesplugin.identifier_elapsed        = ConfigSelection(choices = [("", "")], default = "")
+config.plugins.seriesplugin.identifier_today          = ConfigSelection(choices = [("", "")], default = "")
+config.plugins.seriesplugin.identifier_future         = ConfigSelection(choices = [("", "")], default = "")
+config.plugins.seriesplugin.manager                   = ConfigSelection(choices = [("", "")], default = "")
+config.plugins.seriesplugin.guide                     = ConfigSelection(choices = [("", "")], default = "")
 
-	# Startup
-	if reason == 0 and config.plugins.autotimer.autopoll.value:
-		# Initialize AutoTimerSeries
-		from AutoTimerSeries import AutoTimerSeries
-		autotimerseries = AutoTimerSeries()
+config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
 
-		# Initialize AutoTimer
-		from AutoTimer import AutoTimer
-		autotimer = AutoTimer()
+config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = scheme_fallback, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
+config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = scheme_fallback, default = "S{season:02d}E{episode:02d} {title:s}\n{org:s}")
 
-		# Start Poller
-		from AutoPoller import AutoPoller
-		autopoller = AutoPoller()
-		autopoller.start()
+# Internal
+config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
+
+#TODO Show messagebox before rename in movielist
+
+
+#######################################################
+# Plugin configuration
+def setup(session, *args, **kwargs):
+	#from SeriesPluginConfiguration import SeriesPluginConfiguration
+	#session.open(SeriesPluginConfiguration)
+	try:
+		### For testing only
+		import SeriesPluginConfiguration
+		reload(SeriesPluginConfiguration)
+		###
+		session.open(SeriesPluginConfiguration.SeriesPluginConfiguration)
+	except Exception, e:
+		print _("SeriesPlugin setup exception ") + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+
+
+#######################################################
+# Event Info
+def info(session, service=None, *args, **kwargs):
+	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
+	#SeriesPluginInfoScreen(session, ref)
+	try:
+		### For testing only
+		import SeriesPluginInfoScreen
+		reload(SeriesPluginInfoScreen)
+		###
+		
+		#SeriesPluginInfoScreen.SeriesPluginInfoScreen(session, service)
+		session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
+	except Exception, e:
+		print _("SeriesPlugin info exception ") + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+
+
+#######################################################
+# Extensions menu
+def extension(session, *args, **kwargs):
+	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
+	#SeriesPluginInfoScreen(session)
+	try:
+		### For testing only
+		import SeriesPluginInfoScreen
+		reload(SeriesPluginInfoScreen)
+		###
+		SeriesPluginInfoScreen.SeriesPluginInfoScreen(session)
+	except Exception, e:
+		print _("SeriesPlugin extension exception ") + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+
+
+#######################################################
+# Movielist menu rename
+def movielist_rename(session, service, services=None, *args, **kwargs):
+	#from SeriesPluginRenamer import SeriesPluginRenamer
+	#SeriesPluginRenamer(session, service)
+	try:
+		### For testing only
+		import SeriesPluginRenamer
+		reload(SeriesPluginRenamer)
+		###
+		session.open(SeriesPluginRenamer.SeriesPluginRenamer, service, services)
+	except Exception, e:
+		print _("SeriesPlugin renamer exception ") + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+
+
+#######################################################
+# Movielist menu info
+def movielist_info(session, service, services=None, *args, **kwargs):
+	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
+	#SeriesPluginInfoScreen(session, service, services)
+	try:
+		### For testing only
+		import SeriesPluginInfoScreen
+		reload(SeriesPluginInfoScreen)
+		###
+		session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
+	except Exception, e:
+		print _("SeriesPlugin extension exception ") + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+
+
+#######################################################
+# Timer labeling
+def labelTimer(timer, begin=None, end=None, *args, **kwargs):
+	#from SeriesPluginTimer import SeriesPluginTimer
+	#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
+	try:
+		### For testing only
+		import SeriesPluginTimer
+		reload(SeriesPluginTimer)
+		###
+		SeriesPluginTimer.SeriesPluginTimer(timer, begin, end)
+	except Exception, e:
+		print _("SeriesPlugin label exception ") + str(e)
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+
+
+#######################################################
+# Plugin main function
+def Plugins(**kwargs):
+	descriptors = []
+	
+	#TODO TEST for recording nameing schema
+	
+	#TODO icon
+	descriptors.append( PluginDescriptor(
+																			name = NAME + " " + _("Setup"),
+																			description = NAME + " " + _("Setup"),
+																			where = PluginDescriptor.WHERE_PLUGINMENU,
+																			fnc = setup,
+																			needsRestart = False) )
+	
+	if config.plugins.seriesplugin.enabled.value:
+		
+		descriptors.append( PluginDescriptor(
+																				where = PluginDescriptor.WHERE_SESSIONSTART,	#.WHERE_AUTOSTART, 
+																				fnc   = sessionstart,													# fnc=autostart,
+																				needsRestart = False) )
+		
+		if config.plugins.seriesplugin.menu_info.value:
+			descriptors.append( PluginDescriptor(
+																					name = SHOWINFO,
+																					description = SHOWINFO,
+																					where = PluginDescriptor.WHERE_EVENTINFO,
+																					needsRestart = False,
+																					fnc = info) )
+		
+		if config.plugins.seriesplugin.menu_extensions.value:
+			descriptors.append(PluginDescriptor(
+																				name = SHOWINFO,
+																				description = SHOWINFO,
+																				where = PluginDescriptor.WHERE_EXTENSIONSMENU,
+																				fnc = extension,
+																				needsRestart = False) )
+		
+		if config.plugins.seriesplugin.menu_movie_info.value:
+			descriptors.append( PluginDescriptor(
+																					name = SHOWINFO,
+																					description = SHOWINFO,
+																					where = PluginDescriptor.WHERE_MOVIELIST,
+																					fnc = movielist_info,
+																					needsRestart = False) )
+		
+		if config.plugins.seriesplugin.menu_movie_rename.value:
+			descriptors.append( PluginDescriptor(
+																					name = RENAMESERIES,
+																					description = RENAMESERIES,
+																					where = PluginDescriptor.WHERE_MOVIELIST,
+																					fnc = movielist_rename,
+																					needsRestart = False) )
+
+	return descriptors
+
+
+#######################################################
+# Add / Remove menu functions
+def addSeriesPlugin(menu, title, fnc):
+	# Add to extension menu
+	from Components.PluginComponent import plugins
+	if plugins:
+		for p in plugins.getPlugins( where = menu ):
+			if p.name == title:
+				# Plugin is already in menu
+				break
+		else:
+			# Plugin not in menu - add it
+			plugin = PluginDescriptor(
+															name = title,
+															description = title,
+															where = menu,
+															needsRestart = False,
+															fnc = fnc)
+			plugins.plugins[ menu ].append(plugin)
+
+def removeSeriesPlugin(menu, title):
+	# Remove from extension menu
+	from Components.PluginComponent import plugins
+	if plugins:
+		for p in plugins.getPlugins( where = menu ):
+			if p.name == title:
+				plugins.plugins[ menu ].remove(p)
+				break
+
+
+#######################################################
+# Sessionstart
+
+sptest = None
+def sessionstart(reason, **kwargs):
+	if reason == 0: # startup
+		if kwargs.has_key("session"):
+			global sptest
+			session = kwargs["session"]
+			# Initialize seriesplugin
+			#sptest = SPTest(session)
+	
 	# Shutdown
 	elif reason == 1:
-		# Stop Poller
-		if autopoller is not None:
-			autopoller.stop()
-			autopoller = None
+		if sptest:
+			sptest.close()
+			sptest = None
 
-		if autotimer is not None:
-			# We re-read the config so we won't save wrong information
-			try:
-				autotimer.readXml()
-			except Exception:
-				# XXX: we should at least dump the error
-				pass
+import os
+from SeriesPlugin import SeriesPlugin
 
-			# Save xml
-			autotimer.writeXml()
-
-			# Remove AutoTimer
-			autotimer = None
-			autotimerseries = None
-
-# Webgui
-def sessionstart(reason, **kwargs):
-	if reason == 0 and "session" in kwargs:
-		from WebChilds.UploadResource import UploadResource
-		if hasattr(static.File, 'render_GET'):
-			class File(static.File):
-				def render_POST(self, request):
-					return self.render_GET(request)
-		else:
-			File = static.File
-
-		session = kwargs["session"]
-		root = File(util.sibpath(__file__, "web-data"))
-		root.putChild("web", ScreenPage(session, util.sibpath(__file__, "web"), True) )
-		root.putChild('tmp', File('/tmp'))
-		root.putChild("uploadfile", UploadResource(session))
-		addExternalChild( ("autotimereditor", root, "AutoTimer", "1", True) )
-
-# Mainfunction
-def main(session, **kwargs):
-	global autotimer
-	global autopoller
-	global autotimerseries
-
-	if autotimerseries is None:
-		from AutoTimerSeries import AutoTimerSeries
-		autotimerseries = AutoTimerSeries()
-
-	if autotimer is None:
-		from AutoTimer import AutoTimer
-		autotimer = AutoTimer()
-
-	try:
-		autotimer.readXml()
-	except SyntaxError as se:
-		session.open(
-			MessageBox,
-			_("Your config file is not well-formed:\n%s") % (str(se)),
-			type = MessageBox.TYPE_ERROR,
-			timeout = 10
-		)
-		return
-
-	# Do not run in background while editing, this might screw things up
-	if autopoller is not None:
-		autopoller.pause()
-
-	from AutoTimerOverview import AutoTimerOverview
-	session.openWithCallback(
-		editCallback,
-		AutoTimerOverview,
-		autotimer
-	)
-
-def editCallback(session):
-	global autotimer
-	global autopoller
-
-	# XXX: canceling of GUI (Overview) won't affect config values which might have been changed - is this intended?
-
-	# Don't parse EPG if editing was canceled
-	if session is not None:
-		# Poll EPGCache
-		ret = autotimer.parseEPG()
-		session.open(
-			MessageBox,
-			_("Found a total of %d matching Events.\n%d Timer were added and\n%d modified,\n%d conflicts encountered,\n%d similars added.") % (ret[0], ret[1], ret[2], len(ret[4]), len(ret[5])),
-			type = MessageBox.TYPE_INFO,
-			timeout = 10
-		)
-
-		# Save xml
-		autotimer.writeXml()
-
-	# Start autopoller again if wanted
-	if config.plugins.autotimer.autopoll.value:
-		if autopoller is None:
-			from AutoPoller import AutoPoller
-			autopoller = AutoPoller()
-		autopoller.start(initial = False)
-	# Remove instance if not running in background
-	else:
-		autopoller = None
-		autotimer = None
-
-# Movielist
-def movielist(session, service, **kwargs):
-	from AutoTimerEditor import addAutotimerFromService
-	addAutotimerFromService(session, service)
-
-# Event Info
-def eventinfo(session, servicelist, **kwargs):
-	from AutoTimerEditor import AutoTimerEPGSelection
-	ref = session.nav.getCurrentlyPlayingServiceReference()
-	session.open(AutoTimerEPGSelection, ref)
-
-# XXX: we need this helper function to identify the descriptor
-# Extensions menu
-def extensionsmenu(session, **kwargs):
-	main(session, **kwargs)
-
-def housekeepingExtensionsmenu(el):
-	if el.value:
-		plugins.addPlugin(extDescriptor)
-	else:
-		try:
-			plugins.removePlugin(extDescriptor)
-		except ValueError as ve:
-			print("[AutoTimer] housekeepingExtensionsmenu got confused, tried to remove non-existant plugin entry... ignoring.")
-
-config.plugins.autotimer.show_in_extensionsmenu.addNotifier(housekeepingExtensionsmenu, initial_call = False, immediate_feedback = True)
-extDescriptor = PluginDescriptor(name="AutoTimer", description = _("Edit Timers and scan for new Events"), where = PluginDescriptor.WHERE_EXTENSIONSMENU, fnc = extensionsmenu, needsRestart = False)
-
-def Plugins(**kwargs):
-	l = [
-		PluginDescriptor(where=PluginDescriptor.WHERE_AUTOSTART, fnc=autostart, needsRestart=False),
-		PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=sessionstart, needsRestart=False),
-		# TRANSLATORS: description of AutoTimer in PluginBrowser
-		PluginDescriptor(name="AutoTimer", description = _("Edit Timers and scan for new Events"), where = PluginDescriptor.WHERE_PLUGINMENU, icon = "plugin.png", fnc = main, needsRestart = False),
-		# TRANSLATORS: AutoTimer title in MovieList (automatically opens importer, I consider this no further interaction)
-		PluginDescriptor(name="AutoTimer", description= _("add AutoTimer"), where = PluginDescriptor.WHERE_MOVIELIST, fnc = movielist, needsRestart = False),
-		# TRANSLATORS: AutoTimer title in EventInfo dialog (requires the user to select an event to base the AutoTimer on)
-		PluginDescriptor(name=_("add AutoTimer..."), where = PluginDescriptor.WHERE_EVENTINFO, fnc = eventinfo, needsRestart = False),
-	]
-	if config.plugins.autotimer.show_in_extensionsmenu.value:
-		l.append(extDescriptor)
-	return l
+class SPTest(SeriesPlugin):
+	def __init__(self, session):
+		self.session = session
+		SeriesPlugin.__init__(self)
+		self.appendEvents()
+	
+	def close(self):
+		self.removeEvents()
+	
 
