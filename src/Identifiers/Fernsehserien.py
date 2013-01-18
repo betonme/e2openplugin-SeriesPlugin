@@ -30,6 +30,18 @@ EPISODEIDURL = 'http://www.fernsehserien.de%s/sendetermine/%d'
 
 max_time_drift = int(config.plugins.seriesplugin.max_time_drift.value) * 60
 
+Headers = {
+		'User-Agent' : 'Mozilla/5.0',
+		'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+		'Accept-Charset':'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+		'Accept-Encoding':'',
+		'Accept-Language':'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4',
+		'Cache-Control':'no-cache',
+		'Connection':'keep-alive',
+		'Host':'www.fernsehserien.de',
+		'Pragma':'no-cache'
+	}
+
 
 class Fernsehserien(IdentifierBase):
 	def __init__(self):
@@ -141,10 +153,9 @@ class Fernsehserien(IdentifierBase):
 		url = EPISODEIDURL % (self.id, self.page)
 		
 		self.getPage(
-		#IdentifierBase.getPage(		self,
-									self.getEpisodeFromPage,
-									url
-								)
+						self.getEpisodeFromPage,
+						url
+					)
 
 	def getEpisodeFromPage(self, data=None):
 		splog("Fernsehserien getEpisodeFromPage")
@@ -293,11 +304,8 @@ class Fernsehserien(IdentifierBase):
 		self.getNextSeries()
 		return data
 
-	def getPage1(self, callback, url, expires=None):
+	def getPage(self, callback, url):
 		# PHP Proxy with 3 day Caching
 		# to minimize server requests
-		url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-		if expires:
-			IdentifierBase.getPage(self, callback, url, expires)
-		else:
-			IdentifierBase.getPage(self, callback, url)
+		#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
+		IdentifierBase.getPage(self, callback, url, Headers)

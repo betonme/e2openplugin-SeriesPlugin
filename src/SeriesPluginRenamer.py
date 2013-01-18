@@ -75,7 +75,8 @@ def rename(service, name, short, data):
 			renameFile(service, name, data)
 		return True
 	except:
-		pass
+		#pass
+		raise
 	return False
 
 # Adapted from MovieRetitle setTitleDescr

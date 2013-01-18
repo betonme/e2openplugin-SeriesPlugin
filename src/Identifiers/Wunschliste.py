@@ -205,15 +205,13 @@ class Wunschliste(IdentifierBase):
 			
 			if self.when:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
-				IdentifierBase.getPage(
-								self,
+				self.getPage(
 								self.getEpisodeFutureCallback,
 								url
 							)
 			else:
 				url = EPISODEIDURLPRINT + urlencode({ 's' : id })
-				IdentifierBase.getPage(
-								self,
+				self.getPage(
 								self.getEpisodeTodayCallback,
 								url
 							)
@@ -389,11 +387,8 @@ class Wunschliste(IdentifierBase):
 		self.getNextSeries()
 		return data
 
-	def getPage(self, callback, url, expires=None):
+	def getPage(self, callback, url):
 		# PHP Proxy with 3 day Caching
 		# to minimize server requests
-		url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-		if expires:
-			IdentifierBase.getPage(self, callback, url, expires)
-		else:
-			IdentifierBase.getPage(self, callback, url)
+		#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
+		IdentifierBase.getPage(self, callback, url)
