@@ -24,7 +24,7 @@ from SeriesPluginConfiguration import SeriesPluginConfiguration
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")

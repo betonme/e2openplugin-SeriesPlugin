@@ -40,6 +40,7 @@ from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 def rename(ref, name, short, data):
 	# Episode data available
 	print data
+	
 	name = refactorTitle(name, data)
 	print name
 	short = refactorDescription(short, data)
@@ -49,8 +50,10 @@ def rename(ref, name, short, data):
 	try:
 		# Before renaming change content
 		#TODO renameEIT
-		renameMeta(ref, name, short)
-		renameFile(ref, name)
+		if config.plugins.seriesplugin.pattern_description.value:
+			renameMeta(ref, name, short)
+		if config.plugins.seriesplugin.pattern_title.value:
+			renameFile(ref, name)
 		return True
 	except:
 		pass

@@ -87,6 +87,8 @@ class SeriesPluginInfoScreen(Screen):
 		self["key_yellow"] = Button("")
 		self["key_blue"] = Button("")
 		
+		self.redButtonFunction = None
+		
 		#TODO HelpableActionMap
 		self["actions"] = ActionMap(["OkCancelActions", "EventViewActions", "DirectionActions", "ColorActions"],
 		{
@@ -100,7 +102,6 @@ class SeriesPluginInfoScreen(Screen):
 			#"pageDown":  self.pageDown,
 			#"prevEvent": self.prevEvent,
 			#"nextEvent": self.nextEvent,
-			#"timerAdd":  self.timerAdd,
 			#"openSimilarList": self.openSimilarList
 		})
 		
@@ -110,16 +111,17 @@ class SeriesPluginInfoScreen(Screen):
 		self.seriesPlugin = getInstance()
 		
 		print service
-		ref = None
+		ref, channel = None, None
 		if isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
 			print "SeriesPluginInfoScreen ChannelSelectionBase", str(ref)
 		elif isinstance(service, eServiceReference):
-			ref = service
+			ref = eServiceReference(str(service))
 			#ref = eServiceReference(str(service))
 			print "SeriesPluginInfoScreen eServiceReference", str(ref)
 		elif isinstance(service, ServiceReference):
 			ref = service.ref
+			#TODO channel = service.getServiceName()
 			print "SeriesPluginInfoScreen ServiceReference", str(ref)
 		
 		if ref is None:
@@ -183,7 +185,7 @@ class SeriesPluginInfoScreen(Screen):
 			short = event.getShortDescription() or ""
 			ext = event.getExtendedDescription() or ""
 			if not channel:
-				channel = ServiceReference(ref).getServiceName() or ""
+				channel = ServiceReference(ref.toString()).getServiceName() or ""
 		
 		if not begin:
 			info = self.serviceHandler.info(ref)
@@ -297,34 +299,36 @@ class SeriesPluginInfoScreen(Screen):
 			if path and os.path.exists(path):
 				# Record file exists
 				self["key_red"].setText(_("Rename"))
+				self.redButtonFunction = self.rename
 			elif self.end and self.end > time():
 				# Event exists
 				self["key_red"].setText(_("Record"))
+				self.redButtonFunction = self.record
 			else:
 				self["key_red"].setText(_(""))
+				self.redButtonFunction = None
 		else:
 			self["key_red"].setText(_(""))
+			self.redButtonFunction = None
 
 	def redButton(self):
+		if callable(self.redButtonFunction):
+			self.redButtonFunction()
+
+
+	def rename(self):
 		ref = self.service
 		if ref and self.data:
 			path = ref.getPath()
 			if path and os.path.exists(path):
 				from SeriesPluginRenamer import rename
-				rename(self.service, self.name, self.short, self.data)
-			elif self.end and self.end > time():
-				# Event exists
-				self.timerAdd()
+				if rename(ref, self.name, self.short, self.data):
+					self.session.open(MessageBox, _("Successfully renamed") )
+				else:
+					self.session.open(MessageBox, _("Renaming failed") )
 
-
-	# Adapted from EventView
-	def removeTimer(self, timer):
-		timer.afterEvent = AFTEREVENT.NONE
-		self.session.nav.RecordTimer.removeEntry(timer)
-		self["key_green"].setText(_("Add timer"))
-		#self.key_green_choice = self.ADD_TIMER
-	
-	def timerAdd(self):
+	# Adapted from EventView timerAdd
+	def record(self):
 		if self.event and self.service:
 			event = self.event
 			ref = self.service

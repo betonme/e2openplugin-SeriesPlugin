@@ -2,6 +2,7 @@
 
 import re
 import os, sys, traceback
+from time import time
 from datetime import datetime
 
 from Queue import Queue
@@ -48,10 +49,11 @@ def getInstance():
 	return instance
 
 def resetInstance():
+#Rename to closeInstance
 	global instance
 	if instance is not None:
-		#TODO clear caches?
-		instance.save()
+		#Maybe clear caches?
+		instance.close()
 		instance = None
 
 
@@ -72,21 +74,38 @@ def refactorDescription(org, data):
 		return org
 
 
-#glock = Lock()
+class QueueWithTimeOut(Queue):
+	def __init__(self):
+		Queue.__init__(self)
+	def join_with_timeout(self, timeout):
+		self.all_tasks_done.acquire()
+		try:
+			endtime = time() + timeout
+			while self.unfinished_tasks:
+				remaining = endtime - time()
+				if remaining <= 0.0:
+					raise NotFinished
+				self.all_tasks_done.wait(remaining)
+		finally:
+			self.all_tasks_done.release()
+
+
+##glock = Lock()
 
 class SeriesPluginWorkerThread(Thread):
+	#lock = Lock()
+	
 	def __init__(self, queue):
 		Thread.__init__(self)
 		self.queue = queue
 		self.item = None
 		self.lock = Lock()
-		#SeriesPluginWorkerThread.lock = Lock()
 	
 	def run(self):
 		while True:
 			self.lock.acquire()
 			#SeriesPluginWorkerThread.lock.acquire()
-			#glock.acquire()
+			##glock.acquire()
 			#try:
 			self.item = self.queue.get()
 			if self.item == None:
@@ -94,12 +113,12 @@ class SeriesPluginWorkerThread(Thread):
 				print 'SeriesPluginWorkerThread has been finished'
 				self.lock.release()
 				#SeriesPluginWorkerThread.lock.release()
-				#glock.release()
+				##glock.release()
 				return
-		
+			
 			print 'SeriesPluginWorkerThread is processing'
 			service, callback, name, begin, end, channel = self.item
-		
+			
 			# do processing stuff here
 			try:
 				service.getEpisode(
@@ -128,7 +147,7 @@ class SeriesPluginWorkerThread(Thread):
 		self.queue.task_done()
 		self.lock.release()
 		#SeriesPluginWorkerThread.lock.release()
-		#glock.release()
+		##glock.release()
 		
 		config.plugins.seriesplugin.lookup_counter.value += 1
 		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
@@ -148,7 +167,7 @@ class SeriesPlugin(Modules):
 	def __init__(self):
 		print "SeriesPlugin"
 		Modules.__init__(self)
-		self.queue = Queue()
+		self.queue = QueueWithTimeOut() #Queue()
 		
 		self.worker = SeriesPluginWorkerThread(self.queue)
 		self.worker.daemon = True
@@ -198,8 +217,13 @@ class SeriesPlugin(Modules):
 			self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
 			print self.guide
 
-	def save(self):
-		config.plugins.seriesplugin.lookup_counter.save()
+	def close(self):
+		if self.queue and not self.queue.empty():
+			# Wait for the worker thread (max 5 minutes)
+			#self.queue.join()
+			self.queue.join_with_timeout(5*60)
+		if config.plugins.seriesplugin.lookup_counter.isChanged():
+			config.plugins.seriesplugin.lookup_counter.save()
 
 
 	################################################
