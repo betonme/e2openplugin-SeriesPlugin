@@ -103,6 +103,20 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 	def cancel(self):
 		pass
 
+	@staticmethod
+	def compareChannels(local, remote):
+		if local == remote:
+			# The channels are equal
+			return True
+		elif local == "":
+			# The local channel is empty
+			return True
+		elif "unknown" in local:
+			# The local channel is unknown
+			return True
+		
+		return False
+
 
 	################################################
 	# Service prototypes

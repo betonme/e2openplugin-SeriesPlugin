@@ -33,14 +33,12 @@ from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 #######################################################
 # Label timer
 class SeriesPluginTimer(object):
-	def __init__(self, timer):
+	def __init__(self, timer, name, begin, end):
 		self.timer = timer
 		self.seriesPlugin = getInstance()
-		self.labelTimer(timer)
-
-	def labelTimer(self, timer):
+		
 		print "SeriesPluginTimer label"
-		print timer.name
+		print name, timer.name
 		
 		if timer.service_ref:
 			channel = timer.service_ref.getServiceName()
@@ -48,7 +46,7 @@ class SeriesPluginTimer(object):
 			
 			self.seriesPlugin.getEpisode(
 					self.timerCallback,
-					timer.name, timer.begin, timer.end, channel, future=True
+					name, begin, end, channel, future=True
 				)
 		else:
 			print "SeriesPluginTimer: No channel specified"

@@ -1,5 +1,6 @@
 # by betonme @2012
 
+import re
 import os, sys, traceback
 from datetime import datetime
 
@@ -36,6 +37,8 @@ GUIDE_PATH      = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/Seri
 # Globals
 instance = None
 
+ComiledRegexpNonDecimal = re.compile(r'[^\d.]+')
+
 
 def getInstance():
 	global instance
@@ -55,19 +58,21 @@ def resetInstance():
 def refactorTitle(org, data):
 	season, episode, title = data
 	if config.plugins.seriesplugin.pattern_title.value:
-		return config.plugins.seriesplugin.pattern_title.value.format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+		return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
 	else:
 		return org
 
 def refactorDescription(org, data):
 	season, episode, title = data
 	if config.plugins.seriesplugin.pattern_description.value:
-		description = config.plugins.seriesplugin.pattern_description.value.format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
+		description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
 		description = description.replace("\n", " ")
 		return description
 	else:
 		return org
 
+
+#glock = Lock()
 
 class SeriesPluginWorkerThread(Thread):
 	def __init__(self, queue):
@@ -75,28 +80,55 @@ class SeriesPluginWorkerThread(Thread):
 		self.queue = queue
 		self.item = None
 		self.lock = Lock()
+		#SeriesPluginWorkerThread.lock = Lock()
 	
 	def run(self):
 		while True:
 			self.lock.acquire()
+			#SeriesPluginWorkerThread.lock.acquire()
+			#glock.acquire()
+			#try:
 			self.item = self.queue.get()
+			if self.item == None:
+			#except queue.Empty:
+				print 'SeriesPluginWorkerThread has been finished'
+				self.lock.release()
+				#SeriesPluginWorkerThread.lock.release()
+				#glock.release()
+				return
+		
 			print 'SeriesPluginWorkerThread is processing'
 			service, callback, name, begin, end, channel = self.item
-			
+		
 			# do processing stuff here
-			service.getEpisode(
-				self.workerCallback,
-				name, begin, end, channel
-			)
+			try:
+				service.getEpisode(
+					self.workerCallback,
+					name, begin, end, channel
+				)
+			except Exception, e:
+				print "SeriesPluginWorkerThread Exception:", str(e)
+				# Exception finish job with error
+				self.workerCallback()
 	
 	def workerCallback(self, data=None):
 		print 'SeriesPluginWorkerThread callback'
 		service, callback, name, begin, end, channel = self.item
-		callback(data)
+		
+		if data:
+			season, episode, title = data
+			season = int(ComiledRegexpNonDecimal.sub('', season))
+			episode = int(ComiledRegexpNonDecimal.sub('', episode))
+			title = title.strip()
+			callback( (season, episode, title) )
+		else:
+			callback()
+		
 		# kill the thread
 		self.queue.task_done()
-		#self.run()
 		self.lock.release()
+		#SeriesPluginWorkerThread.lock.release()
+		#glock.release()
 		
 		config.plugins.seriesplugin.lookup_counter.value += 1
 		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
@@ -117,7 +149,7 @@ class SeriesPlugin(Modules):
 		print "SeriesPlugin"
 		Modules.__init__(self)
 		self.queue = Queue()
-		#self.worker = Thread(target=fetchEpisodeInformation, args=(self.queue,))
+		
 		self.worker = SeriesPluginWorkerThread(self.queue)
 		self.worker.daemon = True
 		self.worker.start()
@@ -176,8 +208,8 @@ class SeriesPlugin(Modules):
 		#available = False
 		
 		name = unifyName(name)
-		begin = datetime.fromtimestamp(begin + config.recording.margin_before.value * 60)
-		end = datetime.fromtimestamp(end + config.recording.margin_after.value * 60)
+		begin = datetime.fromtimestamp(begin)
+		end = datetime.fromtimestamp(end)
 		channel = unifyChannel(channel)
 		
 		#MAYBE for all valid service in services:
@@ -199,12 +231,12 @@ class SeriesPlugin(Modules):
 			#	 ( elapsed and service.knowsElapsed() ):
 			try:
 				#available = True
-				#service.getEpisode(
-				#	boundFunction(getEpisodeCallback, callback),
-				#	name, begin, end, channel
-				#)
 				
 				self.queue.put( (service, callback, name, begin, end, channel) )
+				
+				#worker = SeriesPluginWorkerThread(self.queue)
+				#worker.start()
+				
 			except Exception, e:
 				print _("SeriesPlugin getEpisode exception ") + str(e)
 				exc_type, exc_value, exc_traceback = sys.exc_info()

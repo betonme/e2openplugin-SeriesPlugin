@@ -21,10 +21,11 @@ import re
 
 # for localized messages
 from . import _
+from time import time
 from datetime import datetime
 
 # Config
-from Components.config import *
+from Components.config import config
 
 from Screens.Screen import Screen
 from Screens.Setup import SetupSummary
@@ -38,11 +39,11 @@ from Components.Label import Label
 from Components.ScrollLabel import ScrollLabel
 from Components.Pixmap import Pixmap
 
-from enigma import eEPGCache, eServiceReference, eServiceCenter, iServiceInformation, ePicLoad
+from enigma import eEPGCache, eServiceReference, eServiceCenter, iServiceInformation, ePicLoad, eServiceEvent
 from ServiceReference import ServiceReference
 
 from RecordTimer import RecordTimerEntry, parseEvent, AFTEREVENT
-from timer import TimerEntry
+from Screens.TimerEntry import TimerEntry
 from Components.UsageConfig import preferredTimerPath
 from Screens.TimerEdit import TimerSanityConflict
 
@@ -65,7 +66,7 @@ class SeriesPluginInfoScreen(Screen):
 	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/skin.xml" )
 	skin = open(skinfile).read()
 	
-	def __init__(self, session, service):
+	def __init__(self, session, service, event=None):
 		Screen.__init__(self, session)
 		self.session = session
 		self.skinName = [ "SeriesPluginInfoScreen" ]
@@ -106,27 +107,34 @@ class SeriesPluginInfoScreen(Screen):
 		self.epg = eEPGCache.getInstance()
 		self.serviceHandler = eServiceCenter.getInstance()
 		
-		self.service = service
-		
 		self.seriesPlugin = getInstance()
 		
 		print service
+		ref = None
 		if isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
-			print "SeriesPluginInfoScreen ChannelSelectionBase " + str(ref)
+			print "SeriesPluginInfoScreen ChannelSelectionBase", str(ref)
 		elif isinstance(service, eServiceReference):
 			ref = service
 			#ref = eServiceReference(str(service))
-			print "SeriesPluginInfoScreen eServiceReference " + str(ref)
+			print "SeriesPluginInfoScreen eServiceReference", str(ref)
 		elif isinstance(service, ServiceReference):
 			ref = service.ref
-			print "SeriesPluginInfoScreen ServiceReference " + str(ref)
-		else:
+			print "SeriesPluginInfoScreen ServiceReference", str(ref)
+		
+		if ref is None:
 			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
-			print "SeriesPluginInfoScreen else " + str(ref)
-		self.ref = ref
+			print "SeriesPluginInfoScreen Fallback", str(ref)
+		
+		if isinstance(event, eServiceEvent):
+			self.event = event
+		else:
+			self.event = None
+		
+		self.service = ref
 		self.name = ""
 		self.short = ""
+		self.end = None
 		self.data = None
 		
 		self.onLayoutFinish.append( self.layoutFinished )
@@ -137,31 +145,48 @@ class SeriesPluginInfoScreen(Screen):
 		self.getEpisode()
 
 	def getEpisode(self):
-		ref = self.ref
+		name, short = "", ""
+		ref = self.service
+		begin, end = None, None
+		short, ext, channel = "", "", ""
 		
-		event = ref and ref.valid() and self.epg.lookupEventTime(ref, -1)
+		if self.event:
+			# Get information from event
+			today = True #OR future
+			elapsed = False
+		
+		elif ref:
+			self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
+			if self.event:
+				# Get information from epg
+				today = True
+				elapsed = False
+				
+			else:
+				# Get information from record meta files
+				info = self.serviceHandler.info(ref)
+				name = ref.getName() or info.getName(ref) or ""
+				self.event = info.getEvent(ref)
+				rec_ref_str = info.getInfoString(ref, iServiceInformation.sServiceref)
+				channel = ServiceReference(rec_ref_str).getServiceName() or ""
+				
+				today = False
+				elapsed = True
+		
+		event = self.event
 		if event:
-			# Get information from epg
 			name = event.getEventName() or ""
 			begin = event.getBeginTime() or 0
 			duration = event.getDuration() or 0
 			end = begin + duration or 0
+			# We got the exact margins, no need to adapt it
 			short = event.getShortDescription() or ""
 			ext = event.getExtendedDescription() or ""
-			channel = ServiceReference(ref).getServiceName() or ""
-			today = True
-			elapsed = False
-			
-			self.event = event
-			self.currentService = ref
-		#	if (not ref.flags & eServiceReference.isGroup) and ref.getPath() and ref.getPath()[0] == '/':
-		#		self["key_green"].setText(_("Remove timer"))
-		#	else:
-		#		self["key_green"].setText(_("Add timer"))
-		else:
-			# Get information from record meta files
+			if not channel:
+				channel = ServiceReference(ref).getServiceName() or ""
+		
+		if not begin:
 			info = self.serviceHandler.info(ref)
-			name = ref.getName() or info.getName(ref) or ""
 			begin = info and info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
 			if begin != -1:
 				duration = info.getLength(ref) or 0
@@ -170,22 +195,14 @@ class SeriesPluginInfoScreen(Screen):
 				end = os.path.getmtime(ref.getPath())
 				duration = info.getLength(ref) or 0
 				begin = end - duration or 0
-				#MAYBE we could also try to parse the filename
-			
-			event = info.getEvent(ref)
-			short = event and event.getShortDescription() or ""
-			ext = event and event.getExtendedDescription() or ""
-			rec_ref_str = info.getInfoString(ref, iServiceInformation.sServiceref)
-			channel = ServiceReference(rec_ref_str).getServiceName() or _("unknown service")
-			
-			today = False
-			elapsed = True
-			
-			self.event = None
-			self.currentService = None
-		print channel
+			#MAYBE we could also try to parse the filename
+			# We don't know the exact margins, we will assume the E2 default margins
+			begin = begin + (config.recording.margin_before.value * 60)
+			end = end - (config.recording.margin_after.value * 60)
+		
 		self.name = name
 		self.short = short
+		self.end = end
 		
 		# Adapted from EventView
 		self["event_title"].setText( name )
@@ -274,17 +291,30 @@ class SeriesPluginInfoScreen(Screen):
 
 
 	def setColorButtons(self):
-		if self.ref and self.data:
-			path = self.ref.getPath()
+		ref = self.service
+		if ref and self.data:
+			path = ref.getPath()
 			if path and os.path.exists(path):
+				# Record file exists
 				self["key_red"].setText(_("Rename"))
+			elif self.end and self.end > time():
+				# Event exists
+				self["key_red"].setText(_("Record"))
+			else:
+				self["key_red"].setText(_(""))
+		else:
+			self["key_red"].setText(_(""))
 
 	def redButton(self):
-		if self.ref:
-			path = self.ref.getPath()
+		ref = self.service
+		if ref and self.data:
+			path = ref.getPath()
 			if path and os.path.exists(path):
 				from SeriesPluginRenamer import rename
-				rename(self.ref, self.name, self.short, self.data)
+				rename(self.service, self.name, self.short, self.data)
+			elif self.end and self.end > time():
+				# Event exists
+				self.timerAdd()
 
 
 	# Adapted from EventView
@@ -295,20 +325,20 @@ class SeriesPluginInfoScreen(Screen):
 		#self.key_green_choice = self.ADD_TIMER
 	
 	def timerAdd(self):
-		if self.event and self.currentService:
+		if self.event and self.service:
 			event = self.event
-			serviceref = self.currentService
+			ref = self.service
 			if event is None:
 				return
 			eventid = event.getEventId()
-			refstr = serviceref.ref.toString()
+			refstr = ref.toString()
 			for timer in self.session.nav.RecordTimer.timer_list:
 				if timer.eit == eventid and timer.service_ref.ref.toString() == refstr:
 					cb_func = lambda ret : not ret or self.removeTimer(timer)
 					self.session.openWithCallback(cb_func, MessageBox, _("Do you really want to delete %s?") % event.getEventName())
 					break
 			else:
-				newEntry = RecordTimerEntry(self.currentService, checkOldTimers = True, dirname = preferredTimerPath(), *parseEvent(self.event))
+				newEntry = RecordTimerEntry(ServiceReference(ref), checkOldTimers = True, dirname = preferredTimerPath(), *parseEvent(self.event))
 				self.session.openWithCallback(self.finishedAdd, TimerEntry, newEntry)
 
 	def finishedAdd(self, answer):
@@ -323,10 +353,10 @@ class SeriesPluginInfoScreen(Screen):
 				simulTimerList = self.session.nav.RecordTimer.record(entry)
 				if simulTimerList is not None:
 					self.session.openWithCallback(self.finishSanityCorrection, TimerSanityConflict, simulTimerList)
-			self["key_green"].setText(_("Remove timer"))
+			#self["key_green"].setText(_("Remove timer"))
 			#self.key_green_choice = self.REMOVE_TIMER
 		else:
-			self["key_green"].setText(_("Add timer"))
+			#self["key_green"].setText(_("Add timer"))
 			#self.key_green_choice = self.ADD_TIMER
 			print "Timeredit aborted"
 

@@ -23,7 +23,7 @@ import re
 from . import _
 
 # Config
-from Components.config import *
+from Components.config import config
 
 from Screens.MessageBox import MessageBox
 from Tools.Notifications import AddPopup
@@ -41,14 +41,15 @@ def rename(ref, name, short, data):
 	# Episode data available
 	print data
 	name = refactorTitle(name, data)
-	short = refactorDescription(short, data)
 	print name
+	short = refactorDescription(short, data)
 	print short
 	
 	#MAYBE Check if it is already renamed?
 	try:
 		# Before renaming change content
-		renameSeries(ref, name, short)
+		#TODO renameEIT
+		renameMeta(ref, name, short)
 		renameFile(ref, name)
 		return True
 	except:
@@ -56,7 +57,7 @@ def rename(ref, name, short, data):
 	return False
 
 # Adapted from MovieRetitle setTitleDescr
-def renameSeries(service, title, descr):
+def renameMeta(service, title, descr):
 	try:
 		#TODO Use MetaSupport EitSupport classes from EMC ?
 		if service.getPath().endswith(".ts"):
@@ -115,56 +116,64 @@ class SeriesPluginService(object):
 		self.serviceHandler = eServiceCenter.getInstance()
 		
 		if isinstance(service, eServiceReference):
-			ref = service
+			self.service = service
 		elif isinstance(service, ServiceReference):
-			ref = service.ref
+			self.service = service.ref
 		else:
 			print _("SeriesPluginRenamer: Wrong instance")
 			return self.callback(service)
-		self.ref = ref
 		
-		if not os.path.exists( ref.getPath() ):
-			print _("SeriesPluginRenamer: File not exists: ") + ref.getPath()
+		if not os.path.exists( service.getPath() ):
+			print _("SeriesPluginRenamer: File not exists: ") + service.getPath()
 			return self.callback(service)
 		
-		info = self.serviceHandler.info(ref)
+		info = self.serviceHandler.info(service)
 		if not info:
-			print _("SeriesPluginRenamer: No info available: ") + ref.getPath()
+			print _("SeriesPluginRenamer: No info available: ") + service.getPath()
 			return self.callback(service)
 		
-		self.name = name = ref.getName() or info.getName(ref) or ""
-		print "name", name
+		self.name = service.getName() or info.getName(service) or ""
+		print "name", self.name
 		
-		begin = info.getInfo(ref, iServiceInformation.sTimeCreate) or -1
-		if begin != -1:
-			end = begin + (info.getLength(ref) or 0)
-		else:
-			end = os.path.getmtime(ref.getPath())
-			begin = end - (info.getLength(ref) or 0)
+		self.short = ""
+		begin = None
+		
+		event = info.getEvent(service)
+		if event:
+			self.short = event.getShortDescription()
+			begin = event.getBeginTime()
+			duration = event.getDuration() or 0
+			end = begin + duration or 0
+			# We got the exact start times, no need for margin handling
+		
+		if not begin:
+			begin = info.getInfo(service, iServiceInformation.sTimeCreate) or -1
+			if begin != -1:
+				end = begin + (info.getLength(service) or 0)
+			else:
+				end = os.path.getmtime(service.getPath())
+				begin = end - (info.getLength(service) or 0)
 			#MAYBE we could also try to parse the filename
-		self.begin = begin
-		#self.end
+			# We don't know the exact margins, we will assume the E2 default margins
+			begin + (config.recording.margin_before.value * 60)
+			end - (config.recording.margin_after.value * 60)
 		
 		rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-		self.channel = channel = ServiceReference(rec_ref_str).getServiceName()
-		print channel
-		
-		event = info.getEvent(ref)
-		self.short = short = event and event.getShortDescription() or ""
+		channel = ServiceReference(rec_ref_str).getServiceName()
 		
 		self.seriesPlugin.getEpisode(
 				self.serviceCallback, 
-				name, begin, end, channel, elapsed=True
+				self.name, begin, end, channel, elapsed=True
 			)
 
 	def serviceCallback(self, data=None):
 		print "SeriesPluginTimer serviceCallback"
 		print data
 		
-		result = self.ref
+		result = self.service
 		
 		if data:
-			if rename(self.ref, self.name, self.short, data):
+			if rename(self.service, self.name, self.short, data):
 				# Rename was successfully
 				result = None
 		

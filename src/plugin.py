@@ -15,12 +15,16 @@ from Components.PluginComponent import plugins
 from Plugins.Plugin import PluginDescriptor
 
 # Plugin internal
+from SeriesPluginTimer import SeriesPluginTimer
+from SeriesPluginInfoScreen import SeriesPluginInfoScreen
+from SeriesPluginRenamer import SeriesPluginRenamer
+from SeriesPluginConfiguration import SeriesPluginConfiguration
 
 
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.4.2"
+VERSION = "0.5.0"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -38,10 +42,10 @@ scheme_fallback = [
 		("", ""),
 		("{org:s} S{season:02d}E{episode:02d}"            , "Org S01E01"),
 		("{org:s} S{season:02d}E{episode:02d} {title:s}"  , "Org S01E01 Title"),
-		("{title:s} {org:s}"                             , "Title Org"),
-		("S{season:02d}E{episode:02d} {title:s} {org:s}" , "S01E01 Title Org"),
-		("{title:s} S{season:02d}E{episode:02d} {org:s}" , "Title S01E01 Org"),
-		("{title:s} S{season:d}E{episode:d} {org:s}"     , "Title S1E1 Org"),
+		("{title:s} {org:s}"                              , "Title Org"),
+		("S{season:02d}E{episode:02d} {title:s} {org:s}"  , "S01E01 Title Org"),
+		("{title:s} S{season:02d}E{episode:02d} {org:s}"  , "Title S01E01 Org"),
+		("{title:s} S{season:d}E{episode:d} {org:s}"      , "Title S1E1 Org"),
 	]
 
 
@@ -59,7 +63,6 @@ def readPatternFile():
 		except Exception, e:
 			print "[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e)
 			obj = None
-			from plugin import scheme_fallback
 			patterns = scheme_fallback
 		finally:
 			if f is not None:
@@ -103,11 +106,11 @@ config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0
 
 
 #######################################################
-# Session start
-def sessionstart(reason, **kwargs):
+# Start
+def start(reason, **kwargs):
 	# Startup
 	if reason == 0:
-		# Start on demand if is requested
+		# Start on demand if it is requested
 		#from SeriesPlugin import getInstance
 		#getInstance()
 		pass
@@ -124,10 +127,11 @@ def setup(session, *args, **kwargs):
 	#session.open(SeriesPluginConfiguration)
 	try:
 		### For testing only
-		import SeriesPluginConfiguration
-		reload(SeriesPluginConfiguration)
+		#import SeriesPluginConfiguration
+		#reload(SeriesPluginConfiguration)
+		#session.open(SeriesPluginConfiguration.SeriesPluginConfiguration)
 		###
-		session.open(SeriesPluginConfiguration.SeriesPluginConfiguration)
+		session.open(SeriesPluginConfiguration)
 	except Exception, e:
 		print _("SeriesPlugin setup exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -141,12 +145,11 @@ def info(session, service=None, *args, **kwargs):
 	#SeriesPluginInfoScreen(session, ref)
 	try:
 		### For testing only
-		import SeriesPluginInfoScreen
-		reload(SeriesPluginInfoScreen)
+		#import SeriesPluginInfoScreen
+		#reload(SeriesPluginInfoScreen)
+		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
 		###
-		
-		#SeriesPluginInfoScreen.SeriesPluginInfoScreen(session, service)
-		session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
+		session.open(SeriesPluginInfoScreen, service)
 	except Exception, e:
 		print _("SeriesPlugin info exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -160,10 +163,11 @@ def extension(session, *args, **kwargs):
 	#SeriesPluginInfoScreen(session)
 	try:
 		### For testing only
-		import SeriesPluginInfoScreen
-		reload(SeriesPluginInfoScreen)
+		#import SeriesPluginInfoScreen
+		#reload(SeriesPluginInfoScreen)
+		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
 		###
-		SeriesPluginInfoScreen.SeriesPluginInfoScreen(session)
+		session.open(SeriesPluginInfoScreen, service)
 	except Exception, e:
 		print _("SeriesPlugin extension exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -174,21 +178,18 @@ def extension(session, *args, **kwargs):
 # Movielist menu rename
 def movielist_rename(session, service, services=None, *args, **kwargs):
 	try:
-		### For testing only
-		import SeriesPluginRenamer
-		reload(SeriesPluginRenamer)
-		###
-		
 		if services:
 			if not isinstance(services, list):
 				services = [services]	
 		else:
 			services = [service]
 		
-		SeriesPluginRenamer.SeriesPluginRenamer(session, services)
-		
-		#from SeriesPluginRenamer import SeriesPluginRenamer
-		#SeriesPluginRenamer(session, services)
+		### For testing only
+		#import SeriesPluginRenamer
+		#reload(SeriesPluginRenamer)
+		#SeriesPluginRenamer.SeriesPluginRenamer(session, services)
+		###
+		SeriesPluginRenamer(session, services)
 	except Exception, e:
 		print _("SeriesPlugin renamer exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -202,10 +203,11 @@ def movielist_info(session, service, services=None, *args, **kwargs):
 	#SeriesPluginInfoScreen(session, service, services)
 	try:
 		### For testing only
-		import SeriesPluginInfoScreen
-		reload(SeriesPluginInfoScreen)
+		#import SeriesPluginInfoScreen
+		#reload(SeriesPluginInfoScreen)
+		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
 		###
-		session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
+		session.open(SeriesPluginInfoScreen, service)
 	except Exception, e:
 		print _("SeriesPlugin extension exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -213,17 +215,32 @@ def movielist_info(session, service, services=None, *args, **kwargs):
 
 
 #######################################################
-# Timer labeling
-def modifyTimer(timer, name, *args, **kwargs):
+# Timer renaming
+def renameTimer(timer, name, begin, end, *args, **kwargs):
 	if timer.name == name: # or len(timer.name) <= len(name):
 		#from SeriesPluginTimer import SeriesPluginTimer
 		#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
 		try:
 			### For testing only
-			import SeriesPluginTimer
-			reload(SeriesPluginTimer)
+			#import SeriesPluginTimer
+			#reload(SeriesPluginTimer)
+			#SeriesPluginTimer.SeriesPluginTimer(timer)
 			###
-			SeriesPluginTimer.SeriesPluginTimer(timer)
+			SeriesPluginTimer(timer, name, begin, end)
+		except Exception, e:
+			print _("SeriesPlugin label exception ") + str(e)
+			exc_type, exc_value, exc_traceback = sys.exc_info()
+			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+	else:
+		print "Skip timer because it is already modified", name
+
+# For compatibility reasons
+def modifyTimer(timer, name, *args, **kwargs):
+	if timer.name == name: # or len(timer.name) <= len(name):
+		#from SeriesPluginTimer import SeriesPluginTimer
+		#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
+		try:
+			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 		except Exception, e:
 			print _("SeriesPlugin label exception ") + str(e)
 			exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -236,11 +253,7 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 	#from SeriesPluginTimer import SeriesPluginTimer
 	#SeriesPluginTimer(timer, begin, end, *args, **kwargs)
 	try:
-		### For testing only
-		import SeriesPluginTimer
-		reload(SeriesPluginTimer)
-		###
-		SeriesPluginTimer.SeriesPluginTimer(timer)
+		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 	except Exception, e:
 		print _("SeriesPlugin label exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -265,9 +278,10 @@ def Plugins(**kwargs):
 		overwriteAutoTimer()
 		
 		descriptors.append( PluginDescriptor(
-																				where = PluginDescriptor.WHERE_SESSIONSTART,
+																				#where = PluginDescriptor.WHERE_SESSIONSTART,
+																				where = PluginDescriptor.WHERE_AUTOSTART,
 																				needsRestart = False,
-																				fnc = sessionstart) )
+																				fnc = start) )
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			descriptors.append( PluginDescriptor(

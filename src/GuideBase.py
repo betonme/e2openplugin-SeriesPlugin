@@ -24,45 +24,17 @@ class GuideBase(ModuleBase):
 		self.deferreds = []
 
 
-	################################################
-	# Twisted functions
-	def getCached(self, site, expires):
-		# Try to get the tuple (TIMESTAMP, FEED_STRUCT) from the dict if it has
-		# already been downloaded. Otherwise assign None to already_got
-		already_got = cache.get(site[0], None)
-		
-		# Ok guys, we got it cached, let's see what we will do
-		if already_got:
-			# Well, it's cached, but will it be recent enough?
-			elapsed_time = time() - already_got[0]
-			
-			# Woooohooo it is, elapsed_time is less than INTER_QUERY_TIME so I
-			# can get the page from the memory, recent enough
-			if elapsed_time < expires:
-				return already_got
-			
-			else:	
-				# Uhmmm... actually it's a bit old, I'm going to get it from the
-				# Net then, then I'll parse it and then I'll try to memoize it
-				# again
-				return None
-			
-		else: 
-			# Well... We hadn't it cached in, so we need to get it from the Net
-			# now, It's useless to check if it's recent enough, it's not there.
-			return None
-	
 	def getPage(self, callback, url, expires=INTER_QUERY_TIME):
-		print "SSBase getPage"
+		print "GSBase getPage"
 		print url
 		cached = self.getCached(url, expires)
 		
 		if cached:
-			print "SSBase cached"
+			print "GSBase cached"
 			self.base_callback(callback, url, cached)
 		
 		else:
-			print "SSBase not cached"
+			print "GSBase not cached"
 			#TODO think about throttling http://code.activestate.com/recipes/491261/
 			try:
 				deferred = twGetPage(url, timeout = 5)

@@ -31,9 +31,7 @@ class FSParser(HTMLParser):
 	def __init__(self):
 		HTMLParser.__init__(self)
 		# Hint: xpath from Firebug without tbody elements
-		#xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td[2]/table'	# With ads
-		#xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td/table'		# Without ads
-		xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td'			# Without ads
+		xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td'
 		self.xpath = [ e for e in xpath.split('/') if e ]
 		self.xpath.reverse()
 
@@ -151,10 +149,19 @@ class Fernsehserien(IdentifierBase):
 		else:
 			print "Today events"
 			self.when = 8 # Today events
-		
+		self.getSeries()
+
+	def getAlternativeSeries(self):
+		self.name = " ".join(self.name.split(" ")[:-1])
+		if self.name:
+			self.getSeries()
+		else:
+			self.callback()
+	
+	def getSeries(self):
 		self.getPage(
 						self.getSeriesCallback,
-						SERIESLISTURL + urlencode({ 'q' : name })
+						SERIESLISTURL + urlencode({ 'q' : self.name })
 					)
 
 	def getSeriesCallback(self, data=None):
@@ -176,8 +183,9 @@ class Fernsehserien(IdentifierBase):
 		
 		if data and isinstance(data, list):
 			self.ids = data[:]
-		
-		self.getNextSeries()
+			self.getNextSeries()
+		else:
+			self.getAlternativeSeries()
 		return data
 
 	def getNextSeries(self):
@@ -263,10 +271,15 @@ class Fernsehserien(IdentifierBase):
 				if ( first <= self.begin and self.begin <= last ):
 					#search in page for matching datetime
 					for tds in trs:
-						if tds and len(tds) == 6 :
+						if tds and len(tds) >= 6:
+							#'Sa', '19.05.12', '15:00-15:30', 'SuperRTL', '1.12a', '1.12b', 'Das Gef\xe4ngnis Cabana /', ' Das Bootel'] 
+							
+							# Complete line
 							# Di	27.03.12	08:50-09:15	ProSieben	3.01	Der Nordpol-Plan
 							# Mi	02.05.12	16:15-17:05	RTL II	105	Folge 105
-							xday, xdate, xbegin, xchannel, xseason, xtitle = tds
+							
+							# First part: day, date, times, channel
+							xday, xdate, xbegin, xchannel = tds[:4]
 							
 							xbegin, xend = xbegin.split("-")
 							xbegin = datetime.strptime( xdate+xbegin, "%d.%m.%y%H:%M" )
@@ -280,13 +293,18 @@ class Fernsehserien(IdentifierBase):
 							
 							if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 								xchannel = unifyChannel(xchannel)
-								print self.channel, xchannel
-								if self.channel == xchannel:
-									if xseason.find("."):
-										xseason, xepisode = xseason.split(".")
+								print self.channel, xchannel, len(self.channel), len(xchannel)
+								if self.compareChannels(self.channel, xchannel):
+									
+									# Second part: s1e1, s1e2, ..., title1, title2, ...
+									xepisode = tds[4]                      # Use only the first one
+									xtitle = "".join(tds[(len(tds)-4)/2+4:])  # Use all available titles
+									if xepisode.find(".") != -1:
+										xseason, xepisode = xepisode.split(".")
 									else:
-										xepisode = 1
-									self.callback( (int(xseason or 1), int(xepisode or 0), xtitle.decode('iso-8859-1').encode('utf8')) )
+										xseason = "1"
+										xepisode = "0"
+									self.callback( (xseason or "1", xepisode or "0", xtitle.decode('iso-8859-1').encode('utf8')) )
 									return data
 				
 				else:
