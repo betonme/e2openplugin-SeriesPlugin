@@ -109,33 +109,17 @@ ChannelReplaceDict = OrderedDict([
 	('\xc3\x96', 'oe'),
 	('\xc3\x9c', 'ue'),
 	('\xc3\x9f', 'ss'),
-#	(' ', ''),
-#	('.', ''),
-#	('-', ''),
-#	('_', ''),
-#	('/', ''),
-#	('\\', ''),
-#	('\'', ''),
-#	# Remove unicode start end of area
-#	('\xc2\x86', ''),
-#	('\xc2\x87', ''),
 ])
-ComiledRegexpChannel = re.compile('|'.join(ChannelReplaceDict))
+ComiledRegexpChannelUnify = re.compile('|'.join(ChannelReplaceDict))
+ComiledRegexpChannelFilter = re.compile('[\W_]+')
 def unifyChannel(text):
 	def translate(match):
 		m = match.group(0)
 		return ChannelReplaceDict.get(m, m)
-	#return ComiledRegexpChannel.sub(translate, text).lower()
-	#return ComiledRegexpChannel.sub(translate, text).lower().decode("utf-8").encode("latin1")
-	#return str(ComiledRegexpChannel.sub(translate, text).lower().decode("utf-8").encode("latin1"))
 	
-	#name = ComiledRegexpChannel.sub(translate, text).lower()
-	#return unicode(name,"utf-8").encode("ISO-8859-1")
-	
-	text = ComiledRegexpChannel.sub(translate, text)
+	text = ComiledRegexpChannelUnify.sub(translate, text)
 	text = text.decode("utf-8").encode("latin1")
-	pattern = re.compile('[\W_]+')
-	text = pattern.sub('', text)
+	text = ComiledRegexpChannelFilter.sub('', text)
 	return text.strip().lower()
 
 

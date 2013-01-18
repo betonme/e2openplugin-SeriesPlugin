@@ -24,7 +24,7 @@ from SeriesPluginConfiguration import SeriesPluginConfiguration
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -39,7 +39,7 @@ ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
 				+ _("  PayPal: ") + DONATE
 
 scheme_fallback = [
-		("", ""),
+		("Off", "Disabled"),
 		("{org:s} S{season:02d}E{episode:02d}"            , "Org S01E01"),
 		("{org:s} S{season:02d}E{episode:02d} {title:s}"  , "Org S01E01 Title"),
 		("{title:s} {org:s}"                              , "Title Org"),
@@ -96,10 +96,12 @@ config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/e
 
 patterns = readPatternFile()
 if not patterns:
+	print "SeriesPlugin Pattern Fallback"
 	patterns = scheme_fallback
 config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = patterns, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
 config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = patterns, default = "S{season:02d}E{episode:02d} {title:s} {org:s}")
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
+config.plugins.seriesplugin.rename_tidy               = ConfigYesNo(default = False)
 
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
@@ -147,7 +149,7 @@ def info(session, service=None, event=None, *args, **kwargs):
 		### For testing only
 		#import SeriesPluginInfoScreen
 		#reload(SeriesPluginInfoScreen)
-		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
+		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service, event)
 		###
 		session.open(SeriesPluginInfoScreen, service, event)
 	except Exception, e:
@@ -165,9 +167,9 @@ def extension(session, *args, **kwargs):
 		### For testing only
 		#import SeriesPluginInfoScreen
 		#reload(SeriesPluginInfoScreen)
-		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen, service)
+		#session.open(SeriesPluginInfoScreen.SeriesPluginInfoScreen)
 		###
-		session.open(SeriesPluginInfoScreen, service)
+		session.open(SeriesPluginInfoScreen)
 	except Exception, e:
 		print _("SeriesPlugin extension exception ") + str(e)
 		exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -198,9 +200,7 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 
 #######################################################
 # Movielist menu info
-def movielist_info(session, service, services=None, *args, **kwargs):
-	#from SeriesPluginInfoScreen import SeriesPluginInfoScreen
-	#SeriesPluginInfoScreen(session, service, services)
+def movielist_info(session, service, *args, **kwargs):
 	try:
 		### For testing only
 		#import SeriesPluginInfoScreen

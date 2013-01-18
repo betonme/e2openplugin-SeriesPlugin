@@ -1,6 +1,6 @@
 <screen name="SeriesPluginInfoScreen" position="center,center" size="560,430" title="SeriesPlugin">
 	<!-- Logo -->
-	<widget name="logo" position="10,10" size="540,70" alphatest="on" />
+	<widget name="logo" position="10,10" size="400,64" alphatest="on" />
 	<!-- Later -->
 	<widget name="cover" position="10,10" size="540,80" alphatest="on" />
 	<widget name="state" position="10,10" size="540,80" alphatest="on" />

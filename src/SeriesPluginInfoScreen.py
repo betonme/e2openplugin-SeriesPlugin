@@ -257,13 +257,20 @@ class SeriesPluginInfoScreen(Screen):
 			custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( 
 							**{'season': season, 'episode': episode, 'title': title} )
 			
-			self.setColorButtons()
+			try:
+				self.setColorButtons()
+			except Exception, e:
+				# Screen already closed
+				print "SeriesPluginInfoScreen:", str(e)
 		else:
 			custom = _("No matching episode found")
 		
 		# Check if the dialog is already closed
-		if self.has_key("event_episode"):
+		try:
 			self["event_episode"].setText( custom )
+		except Exception, e:
+			# Screen already closed
+			print "SeriesPluginInfoScreen:", str(e)
 
 
 	def updateScreen(self, name, episode, short, ext, begin, duration, channel):

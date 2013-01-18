@@ -69,8 +69,8 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 		from plugin import readPatternFile
 		patterns = readPatternFile()
 		if patterns:
-			config.plugins.seriesplugin.pattern_title.setChoices(patterns)
-			config.plugins.seriesplugin.pattern_description.setChoices(patterns)
+			config.plugins.seriesplugin.pattern_title.setChoices(patterns, config.plugins.seriesplugin.pattern_title.value)
+			config.plugins.seriesplugin.pattern_description.setChoices(patterns, config.plugins.seriesplugin.pattern_description.value)
 		
 		# Initialize Configuration
 		self.list = []
@@ -112,6 +112,8 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , config.plugins.seriesplugin.pattern_description ) )
 			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
+			self.list.append( getConfigListEntry(  _("Tidy up filename on SP Rename")              , config.plugins.seriesplugin.rename_tidy ) )
+			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
 
 	def changeConfig(self):
 		self.list = []

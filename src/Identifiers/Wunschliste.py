@@ -239,7 +239,7 @@ class Wunschliste(IdentifierBase):
 			if trs:
 			
 				for tds in trs:
-					if tds and len(tds) >= 2:
+					if tds and len(tds) == 2:
 						xtitle, xupdated = tds
 						if xtitle is not None and xupdated is not None:
 							#import iso8601
@@ -303,6 +303,11 @@ class Wunschliste(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 		#if data and not isinstance(data, WLPrintParser):
+		
+			# Handle malformed HTML issues
+			#data = data.replace('&quot;','&')
+			data = data.replace('&amp;','&')
+			
 			parser = WLPrintParser()
 			parser.feed(data)
 			#print parser.list
@@ -316,7 +321,8 @@ class Wunschliste(IdentifierBase):
 				year = str(datetime.today().year)
 				for tds in trs:
 					if tds and len(tds) >= 5:
-						xchannel, xdate, xbegin, xend, xtitle = tds
+						xchannel, xdate, xbegin, xend = tds[:4]
+						xtitle = "".join(tds[4:])
 						
 						xdate    = xdate[3:]+year
 						xbegin   = datetime.strptime( xdate+xbegin, "%d.%m.%Y%H.%M Uhr" )

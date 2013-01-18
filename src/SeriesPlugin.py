@@ -59,14 +59,14 @@ def resetInstance():
 
 def refactorTitle(org, data):
 	season, episode, title = data
-	if config.plugins.seriesplugin.pattern_title.value:
+	if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
 		return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
 	else:
 		return org
 
 def refactorDescription(org, data):
 	season, episode, title = data
-	if config.plugins.seriesplugin.pattern_description.value:
+	if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
 		description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title} )
 		description = description.replace("\n", " ")
 		return description
@@ -97,11 +97,12 @@ class SeriesPluginWorkerThread(Thread):
 		Thread.__init__(self)
 		self.queue = queue
 		self.item = None
-		self.lock = Lock()
+		###self.lock = Lock()
 	
 	def run(self):
+		#if True: 
 		while True:
-			self.lock.acquire()
+			###self.lock.acquire()
 			#SeriesPluginWorkerThread.lock.acquire()
 			##glock.acquire()
 			#try:
@@ -109,7 +110,7 @@ class SeriesPluginWorkerThread(Thread):
 			if self.item == None:
 			#except queue.Empty:
 				print 'SeriesPluginWorkerThread has been finished'
-				self.lock.release()
+				###self.lock.release()
 				#SeriesPluginWorkerThread.lock.release()
 				##glock.release()
 				return
@@ -143,7 +144,7 @@ class SeriesPluginWorkerThread(Thread):
 		
 		# kill the thread
 		self.queue.task_done()
-		self.lock.release()
+		###self.lock.release()
 		#SeriesPluginWorkerThread.lock.release()
 		##glock.release()
 		
@@ -159,6 +160,9 @@ class SeriesPluginWorkerThread(Thread):
 				0,
 				'SP_PopUp_ID_About'
 			)
+		
+		# Wait for next job
+		#self.run()
 
 
 class SeriesPlugin(Modules):
@@ -217,12 +221,12 @@ class SeriesPlugin(Modules):
 
 	def stop(self):
 		if self.queue and not self.queue.empty():
-			print "isAlive", self.worker and self.worker.isAlive()
-			print "is_alive", self.worker and self.worker.is_alive()
+			print "SeriesPluginWorker isAlive", self.worker and self.worker.isAlive()
 			if self.worker and self.worker.isAlive():
+				print "Wait a moment"
 				# Wait for the worker thread (max 1 minute)
 				#self.queue.join()
-				self.queue.join_with_timeout(1*60)
+				self.queue.join_with_timeout(5) #(1*60)
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()
 
@@ -260,11 +264,10 @@ class SeriesPlugin(Modules):
 				if not (self.worker and self.worker.isAlive()):
 					# Start new worker
 					self.worker = SeriesPluginWorkerThread(self.queue)
+					self.worker.daemon = True
+					self.worker.start()
 				
 				self.queue.put( (service, callback, name, begin, end, channel) )
-				
-				#worker = SeriesPluginWorkerThread(self.queue)
-				#worker.start()
 				
 			except Exception, e:
 				print _("SeriesPlugin getEpisode exception ") + str(e)

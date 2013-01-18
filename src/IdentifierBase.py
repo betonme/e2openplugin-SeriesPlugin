@@ -7,9 +7,12 @@ from thread import start_new_thread
 #Twisted 12.x
 #from twisted.web.client import getPage as twGetPage
 #Twisted 8.x
-from twisted.web.client import _parse, HTTPClientFactory
-from twisted.internet import reactor
-from twisted.python.failure import Failure
+#from twisted.web.client import _parse, HTTPClientFactory
+#from twisted.internet import reactor
+#Twisted All
+#from twisted.python.failure import Failure
+
+from urllib2 import Request, urlopen
 
 from Tools.BoundFunction import boundFunction
 
@@ -46,24 +49,26 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 			print "SSBase not cached"
 			try:
 				#Twisted 12.x use
-				#deferred = twGetPage(url, timeout = 5)
-				#deferred.addCallback(self.base_callback, deferred, callback, url)
-				#deferred.addErrback(self.base_errback, deferred, callback)
-				#self.deferreds.append(deferred)
+				#deferred = twGetPage(url, timeout = 30)
 				#Twisted 8.x
-				contextFactory = None
-				scheme, host, port, path = _parse(url)
-				factory = HTTPClientFactory(url, timeout=30)
-				if scheme == 'https':
-					from twisted.internet import ssl
-					if contextFactory is None:
-						extFactory = ssl.ClientContextFactory()
-					connector = reactor.connectSSL(host, port, factory, contextFactory)
-				else:
-					connector = reactor.connectTCP(host, port, factory)
-				deferred = factory.deferred
-				deferred.addCallback(self.base_callback, callback, url)
-				deferred.addErrback(self.base_errback, callback, url)
+				#contextFactory = None
+				#scheme, host, port, path = _parse(url)
+				#factory = HTTPClientFactory(url, timeout=30)
+				#if scheme == 'https':
+				#	from twisted.internet import ssl
+				#	if contextFactory is None:
+				#		extFactory = ssl.ClientContextFactory()
+				#	connector = reactor.connectSSL(host, port, factory, contextFactory)
+				#else:
+				#	connector = reactor.connectTCP(host, port, factory)
+				#deferred = factory.deferred
+				
+				#deferred.addCallback(self.base_callback, callback, url)
+				#deferred.addErrback(self.base_errback, callback, url)
+				
+				req = Request(url)
+				response = urlopen(req)
+				self.base_callback(response.read(), callback, url)
 				
 			except Exception, e:
 				import os, sys, traceback
@@ -74,6 +79,7 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 				callback()
 
 	def base_callback(self, page, callback, url):
+		print "base_callback"
 		try:
 			data = callback( page )
 			if data:
@@ -86,17 +92,18 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 			traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
 
 	def base_errback(self, err, callback, url):
-		print "errback", url
+		print "base_errback", url
 		if isinstance(err, Exception):
 			print _("Twisted Exception:\n%s\n%s") % (err.type, err.value)
-		elif isinstance(err, Failure):
+		#elif isinstance(err, Failure):
+		#	print _("Twisted Failure:\n%s\n%s") % (err.type, err.value)
 			#TEST Later
-			if self.retry(err.type, url):
-				# TODO Attention there is no retry counter yet
-				print "RETRY"
-				self.getPage(callback, url)
-			return
-		elif err:
+			#if self.retry(err.type, url):
+			#	# TODO Attention there is no retry counter yet
+			#	print "RETRY"
+			#	self.getPage(callback, url)
+			#return
+		else:
 			print _("Twisted failed\n%s") % str(err)
 		callback( None )
 
@@ -107,6 +114,9 @@ class IdentifierBase(ModuleBase, Cacher, Retry):
 	def compareChannels(local, remote):
 		if local == remote:
 			# The channels are equal
+			return True
+		elif local in remote or remote in local:
+			# Parts of the channels are equal
 			return True
 		elif local == "":
 			# The local channel is empty

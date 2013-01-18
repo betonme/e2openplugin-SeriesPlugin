@@ -18,6 +18,7 @@
 
 import os
 import re
+import glob
 
 # for localized messages
 from . import _
@@ -37,30 +38,25 @@ from ServiceReference import ServiceReference
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 
 
-def rename(ref, name, short, data):
+def rename(service, name, short, data):
 	# Episode data available
 	print data
-	
-	name = refactorTitle(name, data)
-	print name
-	short = refactorDescription(short, data)
-	print short
 	
 	#MAYBE Check if it is already renamed?
 	try:
 		# Before renaming change content
 		#TODO renameEIT
-		if config.plugins.seriesplugin.pattern_description.value:
-			renameMeta(ref, name, short)
-		if config.plugins.seriesplugin.pattern_title.value:
-			renameFile(ref, name)
+		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
+			renameMeta(service, data)
+		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
+			renameFile(service, name, data)
 		return True
 	except:
 		pass
 	return False
 
 # Adapted from MovieRetitle setTitleDescr
-def renameMeta(service, title, descr):
+def renameMeta(service, data):
 	try:
 		#TODO Use MetaSupport EitSupport classes from EMC ?
 		if service.getPath().endswith(".ts"):
@@ -81,7 +77,7 @@ def renameMeta(service, title, descr):
 			metafile = open(meta_file, "w")
 			metafile.write("%s\n%s\n%s\n%s\n%s" % (_sid, _title, _descr, _time, _tags))
 			metafile.close()
-	
+		
 		if os.path.exists(meta_file):
 			metafile = open(meta_file, "r")
 			sid = metafile.readline()
@@ -89,23 +85,33 @@ def renameMeta(service, title, descr):
 			olddescr = metafile.readline().rstrip()
 			rest = metafile.read()
 			metafile.close()
-			if not title and title != "":
-				title = oldtitle
-			if not descr and descr != "":
-				descr = olddescr
+			
+			title = refactorTitle(oldtitle, data)
+			print title
+			descr = refactorDescription(olddescr, data)
+			print descr
+			
 			metafile = open(meta_file, "w")
 			metafile.write("%s%s\n%s\n%s" % (sid, title, descr, rest))
 			metafile.close()
 	except Exception, e:
 		print e
 
-def renameFile(service, new_name):
+def renameFile(service, name, data):
 	try:
 		path = os.path.dirname(service.getPath())
 		file_name = os.path.basename(os.path.splitext(service.getPath())[0])
+		
+		if config.plugins.seriesplugin.rename_tidy.value:
+			# Refactor title
+			name = refactorTitle(name, data)
+		else:
+			# Refactor filename
+			name = refactorTitle(file_name, data)
+		
 		src = os.path.join(path, file_name)
-		dst = os.path.join(path, new_name)
-		import glob
+		dst = os.path.join(path, name)
+
 		for f in glob.glob(os.path.join(path, src + "*")):
 			os.rename(f, f.replace(src, dst))
 	except Exception, e:
@@ -199,7 +205,7 @@ class SeriesPluginRenamer(object):
 			_("Do You want to start background renaming?"),
 			MessageBox.TYPE_YESNO,
 			timeout = 15,
-			default = False
+			default = True
 		)
 
 	def confirm(self, confirmed):
