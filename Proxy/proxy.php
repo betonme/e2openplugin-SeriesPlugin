@@ -27,39 +27,27 @@
 	$page = new GoogleAnalytics\Page($_SERVER["REQUEST_URI"]);
 	$page->setTitle('SeriesPlugin Proxy');
 
-	function sendGoogleAnalyticsEvent($category, $action, $label = null, $value = null, $noninteraction = true) {
-		global $tracker, $page, $session, $visitor;
-		$event = new GoogleAnalytics\Event();
-		$event->setCategory($category);
-		$event->setAction($action);
-		if ($label){
-			$event->setLabel($label);
-		}
-		if ($value){
-			$event->setValue($value);
-		}
-		if ($noninteraction){
-			$event->setNoninteraction("true");
-		} else {
-			$event->setNoninteraction("false");
-		}
-		$tracker->trackEvent($page, $event, $session, $visitor);
-		
-		// Only if You want to debug something 
-		//print_r(error_get_last());
-	}
+	// Could we load the request from cache
+	$fromcache = false;
 
-	function sendGoogleAnalyticsPageView() {
+	function sendGoogleAnalyticsPageView($fromcache) {
 		global $tracker, $page, $session, $visitor;
+		
+		if ($fromcache){
+				$name = 'Cache';
+		} else {
+				$name = 'Server';
+		}
+		$custom = new GoogleAnalytics\CustomVariable(1, $name);
+		$tracker->addCustomVariable($custom);
+		
 		// Track page view
 		$tracker->trackPageview($page, $session, $visitor);
 	
 		// Only if You want to debug something 
 		//print_r(error_get_last());
 	}
-	
-	// Could we load the request from cache
-	$fromcache = false;
+
 
 
 	/*
@@ -208,13 +196,6 @@
 	}
 
 
-	// GoogleAnalyticsEvent
-	if ($fromcache){
-		sendGoogleAnalyticsEvent('Proxy', 'Cache', 'From Cache');
-	} else {
-		sendGoogleAnalyticsEvent('Proxy', 'Source', 'From Source');
-	}
-
 	// GoogleAnalytics
-	sendGoogleAnalyticsPageView();
+	sendGoogleAnalyticsPageView($fromcache);
 ?>

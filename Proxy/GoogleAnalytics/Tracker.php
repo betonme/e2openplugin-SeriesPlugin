@@ -242,12 +242,11 @@ class Tracker {
 	 * @param \UnitedPrototype\GoogleAnalytics\Session $session
 	 * @param \UnitedPrototype\GoogleAnalytics\Visitor $visitor
 	 */
-	public function trackEvent(Page $page, Event $event, Session $session, Visitor $visitor) {
+	public function trackEvent(Event $event, Session $session, Visitor $visitor) {
 		// Ensure that all required parameters are set
 		$event->validate();
 		
 		$request = new EventRequest(static::$config);
-		$request->setPage($page);
 		$request->setEvent($event);
 		$request->setSession($session);
 		$request->setVisitor($visitor);

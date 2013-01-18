@@ -28,18 +28,11 @@
 
 namespace UnitedPrototype\GoogleAnalytics\Internals\Request;
 
-use UnitedPrototype\GoogleAnalytics\Page;
-
 use UnitedPrototype\GoogleAnalytics\Event;
 
 use UnitedPrototype\GoogleAnalytics\Internals\X10;
 
 class EventRequest extends Request {
-	
-	/**
-	 * @var \UnitedPrototype\GoogleAnalytics\Page
-	 */
-	protected $page;
 	
 	/**
 	 * @var \UnitedPrototype\GoogleAnalytics\Event
@@ -68,15 +61,6 @@ class EventRequest extends Request {
 	protected function buildParameters() {
 		$p = parent::buildParameters();
 		
-		$p->utmp  = $this->page->getPath();
-		$p->utmdt = $this->page->getTitle();
-		if($this->page->getCharset() !== null) {
-			$p->utmcs = $this->page->getCharset();
-		}
-		if($this->page->getReferrer() !== null) {
-			$p->utmr = $this->page->getReferrer();
-		}
-		
 		$x10 = new X10();
 		
 		$x10->clearKey(self::X10_EVENT_PROJECT_ID);
@@ -104,20 +88,6 @@ class EventRequest extends Request {
 		}
 		
 		return $p;
-	}
-	
-	/**
-	 * @return \UnitedPrototype\GoogleAnalytics\Page
-	 */
-	public function getPage() {
-		return $this->page;
-	}
-	
-	/**
-	 * @param \UnitedPrototype\GoogleAnalytics\Page $page
-	 */
-	public function setPage(Page $page) {
-		$this->page = $page;
 	}
 	
 	/**
