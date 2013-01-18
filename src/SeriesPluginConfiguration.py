@@ -62,16 +62,15 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 			"prevBouquet":	self.pageDown,
 		}, -2) # higher priority
 		
-		
 		resetInstance()
 		self.seriesPlugin = getInstance()
 		
 		# Load patterns
-		patterns = self.readPatternFile()
+		from plugin import readPatternFile
+		patterns = readPatternFile()
 		if patterns:
 			config.plugins.seriesplugin.pattern_title.setChoices(patterns)
 			config.plugins.seriesplugin.pattern_description.setChoices(patterns)
-		
 		
 		# Initialize Configuration
 		self.list = []
@@ -188,26 +187,3 @@ class SeriesPluginConfiguration(Screen, ConfigListScreen):
 	def pageDown(self):
 		self["config"].instance.moveSelection(self["config"].instance.pageDown)
 
-	def readPatternFile(self):
-		path = config.plugins.seriesplugin.pattern_file.value
-		obj = None
-		patterns = None
-		
-		if os.path.exists(path):
-			f = None
-			try:
-				import json
-				f = open(path, 'rb')
-				obj = json.load(f)
-			except Exception, e:
-				print "[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e)
-				obj = None
-				from plugin import scheme_fallback
-				patterns = scheme_fallback
-			finally:
-				if f is not None:
-					f.close()
-		if obj:
-			header, patterns = obj
-			patterns = [tuple(p) for p in patterns]
-		return patterns

@@ -31,13 +31,16 @@ class FSParser(HTMLParser):
 	def __init__(self):
 		HTMLParser.__init__(self)
 		# Hint: xpath from Firebug without tbody elements
-		xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td[2]/table'
+		#xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td[2]/table'	# With ads
+		#xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td/table'		# Without ads
+		xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td'			# Without ads
 		self.xpath = [ e for e in xpath.split('/') if e ]
 		self.xpath.reverse()
 
 		self.lookfor = self.xpath.pop()
 		self.waitforendtag = 0
 
+		self.start = False
 		self.table = False
 		self.tr= False
 		self.td= False
@@ -48,36 +51,41 @@ class FSParser(HTMLParser):
 		if self.waitforendtag == 0:
 			if tag == self.lookfor:
 				if self.xpath:
-						self.lookfor = self.xpath.pop()
-						s = self.lookfor.split('[')
-						if len(s) == 2:
-							self.lookfor = s[0]
-							self.waitforendtag = int( s[1].split(']' )[0]) - 1
+					self.lookfor = self.xpath.pop()
+					s = self.lookfor.split('[')
+					if len(s) == 2:
+						self.lookfor = s[0]
+						self.waitforendtag = int( s[1].split(']' )[0]) - 1
 				else:
-						self.table = True
+					self.start = True
+
+		if self.start and tag == 'table':
+			self.table = True
 
 		if self.table:
-				if tag == 'td':
-						self.td= True
-				elif tag == 'tr':
-						self.tr= True
+			if tag == 'td':
+				self.td= True
+			elif tag == 'tr':
+				self.tr= True
 
 	def handle_endtag(self, tag):
 		if self.table:
-				if tag == 'td':
-						self.td= False
-				elif tag == 'tr':
-						self.tr= False
-						self.list.append(self.data)
-						self.data= []
+			if tag == 'td':
+				self.td= False
+			elif tag == 'tr':
+				self.tr= False
+				self.list.append(self.data)
+				self.data= []
+
+		if tag == 'table':
+			self.table = False
 
 		if tag == self.lookfor:
-				if self.waitforendtag > 0: self.waitforendtag -= 1
-				self.table = False
+			if self.waitforendtag > 0: self.waitforendtag -= 1
 
 	def handle_data(self, data):
 		if self.tr and self.td:
-				self.data.append(data)
+			self.data.append(data)
 
 
 class Fernsehserien(IdentifierBase):
@@ -115,6 +123,7 @@ class Fernsehserien(IdentifierBase):
 		
 		self.id = 0
 		self.when = 0
+		
 		self.page = 0
 		self.lastpage = 0
 		self.minpages = -1
@@ -129,6 +138,19 @@ class Fernsehserien(IdentifierBase):
 			return callback()
 		
 		print "Fernsehserien getEpisode"
+		
+		#Py2.6
+		delta = abs(datetime.now() - self.begin)
+		delta = delta.seconds + delta.days * 24 * 3600
+		#Py2.7 delta = abs(datetime.now() - self.begin).total_seconds()
+		if delta > 3*60*60:
+		#if self.begin - time.time() < -2*60*60:
+			# Older than 3 hours
+			print "Past events"
+			self.when = 6 # Past events
+		else:
+			print "Today events"
+			self.when = 8 # Today events
 		
 		self.getPage(
 						self.getSeriesCallback,
@@ -159,22 +181,15 @@ class Fernsehserien(IdentifierBase):
 		return data
 
 	def getNextSeries(self):
-		print "Fernsehserien getNextSeries"
+		print "Fernsehserien getNextSeries", self.ids
 		if self.ids:
 			#for id_name in data:
 			self.id = self.ids.pop()
-			#Py2.6
-			delta = abs(datetime.now() - self.begin)
-			delta = delta.seconds + delta.days * 24 * 3600
-			#Py2.7 delta = abs(datetime.now() - self.begin).total_seconds()
-			if delta > 3*60*60:
-			#if self.begin - time.time() < -2*60*60:
-				# Older than 3 hours
-				print "Past events"
-				self.when = 6 # Past events
-			else:
-				print "Today events"
-				self.when = 8 # Today events
+			
+			self.page = 0
+			self.lastpage = 0
+			self.minpages = -1
+			self.maxpages = maxint
 			
 			self.getNextPage()
 		

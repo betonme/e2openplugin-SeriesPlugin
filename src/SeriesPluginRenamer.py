@@ -37,6 +37,24 @@ from ServiceReference import ServiceReference
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 
 
+def rename(ref, name, short, data):
+	# Episode data available
+	print data
+	name = refactorTitle(name, data)
+	short = refactorDescription(short, data)
+	print name
+	print short
+	
+	#MAYBE Check if it is already renamed?
+	try:
+		# Before renaming change content
+		renameSeries(ref, name, short)
+		renameFile(ref, name)
+		return True
+	except:
+		pass
+	return False
+
 # Adapted from MovieRetitle setTitleDescr
 def renameSeries(service, title, descr):
 	try:
@@ -91,7 +109,7 @@ def renameFile(service, new_name):
 
 
 class SeriesPluginService(object):
-	def __init__(self, service, callback):
+	def __init__(self, service, callback=None):
 		self.callback = callback
 		self.seriesPlugin = getInstance()
 		self.serviceHandler = eServiceCenter.getInstance()
@@ -143,23 +161,15 @@ class SeriesPluginService(object):
 		print "SeriesPluginTimer serviceCallback"
 		print data
 		
+		result = self.ref
+		
 		if data:
-			# Episode data available
-			print data
-			name = refactorTitle(self.name, data)
-			short = refactorDescription(self.short, data)
-			print name
-			print short
-			
-			#MAYBE Check if it is already renamed?
-			try:
-				# Before renaming change content
-				renameSeries(self.ref, name, short)
-				renameFile(self.ref, name)
-				return self.callback()
-			except:
-				pass
-		self.callback(self.ref)
+			if rename(self.ref, self.name, self.short, data):
+				# Rename was successfully
+				result = None
+		
+		if callable(self.callback):
+			self.callback(result)
 
 
 #######################################################
@@ -203,7 +213,7 @@ class SeriesPluginRenamer(object):
 				AddPopup(
 					_("Movie rename has been finished successfully"),
 					MessageBox.TYPE_INFO,
-					10,
+					0,
 					'SP_PopUp_ID_RenameFinished'
 				)
 

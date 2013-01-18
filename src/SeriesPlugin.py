@@ -176,9 +176,9 @@ class SeriesPlugin(Modules):
 		#available = False
 		
 		name = unifyName(name)
-		channel = unifyChannel(channel)
 		begin = datetime.fromtimestamp(begin + config.recording.margin_before.value * 60)
 		end = datetime.fromtimestamp(end + config.recording.margin_after.value * 60)
+		channel = unifyChannel(channel)
 		
 		#MAYBE for all valid service in services:
 		

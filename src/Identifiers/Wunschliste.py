@@ -128,6 +128,7 @@ class Wunschliste(IdentifierBase):
 		self.end = end
 		self.channel = channel
 		self.ids = []
+		self.when = 0
 		
 		# Check preconditions
 		if not name:
@@ -138,6 +139,15 @@ class Wunschliste(IdentifierBase):
 			return callback()
 		
 		print "Wunschliste getEpisode"
+		
+		#Py2.6
+		delta = abs(datetime.now() - self.begin)
+		delta = delta.seconds + delta.days * 24 * 3600
+		#Py2.7 delta = abs(datetime.now() - self.begin).total_seconds()
+		if delta > 3*60*60:
+			self.when = True
+		else:
+			self.when = False
 		
 		self.getPage(
 						self.getSeriesCallback,
@@ -168,17 +178,12 @@ class Wunschliste(IdentifierBase):
 		return data
 
 	def getNextSeries(self):
-		print "Wunschliste getNextSeries"
+		print "Wunschliste getNextSeries", self.ids
 		if self.ids:
 			#for id_name in data:
 			id = self.ids.pop()
 			
-			#Py2.6
-			delta = abs(datetime.now() - self.begin)
-			delta = delta.seconds + delta.days * 24 * 3600
-			#Py2.7 delta = abs(datetime.now() - self.begin).total_seconds()
-			
-			if delta > 3*60*60:
+			if self.when:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
 				self.getPage(
 								self.getEpisodeFutureCallback,
@@ -239,7 +244,7 @@ class Wunschliste(IdentifierBase):
 								result = ComiledRegexpAtom.match(xtitle)
 								if result and len(result.groups()) >= 5:
 									xchannel = unifyChannel(result.group(5))
-									print self.channel, xchannel
+									print self.channel, xchannel, len(self.channel), len(xchannel)
 									if self.channel == xchannel:
 										# series = result.group(1)
 										xtitle = result.group(2)

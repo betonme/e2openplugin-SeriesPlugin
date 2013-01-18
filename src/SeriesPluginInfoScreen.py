@@ -81,18 +81,19 @@ class SeriesPluginInfoScreen(Screen):
 		self["channel"] = Label()
 		self["duration"] = Label()
 		
-		self["key_red"] = Button("")	#TODO Record if current event or servicelist epg
+		self["key_red"] = Button("")	#TODO Record if current event or servicelist epg Rename if path exists
 		self["key_green"] = Button(_(""))
 		self["key_yellow"] = Button("")
 		self["key_blue"] = Button("")
 		
 		#TODO HelpableActionMap
-		self["actions"] = ActionMap(["OkCancelActions", "EventViewActions", "DirectionActions"],
+		self["actions"] = ActionMap(["OkCancelActions", "EventViewActions", "DirectionActions", "ColorActions"],
 		{
 			"cancel":    self.close,
 			"ok":        self.close,
 			"up":        self["event_description"].pageUp,
 			"down":      self["event_description"].pageDown,
+			"red":       self.redButton,
 			#TODO
 			#"pageUp":    self.pageUp,
 			#"pageDown":  self.pageDown,
@@ -109,14 +110,6 @@ class SeriesPluginInfoScreen(Screen):
 		
 		self.seriesPlugin = getInstance()
 		
-		self.onLayoutFinish.append( self.layoutFinished )
-
-	def layoutFinished(self):
-		self.setTitle( _("SeriesPlugin Info") )
-		self.getEpisode()
-
-	def getEpisode(self):
-		service = self.service
 		print service
 		if isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
@@ -131,6 +124,20 @@ class SeriesPluginInfoScreen(Screen):
 		else:
 			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
 			print "SeriesPluginInfoScreen else " + str(ref)
+		self.ref = ref
+		self.name = ""
+		self.short = ""
+		self.data = None
+		
+		self.onLayoutFinish.append( self.layoutFinished )
+
+	def layoutFinished(self):
+		self.setTitle( _("SeriesPlugin Info") )
+		
+		self.getEpisode()
+
+	def getEpisode(self):
+		ref = self.ref
 		
 		event = ref and ref.valid() and self.epg.lookupEventTime(ref, -1)
 		if event:
@@ -170,12 +177,15 @@ class SeriesPluginInfoScreen(Screen):
 			ext = event and event.getExtendedDescription() or ""
 			rec_ref_str = info.getInfoString(ref, iServiceInformation.sServiceref)
 			channel = ServiceReference(rec_ref_str).getServiceName() or _("unknown service")
+			
 			today = False
 			elapsed = True
 			
 			self.event = None
 			self.currentService = None
 		print channel
+		self.name = name
+		self.short = short
 		
 		# Adapted from EventView
 		self["event_title"].setText( name )
@@ -213,7 +223,7 @@ class SeriesPluginInfoScreen(Screen):
 		#print data
 		if data:
 			# Episode data available
-			season, episode, title = data
+			season, episode, title = self.data = data
 		
 		#LATER
 		#	self.seriesPlugin.getStates(
@@ -222,6 +232,8 @@ class SeriesPluginInfoScreen(Screen):
 		#		)
 			custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( 
 							**{'season': season, 'episode': episode, 'title': title} )
+			
+			self.setColorButtons()
 		else:
 			custom = _("No matching episode found")
 		
@@ -260,6 +272,19 @@ class SeriesPluginInfoScreen(Screen):
 		# Call baseclass function
 		Screen.close(self)
 
+
+	def setColorButtons(self):
+		if self.ref and self.data:
+			path = self.ref.getPath()
+			if path and os.path.exists(path):
+				self["key_red"].setText(_("Rename"))
+
+	def redButton(self):
+		if self.ref:
+			path = self.ref.getPath()
+			if path and os.path.exists(path):
+				from SeriesPluginRenamer import rename
+				rename(self.ref, self.name, self.short, self.data)
 
 
 	# Adapted from EventView

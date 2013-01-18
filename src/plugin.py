@@ -20,7 +20,7 @@ from Plugins.Plugin import PluginDescriptor
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -45,6 +45,31 @@ scheme_fallback = [
 	]
 
 
+def readPatternFile():
+	path = config.plugins.seriesplugin.pattern_file.value
+	obj = None
+	patterns = None
+	
+	if os.path.exists(path):
+		f = None
+		try:
+			import json
+			f = open(path, 'rb')
+			obj = json.load(f)
+		except Exception, e:
+			print "[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e)
+			obj = None
+			from plugin import scheme_fallback
+			patterns = scheme_fallback
+		finally:
+			if f is not None:
+				f.close()
+	if obj:
+		header, patterns = obj
+		patterns = [tuple(p) for p in patterns]
+	return patterns
+
+
 #######################################################
 # Initialize Configuration
 config.plugins.seriesplugin = ConfigSubsection()
@@ -66,8 +91,11 @@ config.plugins.seriesplugin.guide                     = ConfigSelection(choices 
 
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin.cfg", fixed_size = False)
 
-config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = scheme_fallback, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
-config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = scheme_fallback, default = "S{season:02d}E{episode:02d} {title:s} {org:s}")
+patterns = readPatternFile()
+if not patterns:
+	patterns = scheme_fallback
+config.plugins.seriesplugin.pattern_title             = ConfigSelection(choices = patterns, default = "{org:s} S{season:02d}E{episode:02d} {title:s}")
+config.plugins.seriesplugin.pattern_description       = ConfigSelection(choices = patterns, default = "S{season:02d}E{episode:02d} {title:s} {org:s}")
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
 
 # Internal
