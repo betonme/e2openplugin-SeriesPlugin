@@ -15,17 +15,28 @@
 		$_GET["utmac"] = $GA_ACCOUNT;
 		$_GET["utmn"] = rand(0, 0x7fffffff);
 		
-		$referer = $_SERVER["HTTP_REFERER"];
-		$query = $_SERVER["QUERY_STRING"];
-		$path = $_SERVER["REQUEST_URI"];
+		if ( isset($_SERVER["HTTP_REFERER"]) ) {
+			$referer = $_SERVER["HTTP_REFERER"];
+		} else {
+			$referer = null;
+		}
 		if (empty($referer)) {
 			$referer = "-";
 		}
 		$_GET["utmr"] = $referer;
+		
+		if ( isset($_SERVER["REQUEST_URI"]) ) {
+			$path = $_SERVER["REQUEST_URI"];
+		} else {
+			$path = null;
+		}
 		if (!empty($path)) {
 			$_GET["utmp"] = $path;
 		}
+		
 		$_GET["guid"] = "ON";
+		
+		//utmdt
 		
 		include($GA_PHP);
 		
@@ -38,9 +49,11 @@
 	// Warning: Cannot modify header information - headers already sent by
 	initPageView();
 
-	function setPageEvent($object, $action, $label) {
-		$_GET["utmt"] = 'event';
-		$_GET["utme"] = '5(' . $object . '*' . $action . '*' . $label . ')';
+	function addCustomVariable($index, $name, $value) {
+		$_GET["utmt"] = 'custom variable';
+		#utms=1&
+		#utme=8(Cached)9(Yes)&
+		$_GET["utme"] = '8(' . $name . ')' . '9(' . $value . ')';
 	}
 
 	function sendPageView() {
@@ -107,13 +120,9 @@
 	
 	// no entry found in cache
 	if ($entry === False) {
-	
 			// prune cache
 			$stm = $db->prepare('DELETE FROM cache WHERE url = ? OR age < ?');
 			$stm->execute(array($url, $then));
-	
-			// setPageEvent
-			setPageEvent('Cache', 'fetch', 'Fetch Page');
 	
 			// fetch a current version
 			$entry = fetch_entry($url);
@@ -129,9 +138,11 @@
 							'content' => 'null',
 					);
 			}
+			addCustomVariable(1, 'Cached', 'Yes');
 	} else {
 			$expires = $entry['age'] + $cache_duration;
 			$max_age = $entry['age'] - $then;
+			addCustomVariable(1, 'Cached', 'No');
 	}
 	
 	header('Content-Type: '.$entry['type']);
