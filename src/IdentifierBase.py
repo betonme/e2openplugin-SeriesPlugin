@@ -32,7 +32,6 @@ class IdentifierBase(ModuleBase, Cacher):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
-		self.callback = None
 		self.name = ""
 		self.begin = None
 		self.end = None
@@ -43,11 +42,10 @@ class IdentifierBase(ModuleBase, Cacher):
 
 	################################################
 	# URL functions
-	def getPage(self, callback, url, headers={}, expires=INTER_QUERY_TIME, counter=0):
+	def getPage(self, url, headers={}, expires=INTER_QUERY_TIME, counter=0):
+		response = None
+		
 		splog("SSBase getPage", url)
-		
-		cached = self.getCached(url, expires)
-		
 		
 		VmSize = MemoryUsage.memory()
 		splog("SP VmSize: "+str(VmSize/1024/1024)+" Mb" )
@@ -56,23 +54,22 @@ class IdentifierBase(ModuleBase, Cacher):
 		VmStk  = MemoryUsage.stacksize()
 		splog("SP VmStk:  "+str(VmStk/1024/1024)+" Mb" )
 		
+		cached = self.getCached(url, expires)
 		
 		if cached:
 			splog("SSBase cached")
-			callback( cached )
+			response = cached
 		
 		else:
 			splog("SSBase not cached")
 			
 			try:
-				#req = Request(url)
-				#response = urlopen(req)
-				#response = urlopen(url , timeout=30).read()
-				
-				#values = {'name' : 'A B'}
-
 				req = Request(url, headers=headers)
-				response = urlopen(req).read()
+				response = urlopen(req, timeout=5).read()
+				
+				#splog("SSBase response to cache: ", response) 
+				#if response:
+				#	self.doCache(url, response)
 				
 			except URLError, e:
 				if counter > 2:
@@ -81,16 +78,13 @@ class IdentifierBase(ModuleBase, Cacher):
 				elif hasattr(e, "code"):
 					print e.code, e.msg, counter
 					sleep(2)
-					self.getPage(callback, url, headers, expires, counter+1)
+					self.getPage(url, headers, expires, counter+1)
 					return
 				else:
 					raise
-			
-			data = callback( response )
-			#splog("SSBase data to cache: ", data) 
-			if data:
-				self.doCache(url, data)
-
+				
+		return response
+	
 	################################################
 	# Service prototypes
 	@classmethod
@@ -111,7 +105,7 @@ class IdentifierBase(ModuleBase, Cacher):
 		# False: Service doesn't know future air dates
 		return False
 
-	def getEpisode(self, callback, name, begin, end, service, channels):
+	def getEpisode(self, name, begin, end, service, channels):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
-		callback( None )
+		return None

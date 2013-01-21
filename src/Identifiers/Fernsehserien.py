@@ -61,11 +61,12 @@ class Fernsehserien(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, callback, name, begin, end=None, service=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		
-		self.callback = callback
+		self.license = None
+		
 		self.name = name
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
@@ -87,10 +88,10 @@ class Fernsehserien(IdentifierBase):
 		# Check preconditions
 		if not name:
 			splog(_("Skip Fernsehserien: No show name specified"))
-			return callback()
+			return _("Skip Fernsehserien: No show name specified")
 		if not begin:
 			splog(_("Skip Fernsehserien: No begin timestamp specified"))
-			return callback()
+			return _("Skip Fernsehserien: No begin timestamp specified")
 		
 		if self.begin > datetime.now():
 			self.future = True
@@ -98,23 +99,19 @@ class Fernsehserien(IdentifierBase):
 			self.future = False
 		
 		splog("Fernsehserien getEpisode future", self.future)
-		self.getSeries()
+		return self.getSeries()
 
 	def getAlternativeSeries(self):
 		self.name = " ".join(self.name.split(" ")[:-1])
 		if self.name:
-			self.getSeries()
+			return self.getSeries()
 		else:
-			self.callback( self.returnvalue or _("No matching series found") )
+			return ( self.returnvalue or _("No matching series found") )
 	
 	def getSeries(self):
-		self.getPageInternal(
-						self.getSeriesCallback,
-						SERIESLISTURL + urlencode({ 'term' : self.name })
-					)
+		url = SERIESLISTURL + urlencode({ 'term' : self.name })
+		data = self.getPageInternal( url )
 
-	def getSeriesCallback(self, data=None):
-		splog("Fernsehserien getSeriesListCallback")
 		serieslist = []
 		
 		if data and isinstance(data, basestring):
@@ -124,14 +121,15 @@ class Fernsehserien(IdentifierBase):
 				splog(id, idname)
 				serieslist.append( (id, idname) )
 			serieslist.reverse()
+			
 			data = serieslist
+			self.doCache(url, data)
 		
 		if data and isinstance(data, list):
 			self.ids = data[:]
-			self.getNextSeries()
+			return self.getNextSeries()
 		else:
-			self.getAlternativeSeries()
-		return data
+			return self.getAlternativeSeries()
 
 	def getNextSeries(self):
 		splog("Fernsehserien getNextSeries", self.ids)
@@ -147,21 +145,15 @@ class Fernsehserien(IdentifierBase):
 			self.first = None
 			self.last = None
 			
-			self.getNextPage()
+			return self.getNextPage()
 		
 		else:
-			self.callback( self.returnvalue or _("No matching series found") )
+			return ( self.returnvalue or _("No matching series found") )
 
 	def getNextPage(self):
 		url = EPISODEIDURL % (self.id, self.page)
+		data = self.getPageInternal( url )
 		
-		self.getPageInternal(
-						self.getEpisodeFromPage,
-						url
-					)
-
-	def getEpisodeFromPage(self, data=None):
-		splog("Fernsehserien getEpisodeFromPage")
 		trs = []
 		
 		if data and isinstance(data, basestring):
@@ -198,10 +190,11 @@ class Fernsehserien(IdentifierBase):
 						splog( "tdnodes", tdnodes )
 			
 			splog(trs)
+			
 			data = trs
-			#print data
+			self.doCache(url, data)
 		
-		if data: # and isinstance(data, FSParser): #Why is this not working after restarting the SeriesPlugin service
+		if data:
 			
 			trs = data
 			# trs[x] = [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
@@ -305,62 +298,51 @@ class Fernsehserien(IdentifierBase):
 									break
 						
 						if yepisode:
-							self.callback( yepisode )
-							return data
-						
-						#else:
-						#	self.callback()
-						#	return data
+							return ( yepisode )
 					
 					else:
 						#calculate next page : use firstrow lastrow datetime
 						if not self.future:
 							if first > self.begin:
 								self.page -= 1
-								self.getNextPage()
-								return data
+								return self.getNextPage()
 						
 						else:
 							if self.begin > last:
 								self.page += 1
-								self.getNextPage()
-								return data
+								return self.getNextPage()
 		
-		self.getNextSeries()
-		return data
+		return self.getNextSeries()
 
-	def getPageInternal(self, callback, url):
+	def getPageInternal(self, url):
 		
 		if self.checkLicense(url):
 		
-			# PHP Proxy with 3 day Caching
+			# PHP Proxy with 1 day Caching
 			# to minimize server requests
 			#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-			#IdentifierBase.getPage(self, callback, url, Headers)
-			self.getPage(callback, url, Headers)
+			#IdentifierBase.getPage(self, url, Headers)
+			return self.getPage(url, Headers)
 			
 		else:
-			self.callback( _("No valid license") )
+			return _("No valid license")
 
 	def checkLicense(self, url):
 		
-		global license
-		if license is not None:
-			return license
+		if self.license is not None:
+			return self.license
 		
 		from urllib2 import urlopen, URLError
 		try:
-			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=10).read()
+			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=5).read()
 		except URLError, e:
 			raise
 			
 		print "checkLicense"
 		print response
 		if response == "Valid License":
-			license = True
+			self.license = True
 			return True
 		else:
-			license = False
+			self.license = False
 			return False
-
-license = None

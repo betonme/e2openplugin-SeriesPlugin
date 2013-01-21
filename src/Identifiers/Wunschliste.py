@@ -129,11 +129,12 @@ class Wunschliste(IdentifierBase):
 		# Use the atom feed
 		return True
 
-	def getEpisode(self, callback, name, begin, end=None, service=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or None
 		
-		self.callback = callback
+		self.license = None
+		
 		self.name = name
 		self.begin = begin
 		self.end = end
@@ -147,10 +148,10 @@ class Wunschliste(IdentifierBase):
 		# Check preconditions
 		if not name:
 			splog(_("Skip Wunschliste: No show name specified"))
-			return callback()
+			return _("Skip Wunschliste: No show name specified")
 		if not begin:
 			splog(_("Skip Wunschliste: No begin timestamp specified"))
-			return callback()
+			return _("Skip Wunschliste: No begin timestamp specified")
 		
 		splog("Wunschliste getEpisode")
 		
@@ -163,23 +164,19 @@ class Wunschliste(IdentifierBase):
 		else:
 			self.when = False
 		
-		self.getSeries()
+		return self.getSeries()
 
 	def getAlternativeSeries(self):
 		self.name = " ".join(self.name.split(" ")[:-1])
 		if self.name:
-			self.getSeries()
+			return self.getSeries()
 		else:
-			self.callback( self.returnvalue or _("No matching series found") )
+			return ( self.returnvalue or _("No matching series found") )
 	
 	def getSeries(self):
-		self.getPageInternal(
-						self.getSeriesCallback,
-						SERIESLISTURL + urlencode({ 'q' : self.name })
-					)
-
-	def getSeriesCallback(self, data=None):
-		splog("Wunschliste getSeriesListCallback")
+		url = SERIESLISTURL + urlencode({ 'q' : self.name })
+		data = self.getPageInternal( url )
+		
 		serieslist = []
 		
 		if data and isinstance(data, basestring):
@@ -192,14 +189,15 @@ class Wunschliste(IdentifierBase):
 				else:
 					splog("Wunschliste: ParseError: " + str(line))
 			serieslist.reverse()
+			
 			data = serieslist
+			self.doCache(url, data)
 		
 		if data and isinstance(data, list):
 			self.ids = data[:]
-			self.getNextSeries()
+			return self.getNextSeries()
 		else:
-			self.getAlternativeSeries()
-		return data
+			return self.getAlternativeSeries()
 
 	def getNextSeries(self):
 		splog("Wunschliste getNextSeries", self.ids)
@@ -208,22 +206,18 @@ class Wunschliste(IdentifierBase):
 			
 			if self.when:
 				url = EPISODEIDURLATOM + urlencode({ 's' : id })
-				self.getPageInternal(
-								self.getEpisodeFutureCallback,
-								url
-							)
+				data = self.getPageInternal( url )
+				return self.getEpisodeFuture( url, data )
 			else:
 				url = EPISODEIDURLPRINT + urlencode({ 's' : id })
-				self.getPageInternal(
-								self.getEpisodeTodayCallback,
-								url
-							)
+				data = self.getPageInternal( url )
+				return self.getEpisodeToday( url, data )
 		
 		else:
-			self.callback( self.returnvalue or _("No matching series found") )
+			return ( self.returnvalue or _("No matching series found") )
 
-	def getEpisodeFutureCallback(self, data=None):
-		splog("Wunschliste getEpisodeFutureCallback")
+	def getEpisodeFuture(self, url, data=None):
+		splog("Wunschliste getEpisodeFuture")
 		
 		if data and isinstance(data, basestring):
 		#if data and not isinstance(data, WLAtomParser):
@@ -234,10 +228,11 @@ class Wunschliste(IdentifierBase):
 			parser.feed(data)
 			#splog(parser.list)
 			
-			data = parser
+			data = parser.list
+			self.doCache(url, data)
 		
-		if data: # and isinstance(data, WLAtomParser): #Why is this not working after restarting the SeriesPlugin service
-			trs = data.list
+		if data:
+			trs = data
 			if trs:
 				yepisode = None
 				ydelta = maxint
@@ -309,14 +304,12 @@ class Wunschliste(IdentifierBase):
 								break
 				
 				if yepisode:
-					self.callback( yepisode )
-					return data
+					return ( yepisode )
 		
-		self.getNextSeries()
-		return data
+		return self.getNextSeries()
 
-	def getEpisodeTodayCallback(self, data=None):
-		splog("Wunschliste getEpisodeTodayCallback")
+	def getEpisodeToday(self, url, data=None):
+		splog("Wunschliste getEpisodeToday")
 		
 		if data and isinstance(data, basestring):
 		#if data and not isinstance(data, WLPrintParser):
@@ -329,10 +322,11 @@ class Wunschliste(IdentifierBase):
 			parser.feed(data)
 			#splog(parser.list)
 			
-			data = parser
+			data = parser.list
+			self.doCache(url, data)
 		
-		if data: # and isinstance(data, WLPrintParser): #Why is this not working after restarting the SeriesPlugin service
-			trs = data.list
+		if data:
+			trs = data
 			if trs:
 				yepisode = None
 				ydelta = maxint
@@ -395,44 +389,39 @@ class Wunschliste(IdentifierBase):
 							break
 				
 				if yepisode:
-					self.callback( yepisode )
-					return data
+					return ( yepisode )
 		
-		self.getNextSeries()
-		return data
+		return self.getNextSeries()
 
-	def getPageInternal(self, callback, url):
+	def getPageInternal(self, url):
 		
 		if self.checkLicense(url):
 			
-			# PHP Proxy with 3 day Caching
+			# PHP Proxy with 1 day Caching
 			# to minimize server requests
 			#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-			#IdentifierBase.getPage(self, callback, url)
-			self.getPage(callback, url)
+			#IdentifierBase.getPage(self, url)
+			return self.getPage( url)
 		
 		else:
-			self.callback( _("No valid license") )
+			return _("No valid license")
 
 	def checkLicense(self, url):
 		
-		global license
-		if license is not None:
-			return license
+		if self.license is not None:
+			return self.license
 		
 		from urllib2 import urlopen, URLError
 		try:
-			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=10).read()
+			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=5).read()
 		except URLError, e:
 			raise
 			
 		print "checkLicense"
 		print response
 		if response == "Valid License":
-			license = True
+			self.license = True
 			return True
 		else:
-			license = False
+			self.license = False
 			return False
-
-license = None

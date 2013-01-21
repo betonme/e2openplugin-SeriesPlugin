@@ -115,53 +115,54 @@ class SeriesPluginWorkerThread(CancelableThread):
 			identifier, callback, name, begin, end, service, channels = self.item
 			splog('SeriesPluginWorkerThread is processing: ', identifier)
 			
+			
 			# do processing stuff here
+			result = None
+			
 			try:
-				identifier.getEpisode(
-					self.workerCallback,
+				result = identifier.getEpisode(
 					name, begin, end, service, channels
 				)
 			except Exception, e:
-				splog("SeriesPluginWorkerThread Exception:", str(e))
+				splog("SeriesPluginWorkerThread Identifier Exception:", str(e))
 				
 				# Exception finish job with error
-				self.workerCallback( str(e) )
-	
-	def workerCallback(self, data=None):
-		splog('SeriesPluginWorkerThread callback')
-		identifier, callback, name, begin, end, service, channels = self.item
-		
-		if data and len(data) == 4:
-			season, episode, title, series = data
-			season = int(CompiledRegexpNonDecimal.sub('', season))
-			episode = int(CompiledRegexpNonDecimal.sub('', episode))
-			title = title.strip()
-			callback( (season, episode, title, series) )
-		else:
-			callback( data )
-		
-		config.plugins.seriesplugin.lookup_counter.value += 1
-		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
-			or (config.plugins.seriesplugin.lookup_counter.value == 100) \
-			or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
-			from plugin import ABOUT
-			about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
-			AddPopup(
-				about,
-				MessageBox.TYPE_INFO,
-				0,
-				'SP_PopUp_ID_About'
-			)
-		
-		# kill the thread
-		self.queue.task_done()
-		
-		# Queue empty check
-		if self.queue.empty():
-			config.plugins.seriesplugin.lookup_counter.save()
-		
-		# Wait for next job
-		#self.run()
+				result = str(e)
+			
+			try:
+				if result and len(result) == 4:
+					season, episode, title, series = result
+					season = int(CompiledRegexpNonDecimal.sub('', season))
+					episode = int(CompiledRegexpNonDecimal.sub('', episode))
+					title = title.strip()
+					callback( (season, episode, title, series) )
+				else:
+					callback( result )
+			except Exception, e:
+				splog("SeriesPluginWorkerThread Callback Exception:", str(e))
+			
+			config.plugins.seriesplugin.lookup_counter.value += 1
+			if (config.plugins.seriesplugin.lookup_counter.value == 10) \
+				or (config.plugins.seriesplugin.lookup_counter.value == 100) \
+				or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
+				from plugin import ABOUT
+				about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
+				AddPopup(
+					about,
+					MessageBox.TYPE_INFO,
+					0,
+					'SP_PopUp_ID_About'
+				)
+			
+			# kill the thread
+			self.queue.task_done()
+			
+			# Queue empty check
+			if self.queue.empty():
+				config.plugins.seriesplugin.lookup_counter.save()
+			
+			# Wait for next job
+			#self.run()
 
 
 class SeriesPlugin(Modules, ChannelsBase):
@@ -241,24 +242,23 @@ class SeriesPlugin(Modules, ChannelsBase):
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
 		
-		if isinstance(service, eServiceReference):
-			if service.getPath():
-				# Service is a movie reference
-				info = self.serviceHandler.info(service)
-				ref = info.getInfoString(service, iServiceInformation.sServiceref)
-				service = ServiceReference(ref)
-				splog("TODO SeriesPlugin eServiceReference movie", str(ref))
-				
-			else:
-				# Service is channel reference
-				ref = eServiceReference(str(service))
-				service = ServiceReference(ref)
-				splog("TODO SeriesPlugin eServiceReference channel", str(ref))
+		#if isinstance(service, eServiceReference):
+		#	if service.getPath():
+		#		# Service is a movie reference
+		#		info = self.serviceHandler.info(service)
+		#		ref = info.getInfoString(service, iServiceInformation.sServiceref)
+		#		service = ServiceReference(ref)
+		#		splog("TODO SeriesPlugin eServiceReference movie", str(ref))
+		#		
+		#	else:
+		#		# Service is channel reference
+		#		ref = eServiceReference(str(service))
+		#		service = ServiceReference(ref)
+		#		splog("TODO SeriesPlugin eServiceReference channel", str(ref))
+		#
+		#elif isinstance(service, ServiceReference):
+		#	splog("SeriesPlugin ServiceReference", str(ref))
 		
-		elif isinstance(service, ServiceReference):
-			splog("SeriesPlugin ServiceReference", str(ref))
-			
-			
 		channels = lookupServiceAlternatives(service)
 		
 		#MAYBE for all valid identifier in identifiers:
@@ -292,10 +292,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 				
 			except Exception, e:
 				splog(_("SeriesPlugin getEpisode exception ") + str(e))
-				exc_type, exc_value, exc_traceback = sys.exc_info()
-				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-				#splog( exc_type, exc_value, exc_traceback.format_exc() )
-				splog( exc_type, exc_value, exc_traceback )
 				callback( str(e) )
 			return identifier.getName()
 			
