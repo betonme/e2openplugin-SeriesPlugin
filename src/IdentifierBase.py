@@ -13,6 +13,9 @@ from thread import start_new_thread
 #from twisted.python.failure import Failure
 
 from time import sleep
+import socket
+socket.setdefaulttimeout(5)
+#import urllib2
 from urllib import urlencode
 from urllib2 import urlopen, URLError, Request, build_opener, HTTPCookieProcessor
 

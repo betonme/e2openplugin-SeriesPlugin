@@ -103,7 +103,7 @@ def lookupServiceAlternatives(service):
 	ref = str(service)
 	ref = re.sub('::.*', ':', ref)
 	splog("lookupServiceAlternatives ref", ref)
-	splog("lookupServiceAlternatives channels before", channels)
+	#splog("lookupServiceAlternatives channels before", channels)
 	splog("lookupServiceAlternatives ref in channels", ref in channels)
 	if ref in channels:
 		name, alternatives = channels.get(ref)
@@ -113,7 +113,13 @@ def lookupServiceAlternatives(service):
 		channels[ref] = ( name, alternatives )
 		channels_changed = True
 	
-	splog("lookupServiceAlternatives channels", channels, alternatives)
+	splog("lookupServiceAlternatives channels")
+	for channel in channels:
+		splog(channel)
+	splog("lookupServiceAlternatives alternatives")
+	for alternative in alternatives:
+		splog(alternative)
+	
 	return alternatives
 
 def compareChannels(locals, remote, service):

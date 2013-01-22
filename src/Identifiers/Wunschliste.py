@@ -411,9 +411,13 @@ class Wunschliste(IdentifierBase):
 		if self.license is not None:
 			return self.license
 		
+		import socket
+		socket.setdefaulttimeout(5)
+		from urllib import quote_plus
 		from urllib2 import urlopen, URLError
+		
 		try:
-			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=5).read()
+			response = urlopen(" http://betonme.lima-city.de/SeriesPlugin/license.php?url="+quote_plus(url) , timeout=5).read()
 		except URLError, e:
 			raise
 			

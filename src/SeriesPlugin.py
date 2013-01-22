@@ -215,17 +215,15 @@ class SeriesPlugin(Modules, ChannelsBase):
 
 	def stop(self):
 		splog("SeriesPluginWorker stop")
-		splog("SeriesPluginWorker stop, queue", self.queue)
-		splog("SeriesPluginWorker stop, queue empty", self.queue.empty())
-		if self.queue and not self.queue.empty():
-			active = self.worker and self.worker.isAlive()
-			splog("SeriesPluginWorker isAlive", active)
-			if active:
-				splog("SeriesPluginWorker Worker terminate")
-				self.worker.terminate()
+		if self.worker:
+			splog("SeriesPluginWorker isAlive", self.worker.isAlive())
+			splog("SeriesPluginWorker queue empty", self.queue.empty())
+			if self.queue: # and self.worker.isAlive():
 				splog("SeriesPluginWorker Queue join")
 				self.queue.join_with_timeout(1)
-				#self.worker = None
+			splog("SeriesPluginWorker Worker terminate")
+			self.worker.terminate()
+		self.worker = None
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()
 		self.saveXML()
@@ -280,10 +278,14 @@ class SeriesPlugin(Modules, ChannelsBase):
 			#	 ( elapsed and identifier.knowsElapsed() ):
 			try:
 				#available = True
-				splog("SeriesPlugin Worker isAlive", self.worker and self.worker.isAlive(), self.queue.qsize())
+				splog("SeriesPlugin Worker isAlive queueSize", self.worker and self.worker.isAlive(), self.queue and self.queue.qsize())
+				if not self.queue:
+					# Create new queue
+					splog("SeriesPlugin new Queue")
+					self.queue = QueueWithTimeOut()
 				if not (self.worker and self.worker.isAlive()):
 					# Start new worker
-					splog("SeriesPlugin Worker startNew")
+					splog("SeriesPlugin new Worker")
 					self.worker = SeriesPluginWorkerThread(self.queue)
 					self.worker.daemon = True
 					self.worker.start()

@@ -14,9 +14,29 @@ from . import _
 from Logger import splog
 
 
+## {{{ http://code.activestate.com/recipes/465057/ (r1)
+from threading import Lock
+
+myLock = Lock()
+
+def synchronized(lock):
+    """ Synchronization decorator. """
+    def wrap(f):
+        def newFunction(*args, **kw):
+            lock.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+				lock.release()
+        return newFunction
+    return wrap
+## end of http://code.activestate.com/recipes/465057/ }}}
+
+
 class QueueWithTimeOut(Queue):
 	def __init__(self):
 		Queue.__init__(self)
+	
 	def join_with_timeout(self, timeout):
 		self.all_tasks_done.acquire()
 		endtime = time() + timeout
@@ -30,6 +50,10 @@ class QueueWithTimeOut(Queue):
 			self.all_tasks_done.wait(remaining)
 		#splog("SeriesPluginWorker before all_tasks_done release")
 		self.all_tasks_done.release()
+		
+		# Release our semaphore
+		try: myLock.release()
+		except: pass
 
 
 def _async_raise(tid, exctype):
@@ -69,25 +93,10 @@ class CancelableThread(threading.Thread):
 		_async_raise(self._get_my_tid(), exctype)
 	
 	def terminate(self):
+		# Release our semaphore
+		try: myLock.release()
+		except: pass
+		
 		"""raises SystemExit in the context of the given thread, which should 
 		cause the thread to exit silently (unless caught)"""
 		self.raise_exc(SystemExit)
-
-
-## {{{ http://code.activestate.com/recipes/465057/ (r1)
-from threading import Lock
-
-myLock = Lock()
-
-def synchronized(lock):
-    """ Synchronization decorator. """
-    def wrap(f):
-        def newFunction(*args, **kw):
-            lock.acquire()
-            try:
-                return f(*args, **kw)
-            finally:
-                lock.release()
-        return newFunction
-    return wrap
-## end of http://code.activestate.com/recipes/465057/ }}}

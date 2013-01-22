@@ -185,17 +185,6 @@ class SeriesPluginInfoScreen(Screen):
 			#ref = eServiceReference(str(ref))
 			
 			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference().toString()
-			#if not ref:
-			#	return
-			#sref = ref.toString()
-			# strip all after last :
-			#pos = sref.rfind(':')
-			#if pos != -1:
-			#	sref = sref[:pos+1]
-			#ref = eServiceReference(str(sref))
-			
-			#ref = ServiceReference(ref)
-			#ref = eServiceReference(ref)
 			
 			channel = ServiceReference(ref).getServiceName() or ""
 			splog("SeriesPluginInfoScreen Fallback ref", str(ref))
@@ -213,7 +202,6 @@ class SeriesPluginInfoScreen(Screen):
 		
 		#self.service = ref
 		
-		
 		if self.event:
 			self.name = self.event.getEventName() or ""
 			begin = self.event.getBeginTime() or 0
@@ -225,7 +213,7 @@ class SeriesPluginInfoScreen(Screen):
 			splog("SeriesPluginInfoScreen event")
 		
 		if not begin:
-			info = self.serviceHandler.info(ref)
+			info = self.serviceHandler.info(eServiceReference(str(ref)))
 			splog("SeriesPluginInfoScreen info")
 			if info:
 				splog("SeriesPluginInfoScreen if info")

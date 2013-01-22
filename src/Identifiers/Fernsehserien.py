@@ -7,7 +7,6 @@ from Components.config import config
 from Tools.BoundFunction import boundFunction
 
 # Imports
-from urlparse import urljoin
 from urllib import urlencode
 
 #from HTMLParser import HTMLParser
@@ -177,12 +176,14 @@ class Fernsehserien(IdentifierBase):
 						if len(tdnodes) >= 6 and tdnodes[2].string and len(tdnodes[2].string) >= 15:
 							tds = []
 							for tdnode in tdnodes:
-								tds.append(tdnode.string)
+								tds.append(tdnode.string or "")
 							trs.append( tds )
 						# This row belongs to the previous
 						elif trs and len(tdnodes) == 5:
-							trs[-1][5] += ' ' + tdnodes[3].string
-							trs[-1][6] += ' ' + tdnodes[4].string
+							#if trs[-1][5] and tdnodes[3].string:
+							trs[-1][5] += ' ' + (tdnodes[3].string or "")
+							#if trs[-1][6] and tdnodes[4].string:
+							trs[-1][6] += ' ' + (tdnodes[4].string or "")
 						else:
 							splog( "tdnodes", len(tdnodes), tdnodes )
 					
@@ -267,7 +268,7 @@ class Fernsehserien(IdentifierBase):
 											splog( "tds", len(tds), tds )
 											if len(tds) >= 10:
 												# Second part: s1e1, s1e2,
-												xseason = tds[7]
+												xseason = tds[7] or "0"
 												xepisode = tds[8]
 												xtitle = " ".join(tds[10:])  # Use all available titles
 											elif len(tds) >= 7:
@@ -332,9 +333,13 @@ class Fernsehserien(IdentifierBase):
 		if self.license is not None:
 			return self.license
 		
+		import socket
+		socket.setdefaulttimeout(5)
+		from urllib import quote_plus
 		from urllib2 import urlopen, URLError
+		
 		try:
-			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?url="+url , timeout=5).read()
+			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?url="+quote_plus(url) , timeout=5).read()
 		except URLError, e:
 			raise
 			
