@@ -284,7 +284,7 @@ class Wunschliste(IdentifierBase):
 														xepisode = "0"
 												else:
 													splog("Wunschliste wrong title format", xtitle)
-													xseason = "1"
+													xseason = "0"
 													xepisode = "0"
 												result = CompiledRegexpAtomTitle.search(xtitle)
 												

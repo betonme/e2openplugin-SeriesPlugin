@@ -46,15 +46,18 @@ class SeriesPluginTimer(object):
 		# because of the E2 special chars handling for creating the filenames
 		#if timer.name == name:
 		# Mad Men != Mad_Men
-		epgcache = eEPGCache.getInstance()
-		event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
 		
-		if (not event):
-			splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
-		
-		if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
-			splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
-			return
+		if config.plugins.seriesplugin.check_timer_eit.value:
+			epgcache = eEPGCache.getInstance()
+			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
+			
+			if (not event):
+				splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
+				return
+			
+			if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
+				splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
+				return
 		
 		if timer.begin < time() + 60:
 			splog("Skipping an event because it starts in less than 60 seconds", timer.name )

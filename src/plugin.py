@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.4"
+VERSION = "0.8.5"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -79,6 +79,8 @@ config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.log_file                  = ConfigText(default = "/tmp/seriesplugin.log", fixed_size = False)
 config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)
 config.plugins.seriesplugin.log_reply_mail            = ConfigText(default = "myemail@home.com", fixed_size = False)
+
+config.plugins.seriesplugin.check_timer_eit           = ConfigYesNo(default = True)
 
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)

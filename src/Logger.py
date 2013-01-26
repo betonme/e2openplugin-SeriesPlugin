@@ -123,10 +123,11 @@ class Logger(object):
 				type = MessageBox.TYPE_ERROR
 			)
 			return
-	#TODO
-		if not not(
-				(str(config.plugins.seriesplugin.log_reply_user.value) != "Dreambox User") or
-				(str(config.plugins.seriesplugin.log_reply_mail.value) != "myemail@home.com")
+		
+		# Avoid "Dreambox User" and "myemail@home.com"
+		if not(
+				( str(config.plugins.seriesplugin.log_reply_user.value) != str(config.plugins.seriesplugin.log_reply_user.default) ) or
+				( str(config.plugins.seriesplugin.log_reply_mail.value) != str(config.plugins.seriesplugin.log_reply_mail.default) )
 			):
 			self.session.open(
 				MessageBox,

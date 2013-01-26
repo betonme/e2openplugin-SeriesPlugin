@@ -284,6 +284,11 @@ class SeriesPlugin(Modules, ChannelsBase):
 					splog("SeriesPlugin new Queue")
 					self.queue = QueueWithTimeOut()
 				if not (self.worker and self.worker.isAlive()):
+					
+					# Create new queue
+					splog("SeriesPlugin new Queue")
+					self.queue = QueueWithTimeOut()
+					
 					# Start new worker
 					splog("SeriesPlugin new Worker")
 					self.worker = SeriesPluginWorkerThread(self.queue)

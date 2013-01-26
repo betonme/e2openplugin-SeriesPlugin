@@ -268,7 +268,7 @@ class Fernsehserien(IdentifierBase):
 											splog( "tds", len(tds), tds )
 											if len(tds) >= 10:
 												# Second part: s1e1, s1e2,
-												xseason = tds[7] or "0"
+												xseason = tds[7] or "1"
 												xepisode = tds[8]
 												xtitle = " ".join(tds[10:])  # Use all available titles
 											elif len(tds) >= 7:
