@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.5"
+VERSION = "0.8.5.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -72,7 +72,7 @@ config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
 
 config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = False)
-config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(0, 24, 1, default = 6)
+config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(1, 24, 1, default = 6)
 config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)

@@ -223,7 +223,7 @@ class SeriesPluginRenameService(object):
 			result = service.getPath()
 		
 		if callable(self.callback):
-			self.callback(result)
+			self.callback( str(result) )
 
 
 #######################################################

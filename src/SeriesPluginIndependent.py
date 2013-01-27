@@ -65,7 +65,7 @@ class SeriesPluginIndependent(object):
 		self.etimer.callback.append(self.run)
 		cycle = int(config.plugins.seriesplugin.independent_cycle.value)
 		if cycle > 0:
-			self.etimer.start( (cycle * 60 * 60) )
+			self.etimer.start( (cycle * 60 * 60 * 1000) )
 		# Start timer as single shot, just for testing
 		#self.etimer.start( 10, True )
 
