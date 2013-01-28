@@ -1,0 +1,6 @@
+<SeriesPlugin version="0.8.1">
+  <!--Don't edit this manually unless you really know what you are doing-->
+  <Channel name="FOX HD" reference="1:0:19:56D7:E5:A018:FFFF0000:0:0:0:">
+    <Alternative>FOX HD</Alternative>
+  </Channel>
+</SeriesPlugin>
