@@ -1,4 +1,10 @@
 # by betonme @2012
+#
+#########################################
+#
+# !! Never make this file public !!
+#
+#########################################
 
 # Imports
 from Components.config import config

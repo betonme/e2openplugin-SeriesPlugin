@@ -143,7 +143,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 					
 			self.list.append( getConfigListEntry(  _("AutoTimer independent mode")                 , config.plugins.seriesplugin.autotimer_independent ) )
 			if config.plugins.seriesplugin.autotimer_independent.value:
-				self.list.append( getConfigListEntry(  _("Check timer every x hours")              , config.plugins.seriesplugin.independent_cycle ) )
+				self.list.append( getConfigListEntry(  _("Check timer every x minutes")            , config.plugins.seriesplugin.independent_cycle ) )
 			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
 			
 			self.list.append( getConfigListEntry(  _("Check Timer Eit")                            , config.plugins.seriesplugin.check_timer_eit ) )
