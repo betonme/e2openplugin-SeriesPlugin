@@ -223,7 +223,7 @@ class SeriesPluginRenameService(object):
 			result = service.getPath()
 		
 		if callable(self.callback):
-			self.callback( str(result) )
+			self.callback( result )
 
 
 #######################################################
@@ -255,7 +255,7 @@ class SeriesPluginRenamer(object):
 
 	def renamerCallback(self, result=None):
 		self.returned += 1
-		if result:
+		if result and isinstance(result, basestring):
 			#Maybe later self.failed.append( name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
 			self.failed.append( result )
 		
