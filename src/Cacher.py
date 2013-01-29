@@ -70,3 +70,7 @@ class Cacher(object):
 		#pushCache
 		global cache
 		cache[url] = (time(), page)
+
+	def isCached(self, url):
+		global cache
+		return (url in cache)

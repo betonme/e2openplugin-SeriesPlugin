@@ -44,12 +44,20 @@ class IdentifierBase(ModuleBase, Cacher):
 		self.returnvalue = None
 
 	################################################
+	# Helper function
+	def getAlternativeSeries(self, name):
+		return " ".join(name.split(" ")[:-1])
+
+	################################################
 	# URL functions
 	def getPage(self, url, headers={}, expires=INTER_QUERY_TIME, counter=0):
 		response = None
 		
 		splog("SSBase getPage", url)
 		
+		#TEST other solutions
+		#http://de.softuses.com/28672
+		#http://code.google.com/p/psutil/
 		VmSize = MemoryUsage.memory()
 		splog("SP VmSize: "+str(VmSize/1024/1024)+" Mb" )
 		VmRSS  = MemoryUsage.resident()
@@ -108,7 +116,9 @@ class IdentifierBase(ModuleBase, Cacher):
 		# False: Service doesn't know future air dates
 		return False
 
+	################################################
+	# To be implemented by subclass
 	def getEpisode(self, name, begin, end, service, channels):
 		# On Success: Return a single season, episode, title tuple
-		# On Failure: Return a empty list or None
+		# On Failure: Return a empty list or String or None
 		return None

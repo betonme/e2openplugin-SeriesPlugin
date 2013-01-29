@@ -1,10 +1,4 @@
 # by betonme @2012
-#
-#########################################
-#
-# !! Never make this file public !!
-#
-#########################################
 
 import math
 from sys import maxint
@@ -51,8 +45,6 @@ Headers = {
 class Fernsehserien(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
-		self.id = 0
-		self.page = 0
 
 	@classmethod
 	def knowsElapsed(cls):
@@ -68,21 +60,16 @@ class Fernsehserien(IdentifierBase):
 
 	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
-		# On Failure: Return a empty list or None
+		# On Failure: Return a empty list or String or None
 		
 		self.license = None
 		
-		self.name = name
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
 		self.end = end
 		self.service = service
 		self.channels = channels
-		self.ids = []
 		
-		self.soup = None
-		
-		self.id = 0
 		self.series = ""
 		self.first = None
 		self.last = None
@@ -102,224 +89,223 @@ class Fernsehserien(IdentifierBase):
 			self.future = True
 		else:
 			self.future = False
-		
 		splog("Fernsehserien getEpisode future", self.future)
-		return self.getSeries()
-
-	def getAlternativeSeries(self):
-		self.name = " ".join(self.name.split(" ")[:-1])
-		if self.name:
-			return self.getSeries()
+	
+		while name:	
+			ids = self.getSeries(name)
+			
+			while ids:
+				idserie = ids.pop()
+				
+				if idserie and len(idserie) == 2:
+					id, self.series = idserie
+					
+					self.page = 0
+					#if self.future:
+					#	self.page = 0
+					#else:
+					#	self.page = -1
+					
+					self.first = None
+					self.last = None
+					
+					while self.page is not None:
+						result = self.getNextPage(id)
+						if result:
+							return result
+					
+			else:
+				name = self.getAlternativeSeries(name)
+		
 		else:
 			return ( self.returnvalue or _("No matching series found") )
-	
-	def getSeries(self):
-		url = SERIESLISTURL + urlencode({ 'term' : self.name })
+
+	def getSeries(self, name):
+		url = SERIESLISTURL + urlencode({ 'term' : name })
 		data = self.getPageInternal( url )
 
-		serieslist = []
-		
 		if data and isinstance(data, basestring):
-			for line in json.loads(data):
-				id = line['id']
-				idname = line['value']
-				splog(id, idname)
-				serieslist.append( (id, idname) )
-			serieslist.reverse()
-			
-			data = serieslist
+			data = self.parseSeries(data)
 			self.doCache(url, data)
 		
 		if data and isinstance(data, list):
-			self.ids = data[:]
-			return self.getNextSeries()
-		else:
-			return self.getAlternativeSeries()
+			splog("Fernsehserien ids", data)
+			return data
 
-	def getNextSeries(self):
-		splog("Fernsehserien getNextSeries", self.ids)
-		if self.ids:
-			self.id, self.series = self.ids.pop()
-			
-			self.page = 0
-			#if self.future:
-			#	self.page = 0
-			#else:
-			#	self.page = -1
-			
-			self.first = None
-			self.last = None
-			
-			return self.getNextPage()
-		
-		else:
-			return ( self.returnvalue or _("No matching series found") )
+	def parseSeries(self, data):
+		serieslist = []
+		for line in json.loads(data):
+			id = line['id']
+			idname = line['value']
+			splog(id, idname)
+			serieslist.append( (id, idname) )
+		serieslist.reverse()
+		return serieslist
 
-	def getNextPage(self):
-		url = EPISODEIDURL % (self.id, self.page)
-		data = self.getPageInternal( url )
-		
+	def parseNextPage(self, data):
 		trs = []
 		
-		if data and isinstance(data, basestring):
-			
-			# Handle malformed HTML issues
-			data = data.replace('\\"','"')  # target=\"_blank\"
-			data = data.replace('\'+\'','') # document.write('<scr'+'ipt
-			
-			self.soup = BeautifulSoup(data)
-			
-			table = self.soup.find('table', 'sendetermine')
-			if table:
-				for trnode in table.find_all('tr'):
-					# TODO skip first header row
-					tdnodes = trnode and trnode.find_all('td')
+		# Handle malformed HTML issues
+		data = data.replace('\\"','"')  # target=\"_blank\"
+		data = data.replace('\'+\'','') # document.write('<scr'+'ipt
+		
+		soup = BeautifulSoup(data)
+		
+		table = soup.find('table', 'sendetermine')
+		if table:
+			for trnode in table.find_all('tr'):
+				# TODO skip first header row
+				tdnodes = trnode and trnode.find_all('td')
+				
+				if tdnodes:
+					# Filter for known rows
+					#if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
 					
-					if tdnodes:
-						# Filter for known rows
-						#if len(tdnodes) == 7 and len(tdnodes[2].string) >= 15:
-						
-						if len(tdnodes) >= 6 and tdnodes[2].string and len(tdnodes[2].string) >= 15:
-							tds = []
-							for tdnode in tdnodes:
-								tds.append(tdnode.string or "")
-							trs.append( tds )
-						# This row belongs to the previous
-						elif trs and len(tdnodes) == 5:
-							#if trs[-1][5] and tdnodes[3].string:
-							trs[-1][5] += ' ' + (tdnodes[3].string or "")
-							#if trs[-1][6] and tdnodes[4].string:
-							trs[-1][6] += ' ' + (tdnodes[4].string or "")
-						else:
-							splog( "tdnodes", len(tdnodes), tdnodes )
-					
+					if len(tdnodes) >= 6 and tdnodes[2].string and len(tdnodes[2].string) >= 15:
+						tds = []
+						for tdnode in tdnodes:
+							tds.append(tdnode.string or "")
+						trs.append( tds )
+					# This row belongs to the previous
+					elif trs and len(tdnodes) == 5:
+						#if trs[-1][5] and tdnodes[3].string:
+						trs[-1][5] += ' ' + (tdnodes[3].string or "")
+						#if trs[-1][6] and tdnodes[4].string:
+						trs[-1][6] += ' ' + (tdnodes[4].string or "")
 					else:
-						splog( "tdnodes", tdnodes )
-			
-			splog(trs)
-			
-			data = trs
+						splog( "tdnodes", len(tdnodes), tdnodes )
+				
+				else:
+					splog( "tdnodes", tdnodes )
+		
+		#splog(trs)
+		return trs
+
+	def getNextPage(self, id):
+		url = EPISODEIDURL % (id, self.page)
+		data = self.getPageInternal( url )
+		
+		if data and isinstance(data, basestring):
+			data = self.parseNextPage(data)
 			self.doCache(url, data)
 		
-		if data:
+		if data and isinstance(data, list):
 			
 			trs = data
 			# trs[x] = [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
-			if not trs:
-				pass
+
+			yepisode = None
+			ydelta = maxint
 			
-			else:
-				yepisode = None
-				ydelta = maxint
+			first = trs[0][2]
+			last = trs[-1][2]
+			
+			#print first[0:5]
+			#print last[6:11] 
+			
+			# trs[0] first line [2] second element = timestamps [a:b] use first time
+			first = datetime.strptime( first[0:5] + trs[0][1], "%H:%M%d.%m.%Y" )
+			# trs[-1] last line [2] second element = timestamps [a:b] use second time
+			last = datetime.strptime( last[6:11] + trs[-1][1], "%H:%M%d.%m.%Y" )
+			
+			first = first - timedelta(seconds=max_time_drift)
+			last = last + timedelta(seconds=max_time_drift)
+			
+			if self.first != first and self.last != last:
+				self.first = first
+				self.last = last
 				
-				first = trs[0][2]
-				last = trs[-1][2]
-				
-				#print first[0:5]
-				#print last[6:11] 
-				
-				# trs[0] first line [2] second element = timestamps [a:b] use first time
-				first = datetime.strptime( first[0:5] + trs[0][1], "%H:%M%d.%m.%Y" )
-				# trs[-1] last line [2] second element = timestamps [a:b] use second time
-				last = datetime.strptime( last[6:11] + trs[-1][1], "%H:%M%d.%m.%Y" )
-				
-				first = first - timedelta(seconds=max_time_drift)
-				last = last + timedelta(seconds=max_time_drift)
-				
-				if self.first != first and self.last != last:
-					self.first = first
-					self.last = last
+				splog("first, self.begin, last, if ", first, self.begin, last, ( first <= self.begin and self.begin <= last ))
+				if ( first <= self.begin and self.begin <= last ):
+					#search in page for matching datetime
+					for tds in trs:
+						if tds and len(tds) >= 6:  #7:
+							# Grey's Anathomy
+							# [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
+							# 
+							# Gute Zeiten 
+							# [None, u'20.11.2012', u'06:40\u201307:20 Uhr', u'NDR', None, u'4187', u'Folge 4187']
+							# [None, u'01.12.2012', u'10:45\u201313:15 Uhr', u'RTL', None, u'5131', u'Folge 5131']
+							# [None, u'\xa0', None, u'5132', u'Folge 5132']
+							# [None, u'\xa0', None, u'5133', u'Folge 5133']
+							# [None, u'\xa0', None, u'5134', u'Folge 5134']
+							# [None, u'\xa0', None, u'5135', u'Folge 5135']
+							
+							# Wahnfried
+							# [u'Sa', u'26.12.1987', u'\u2013', u'So', u'27.12.1987', u'1Plus', None]
+							
+							# First part: date, times, channel
+							xdate, xbegin = tds[1:3]
+							splog( "tds", tds )
+							
+							#xend = xbegin[6:11]
+							xbegin = xbegin[0:5]
+							xbegin = datetime.strptime( xbegin+xdate, "%H:%M%d.%m.%Y" )
+							#xend = datetime.strptime( xend+xdate, "%H:%M%d.%m.%Y" )
+							#print "xbegin", xbegin
+							
+							#Py2.6
+							delta = abs(self.begin - xbegin)
+							delta = delta.seconds + delta.days * 24 * 3600
+							#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
+							splog(self.begin, xbegin, delta, max_time_drift)
+							
+							if delta <= max_time_drift:
+								
+								if compareChannels(self.channels, tds[3], self.service):
+									
+									if delta < ydelta:
+										
+										splog( "tds", len(tds), tds )
+										if len(tds) >= 10:
+											# Second part: s1e1, s1e2,
+											xseason = tds[7] or "1"
+											xepisode = tds[8]
+											xtitle = " ".join(tds[10:])  # Use all available titles
+										elif len(tds) >= 7:
+											# Second part: s1e1, s1e2,
+											xseason = tds[4]
+											xepisode = tds[5]
+											if xseason and xseason.find(".") != -1:
+												xseason = xseason[:-1]
+												xtitle = " ".join(tds[6:])  # Use all available titles
+											else:
+												xseason = "1"
+												xtitle = " ".join(tds[6:])  # Use all available titles
+										elif len(tds) == 6:
+											xseason = "0"
+											xepisode = "0"
+											xtitle = tds[5]
+										if xseason and xepisode and xtitle and self.series:
+											yepisode = (xseason, xepisode, xtitle, self.series)
+											ydelta = delta
+									
+									else: #if delta >= ydelta:
+										break
+								
+								else:
+									self.returnvalue = _("Check the channel name")
+								
+							elif yepisode:
+								break
 					
-					splog("first, self.begin, last, if ", first, self.begin, last, ( first <= self.begin and self.begin <= last ))
-					if ( first <= self.begin and self.begin <= last ):
-						#search in page for matching datetime
-						for tds in trs:
-							if tds and len(tds) >= 6:  #7:
-								# Grey's Anathomy
-								# [None, u'31.10.2012', u'20:15\u201321:15 Uhr', u'ProSieben', u'8.', u'15', u'Richtungswechsel']
-								# 
-								# Gute Zeiten 
-								# [None, u'20.11.2012', u'06:40\u201307:20 Uhr', u'NDR', None, u'4187', u'Folge 4187']
-								# [None, u'01.12.2012', u'10:45\u201313:15 Uhr', u'RTL', None, u'5131', u'Folge 5131']
-								# [None, u'\xa0', None, u'5132', u'Folge 5132']
-								# [None, u'\xa0', None, u'5133', u'Folge 5133']
-								# [None, u'\xa0', None, u'5134', u'Folge 5134']
-								# [None, u'\xa0', None, u'5135', u'Folge 5135']
-								
-								# Wahnfried
-								# [u'Sa', u'26.12.1987', u'\u2013', u'So', u'27.12.1987', u'1Plus', None]
-								
-								# First part: date, times, channel
-								xdate, xbegin = tds[1:3]
-								splog( "tds", tds )
-								
-								#xend = xbegin[6:11]
-								xbegin = xbegin[0:5]
-								xbegin = datetime.strptime( xbegin+xdate, "%H:%M%d.%m.%Y" )
-								#xend = datetime.strptime( xend+xdate, "%H:%M%d.%m.%Y" )
-								#print "xbegin", xbegin
-								
-								#Py2.6
-								delta = abs(self.begin - xbegin)
-								delta = delta.seconds + delta.days * 24 * 3600
-								#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-								splog(self.begin, xbegin, delta, max_time_drift)
-								
-								if delta <= max_time_drift:
-									
-									if compareChannels(self.channels, tds[3], self.service):
-										
-										if delta < ydelta:
-											
-											splog( "tds", len(tds), tds )
-											if len(tds) >= 10:
-												# Second part: s1e1, s1e2,
-												xseason = tds[7] or "1"
-												xepisode = tds[8]
-												xtitle = " ".join(tds[10:])  # Use all available titles
-											elif len(tds) >= 7:
-												# Second part: s1e1, s1e2,
-												xseason = tds[4]
-												xepisode = tds[5]
-												if xseason and xseason.find(".") != -1:
-													xseason = xseason[:-1]
-													xtitle = " ".join(tds[6:])  # Use all available titles
-												else:
-													xseason = "1"
-													xtitle = " ".join(tds[6:])  # Use all available titles
-											elif len(tds) == 6:
-												xseason = "0"
-												xepisode = "0"
-												xtitle = tds[5]
-											if xseason and xepisode and xtitle and self.series:
-												yepisode = (xseason, xepisode, xtitle, self.series)
-												ydelta = delta
-										
-										else: #if delta >= ydelta:
-											break
-									
-									else:
-										self.returnvalue = _("Check the channel name")
-									
-								elif yepisode:
-									break
-						
-						if yepisode:
-							return ( yepisode )
+					if yepisode:
+						return ( yepisode )
+				
+				else:
+					# TODO calculate next page : use firstrow lastrow datetime
+					if not self.future:
+						if first > self.begin:
+							self.page -= 1
+							return
 					
 					else:
-						#calculate next page : use firstrow lastrow datetime
-						if not self.future:
-							if first > self.begin:
-								self.page -= 1
-								return self.getNextPage()
-						
-						else:
-							if self.begin > last:
-								self.page += 1
-								return self.getNextPage()
+						if self.begin > last:
+							self.page += 1
+							return
 		
-		return self.getNextSeries()
+		self.page = None
+		return
 
 	def getPageInternal(self, url):
 		
@@ -341,11 +327,18 @@ class Fernsehserien(IdentifierBase):
 		
 		import socket
 		socket.setdefaulttimeout(5)
-		from urllib import quote_plus
+		from urllib import urlencode
+		#from urllib import quote_plus
 		from urllib2 import urlopen, URLError
 		
 		try:
-			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?url="+quote_plus(url) , timeout=5).read()
+			parameter = urlencode(
+				{
+					'url' : url,
+					'cached' : str(self.isCached(url))
+				}
+			)
+			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?" + parameter, timeout=5).read()
 		except URLError, e:
 			raise
 			
