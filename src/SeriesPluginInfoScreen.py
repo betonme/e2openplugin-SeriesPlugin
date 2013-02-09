@@ -190,8 +190,8 @@ class SeriesPluginInfoScreen(Screen):
 			splog("SeriesPluginInfoScreen Fallback ref", str(ref))
 		
 		if not isinstance(self.event, eServiceEvent):
-			eref = eServiceReference(ref)
-			self.event = eref.valid() and self.epg.lookupEventTime(eref, -1)
+			ref = eServiceReference(ref)
+			self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
 			#num = event and event.getNumOfLinkageServices() or 0
 			#for cnt in range(num):
 			#	subservice = event.getLinkageService(sref, cnt)
@@ -200,7 +200,7 @@ class SeriesPluginInfoScreen(Screen):
 			elapsed = False
 			splog("SeriesPluginInfoScreen Fallback event")
 		
-		#self.service = ref
+		self.service = ref
 		
 		if self.event:
 			self.name = self.event.getEventName() or ""
@@ -409,7 +409,7 @@ class SeriesPluginInfoScreen(Screen):
 			if event is None:
 				return
 			eventid = event.getEventId()
-			refstr = ref.toString()
+			refstr = eServiceReference(str(self.service)).toString()
 			for timer in self.session.nav.RecordTimer.timer_list:
 				if timer.eit == eventid and timer.service_ref.ref.toString() == refstr:
 					cb_func = lambda ret : not ret or self.removeTimer(timer)
