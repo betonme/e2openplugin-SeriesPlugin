@@ -284,9 +284,11 @@ class WunschlisteFeed(IdentifierBase):
 		from urllib2 import urlopen, URLError
 		
 		try:
+			from Plugins.Extensions.SeriesPlugin.plugin import VERSION
 			parameter = urlencode(
 				{
 					'url' : url,
+					'version' : VERSION,
 					'cached' : str(self.isCached(url))
 				}
 			)
