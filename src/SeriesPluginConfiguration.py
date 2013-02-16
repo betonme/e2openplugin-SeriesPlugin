@@ -164,7 +164,11 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 	def changed(self):
 		for x in self.onChangedEntry:
 			x()
-		self.changeConfig()
+		current = self["config"].getCurrent()[1]
+		if (current == config.plugins.seriesplugin.enabled or 
+			current == config.plugins.seriesplugin.autotimer_independent or 
+			current == config.plugins.seriesplugin.write_log):
+			self.changeConfig()
 
 	# Overwrite ConfigListScreen keySave function
 	def keySave(self):
@@ -231,7 +235,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 	def closeConfirm(self, dummy=None):
 		# Call baseclass function
 		Screen.close(self)
-
+	
 	def getCurrentEntry(self):
 		return self["config"].getCurrent()[0]
 
