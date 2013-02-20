@@ -148,6 +148,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			
 			self.list.append( getConfigListEntry(  _("Check Timer Eit")                            , config.plugins.seriesplugin.check_timer_eit ) )
 			
+			self.list.append( getConfigListEntry(  _("Use local caching")                          , config.plugins.seriesplugin.caching ) )
+			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
 			
 			self.list.append( getConfigListEntry(  _("Debug: Write Log")                           , config.plugins.seriesplugin.write_log ) )
