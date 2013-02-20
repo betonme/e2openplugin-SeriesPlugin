@@ -75,6 +75,8 @@ config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(5, 24*60, 5, default = 60)
 config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 
+config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
+
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
 config.plugins.seriesplugin.log_file                  = ConfigText(default = "/tmp/seriesplugin.log", fixed_size = False)
 config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)

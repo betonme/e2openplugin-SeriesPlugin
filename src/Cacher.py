@@ -18,6 +18,8 @@
 
 from time import time
 
+from Components.config import *
+
 from Logger import splog
 
 
@@ -41,6 +43,10 @@ class Cacher(object):
 	def getCached(self, url, expires):
 		#pullCache
 		global cache
+		
+		if not config.plugins.seriesplugin.caching.value:
+			return
+		
 		# Try to get the tuple (TIMESTAMP, FEED_STRUCT) from the dict if it has
 		# already been downloaded. Otherwise assign None to already_got
 		already_got = cache.get(url, None)
@@ -69,8 +75,16 @@ class Cacher(object):
 	def doCache(self, url, page):
 		#pushCache
 		global cache
+		
+		if not config.plugins.seriesplugin.caching.value:
+			return
+		
 		cache[url] = (time(), page)
 
 	def isCached(self, url):
 		global cache
+		
+		if not config.plugins.seriesplugin.caching.value:
+			return
+		
 		return (url in cache)
