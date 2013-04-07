@@ -47,23 +47,32 @@ class SeriesPluginTimer(object):
 		#if timer.name == name:
 		# Mad Men != Mad_Men
 		
-		if config.plugins.seriesplugin.check_timer_eit.value:
-			epgcache = eEPGCache.getInstance()
+		epgcache = eEPGCache.getInstance()
+		
+		if timer.eit:
 			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
-			
-			if (not event):
-				splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
-				return
-			
-			if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
-				splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
-				return
+		
+		else:
+			#timer.service_ref.toString()
+			#timer.service_ref.ref.toString()
+			events = epgcache.lookupEvent(["N" , (timer.service_ref.ref, 0, begin, end)]);
+			splog("Event(s) found", len(events) )
+			splog(events)
+			event = events and events[0]
+		
+		if (not event):
+			splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
+			return
+		
+		if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
+			splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
+			return
 		
 		if timer.begin < time() + 60:
 			splog("Skipping an event because it starts in less than 60 seconds", timer.name )
 			return
 		
-		if timer.isRunning() and not timer.justplay:
+		if timer.isRunning():
 			splog("Skipping timer because it is already running", timer.name )
 			return
 		
