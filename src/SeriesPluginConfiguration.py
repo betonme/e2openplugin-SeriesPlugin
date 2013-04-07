@@ -40,12 +40,14 @@ from Logger import splog, Logger
 
 
 def checkList(cfg):
-	if cfg.value not in cfg.choices.choices:
-		if cfg.default in cfg.choices.choices:
+	for choices in cfg.choices.choices:
+		if cfg.value == choices[0]:
+			return
+	for choices in cfg.choices.choices:
+		if cfg.default == choices[0]:
 			cfg.value = cfg.default
-		else:
-			cfg.value = cfg.choices.choices[0]
-	print cfg.value
+			return
+	cfg.value = cfg.choices.choices[0][0]
 
 
 #######################################################
