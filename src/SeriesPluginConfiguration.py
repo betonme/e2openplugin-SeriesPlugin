@@ -148,8 +148,6 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 				self.list.append( getConfigListEntry(  _("Check timer every x minutes")            , config.plugins.seriesplugin.independent_cycle ) )
 			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
 			
-			self.list.append( getConfigListEntry(  _("Check Timer Eit")                            , config.plugins.seriesplugin.check_timer_eit ) )
-			
 			self.list.append( getConfigListEntry(  _("Use local caching")                          , config.plugins.seriesplugin.caching ) )
 			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )

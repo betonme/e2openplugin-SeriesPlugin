@@ -82,8 +82,6 @@ config.plugins.seriesplugin.log_file                  = ConfigText(default = "/t
 config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)
 config.plugins.seriesplugin.log_reply_mail            = ConfigText(default = "myemail@home.com", fixed_size = False)
 
-config.plugins.seriesplugin.check_timer_eit           = ConfigYesNo(default = True)
-
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
 
