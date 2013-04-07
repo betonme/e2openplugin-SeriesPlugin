@@ -44,12 +44,16 @@ instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
 
+def dump(obj):
+	for attr in dir(obj):
+		splog( "config.plugins.seriesplugin.%s = %s" % (attr, getattr(obj, attr)) )
 
 def getInstance():
 	global instance
 	if instance is None:
 		from plugin import VERSION
 		splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
+		dump(config.plugins.seriesplugin)
 		instance = SeriesPlugin()
 	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
 	return instance
