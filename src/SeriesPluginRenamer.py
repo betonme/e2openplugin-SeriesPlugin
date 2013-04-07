@@ -208,7 +208,7 @@ class SeriesPluginRenameService(object):
 			)
 
 	def serviceCallback(self, data=None):
-		splog("SeriesPluginTimer serviceCallback")
+		splog("SeriesPluginRenamer serviceCallback")
 		splog(data)
 		
 		result = None
