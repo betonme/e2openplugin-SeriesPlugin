@@ -83,8 +83,9 @@ class SeriesPluginIndependent(object):
 				if timer.isRunning() or timer.justplay:
 					continue
 				
-				if hasattr(timer, 'serieslookupdone') and timer.serieslookupdone:
-					continue
+				if not timer.repeated:
+					if hasattr(timer, 'serieslookupdone') and timer.serieslookupdone:
+						continue
 				
 				#Maybe later add a series whitelist xml
 				SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
