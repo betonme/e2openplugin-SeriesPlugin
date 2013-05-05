@@ -27,9 +27,6 @@ from enigma import eTimer
 from time import gmtime
 #from ServiceReference import ServiceReference
 
-from Screens.MessageBox import MessageBox
-from Tools.Notifications import AddPopup
-
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 from SeriesPluginTimer import SeriesPluginTimer

@@ -146,17 +146,18 @@ class SeriesPluginWorkerThread(CancelableThread):
 				splog("SeriesPluginWorkerThread Callback Exception:", str(e))
 			
 			config.plugins.seriesplugin.lookup_counter.value += 1
-			if (config.plugins.seriesplugin.lookup_counter.value == 10) \
-				or (config.plugins.seriesplugin.lookup_counter.value == 100) \
-				or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
-				from plugin import ABOUT
-				about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
-				AddPopup(
-					about,
-					MessageBox.TYPE_INFO,
-					0,
-					'SP_PopUp_ID_About'
-				)
+#TBD Because of E2 Update 05.2013
+#			if (config.plugins.seriesplugin.lookup_counter.value == 10) \
+#				or (config.plugins.seriesplugin.lookup_counter.value == 100) \
+#				or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
+#				from plugin import ABOUT
+#				about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
+#				AddPopup(
+#					about,
+#					MessageBox.TYPE_INFO,
+#					0,
+#					'SP_PopUp_ID_About'
+#				)
 			
 			# kill the thread
 			self.queue.task_done()

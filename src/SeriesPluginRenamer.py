@@ -258,20 +258,20 @@ class SeriesPluginRenamer(object):
 		if result and isinstance(result, basestring):
 			#Maybe later self.failed.append( name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
 			self.failed.append( result )
-		
-		if self.returned == len(self.services):
-			if self.failed:
-				AddPopup(
-					_("Movie rename has been finished with %d errors:\n") % (len(self.failed)) + "\n".join(self.failed),
-					MessageBox.TYPE_ERROR,
-					0,
-					'SP_PopUp_ID_RenameFinished'
-				)
-			else:
-				AddPopup(
-					_("Movie rename has been finished successfully"),
-					MessageBox.TYPE_INFO,
-					0,
-					'SP_PopUp_ID_RenameFinished'
-				)
 
+#TBD Because of E2 Update 05.2013
+#		if self.returned == len(self.services):
+#			if self.failed:
+#				AddPopup(
+#					_("Movie rename has been finished with %d errors:\n") % (len(self.failed)) + "\n".join(self.failed),
+#					MessageBox.TYPE_ERROR,
+#					0,
+#					'SP_PopUp_ID_RenameFinished'
+#				)
+#			else:
+#				AddPopup(
+#					_("Movie rename has been finished successfully"),
+#					MessageBox.TYPE_INFO,
+#					0,
+#					'SP_PopUp_ID_RenameFinished'
+#				)

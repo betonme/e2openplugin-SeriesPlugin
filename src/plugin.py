@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.6.1"
+VERSION = "0.8.6.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -215,14 +215,15 @@ def Plugins(**kwargs):
 																				where = PluginDescriptor.WHERE_AUTOSTART,
 																				needsRestart = False,
 																				fnc = start) )
-		
-		if config.plugins.seriesplugin.menu_info.value:
-			descriptors.append( PluginDescriptor(
-																					name = SHOWINFO,
-																					description = SHOWINFO,
-																					where = PluginDescriptor.WHERE_EVENTINFO,
-																					needsRestart = False,
-																					fnc = info) )
+
+#TBD Because of E2 Update 05.2013
+#		if config.plugins.seriesplugin.menu_info.value:
+#			descriptors.append( PluginDescriptor(
+#																					name = SHOWINFO,
+#																					description = SHOWINFO,
+#																					where = PluginDescriptor.WHERE_EVENTINFO,
+#																					needsRestart = False,
+#																					fnc = info) )
 		
 		if config.plugins.seriesplugin.menu_extensions.value:
 			descriptors.append(PluginDescriptor(
@@ -231,14 +232,15 @@ def Plugins(**kwargs):
 																				where = PluginDescriptor.WHERE_EXTENSIONSMENU,
 																				fnc = extension,
 																				needsRestart = False) )
-		
-		if config.plugins.seriesplugin.menu_movie_info.value:
-			descriptors.append( PluginDescriptor(
-																					name = SHOWINFO,
-																					description = SHOWINFO,
-																					where = PluginDescriptor.WHERE_MOVIELIST,
-																					fnc = movielist_info,
-																					needsRestart = False) )
+
+#TBD Because of E2 Update 05.2013
+#		if config.plugins.seriesplugin.menu_movie_info.value:
+#			descriptors.append( PluginDescriptor(
+#																					name = SHOWINFO,
+#																					description = SHOWINFO,
+#																					where = PluginDescriptor.WHERE_MOVIELIST,
+#																					fnc = movielist_info,
+#																					needsRestart = False) )
 		
 		if config.plugins.seriesplugin.menu_movie_rename.value:
 			descriptors.append( PluginDescriptor(

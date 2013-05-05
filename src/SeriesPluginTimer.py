@@ -125,13 +125,19 @@ class SeriesPluginTimer(object):
 		# Maybe there is a better way to avoid multiple Popups
 		#print "QUEUE SIZE", self.seriesPlugin.queue.qsize()
 		if self.seriesPlugin and self.seriesPlugin.queueEmpty() and SeriesPluginTimer.data:
-			if config.plugins.seriesplugin.timer_popups.value:
-				AddPopup(
-					"SeriesPlugin:\n" + "\n".join(SeriesPluginTimer.data),
-					MessageBox.TYPE_ERROR,
-					0,
-					'SP_PopUp_ID_TimerFinished'
-				)
+			splog("SeriesPluginTimer " + " ".join(SeriesPluginTimer.data))
+			
+#TBD Because of E2 Update 05.2013
+#			if config.plugins.seriesplugin.timer_popups.value:
+#				try:
+#					AddPopup(
+#						"SeriesPlugin:\n" + "\n".join(SeriesPluginTimer.data),
+#						MessageBox.TYPE_ERROR,
+#						0,
+#						'SP_PopUp_ID_TimerFinished'
+#					)
+#				except Exception, e:
+#					splog("SeriesPluginTimer AddPopup Exception:", str(e))
 			
 			SeriesPluginTimer.data = []
 			

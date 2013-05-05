@@ -242,7 +242,7 @@ class SeriesPluginInfoScreen(Screen):
 		self.updateScreen(self.name, _("Retrieving Season, Episode and Title..."), self.short, ext, begin, duration, channel)
 		
 		identifier = self.seriesPlugin.getEpisode(
-				self.episodeCallback, 
+				None, # self.episodeCallback, 
 				#self.name, begin, end, channel, today=today, elapsed=elapsed
 				#self.name, begin, end, self.service, today=today, elapsed=elapsed
 				self.name, begin, end, ref, today=today, elapsed=elapsed
