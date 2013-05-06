@@ -242,7 +242,7 @@ class SeriesPluginInfoScreen(Screen):
 		self.updateScreen(self.name, _("Retrieving Season, Episode and Title..."), self.short, ext, begin, duration, channel)
 		
 		identifier = self.seriesPlugin.getEpisode(
-				None, # self.episodeCallback, 
+				self.episodeCallback, 
 				#self.name, begin, end, channel, today=today, elapsed=elapsed
 				#self.name, begin, end, self.service, today=today, elapsed=elapsed
 				self.name, begin, end, ref, today=today, elapsed=elapsed
@@ -263,11 +263,6 @@ class SeriesPluginInfoScreen(Screen):
 			# Episode data available
 			season, episode, title, series = self.data = data
 		
-		#LATER
-		#	self.seriesPlugin.getStates(
-		#			boundFunction(self.stateCallback, show_name, short, ext), 
-		#			show_name, season, episode
-		#		)
 			if season == 0 and episode == 0:
 				custom = _("{title:s}").format( 
 							**{'season': season, 'episode': episode, 'title': title} )

@@ -12,7 +12,7 @@ from datetime import datetime
 
 from Components.config import config
 
-from enigma import eServiceReference, iServiceInformation, eServiceCenter
+from enigma import eServiceReference, iServiceInformation, eServiceCenter, ePythonMessagePump
 from ServiceReference import ServiceReference
 
 # Plugin framework
@@ -53,7 +53,10 @@ def getInstance():
 	if instance is None:
 		from plugin import VERSION
 		splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
-		dump(config.plugins.seriesplugin)
+		try:
+			dump(config.plugins.seriesplugin.dict)
+		except Exception, e:
+			pass
 		instance = SeriesPlugin()
 	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
 	return instance
@@ -105,7 +108,22 @@ class SeriesPluginWorkerThread(CancelableThread):
 	def __init__(self, queue):
 		CancelableThread.__init__(self)
 		self.queue = queue
+		#self.messagePump = ePythonMessagePump()
+		#self.messagePump.recv_msg.get().append(self.gotThreadMsg)
 		self.item = None
+	
+#	def gotThreadMsg(self, msg):
+#		#TEST Because of E2 Update 05.2013
+#		identifier, callback, name, begin, end, service, channels = self.item  # self.queue.get() + self.queue.task_done()
+#		if callable(callback):
+#			callback(msg)
+
+#		AddPopup(
+#					msg,
+#					MessageBox.TYPE_INFO,
+#					0,
+#					'SP_PopUp_ID'
+#				)
 	
 	@synchronized(myLock)
 	def run(self):
@@ -118,7 +136,6 @@ class SeriesPluginWorkerThread(CancelableThread):
 			
 			identifier, callback, name, begin, end, service, channels = self.item
 			splog('SeriesPluginWorkerThread is processing: ', identifier)
-			
 			
 			# do processing stuff here
 			result = None
@@ -134,13 +151,18 @@ class SeriesPluginWorkerThread(CancelableThread):
 				result = str(e)
 			
 			try:
+				splog("SeriesPluginWorkerThread result")
 				if result and len(result) == 4:
 					season, episode, title, series = result
 					season = int(CompiledRegexpNonDecimal.sub('', season))
 					episode = int(CompiledRegexpNonDecimal.sub('', episode))
 					title = title.strip()
+					splog("SeriesPluginWorkerThread result callback")
 					callback( (season, episode, title, series) )
+					#self.messagePump.send( (season, episode, title, series) )
 				else:
+					splog("SeriesPluginWorkerThread result failed")
+					#self.messagePump.send( result )
 					callback( result )
 			except Exception, e:
 				splog("SeriesPluginWorkerThread Callback Exception:", str(e))
@@ -159,6 +181,8 @@ class SeriesPluginWorkerThread(CancelableThread):
 #					'SP_PopUp_ID_About'
 #				)
 			
+			splog("SeriesPluginWorkerThread queue task done")
+			
 			# kill the thread
 			self.queue.task_done()
 			
@@ -168,6 +192,8 @@ class SeriesPluginWorkerThread(CancelableThread):
 			
 			# Wait for next job
 			#self.run()
+			
+			splog("SeriesPluginWorkerThread finished")
 
 
 class SeriesPlugin(Modules, ChannelsBase):
@@ -197,26 +223,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 		
 		self.identifier_future = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_future.value )
 		splog(self.identifier_future)
-		
-		#self.managers = self.loadModules(MANAGER_PATH, ManagerBase)
-		#if self.managers:
-		#	managers = self.managers.keys()
-		#	config.plugins.seriesplugin.manager.setChoices( managers )
-		#	if not config.plugins.seriesplugin.manager.value:
-		#		config.plugins.seriesplugin.manager.value = managers[0]
-		#if config.plugins.seriesplugin.manager.value:
-		#	self.manager = self.instantiateModuleWithName( self.managers, config.plugins.seriesplugin.manager.value )
-		#	splog(self.manager)
-		
-		#self.guides = self.loadModules(GUIDE_PATH, GuideBase)
-		#if self.guides:
-		#	guides = self.guides.keys()
-		#	config.plugins.seriesplugin.guide.setChoices( guides )
-		#	if not config.plugins.seriesplugin.guide.value:
-		#		config.plugins.seriesplugin.guide.value = guides[0]
-		#if config.plugins.seriesplugin.guide.value:
-		#	self.guide = self.instantiateModuleWithName( self.guides, config.plugins.seriesplugin.guide.value )
-		#	splog(self.guide)
 
 	def stop(self):
 		splog("SeriesPluginWorker stop")
@@ -245,23 +251,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
 		
-		#if isinstance(service, eServiceReference):
-		#	if service.getPath():
-		#		# Service is a movie reference
-		#		info = self.serviceHandler.info(service)
-		#		ref = info.getInfoString(service, iServiceInformation.sServiceref)
-		#		service = ServiceReference(ref)
-		#		splog("TODO SeriesPlugin eServiceReference movie", str(ref))
-		#		
-		#	else:
-		#		# Service is channel reference
-		#		ref = eServiceReference(str(service))
-		#		service = ServiceReference(ref)
-		#		splog("TODO SeriesPlugin eServiceReference channel", str(ref))
-		#
-		#elif isinstance(service, ServiceReference):
-		#	splog("SeriesPlugin ServiceReference", str(ref))
-		
 		channels = lookupServiceAlternatives(service)
 		
 		#MAYBE for all valid identifier in identifiers:
@@ -278,9 +267,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier = None
 		
 		if identifier:
-			#if ( future and identifier.knowsFuture() ) or \
-			#	 ( today and identifier.knowsToday() ) or \
-			#	 ( elapsed and identifier.knowsElapsed() ):
 			try:
 				#available = True
 				splog("SeriesPlugin Worker isAlive queueSize", self.worker and self.worker.isAlive(), self.queue and self.queue.qsize())
@@ -310,31 +296,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 		#if not available:
 		else:
 			callback( "No identifier available" )
-
-	################################################
-	# Manager functions
-	def getStates(self, callback, show_name, season, episode):
-		#if self.managers:
-		#	# Return a season, episode, title tuple
-		#	for manager in self.managers:
-		#		name = manager.getName()
-		#		manager.getState(
-		#				boundFunction(self.getStatesCallback, callback, name),
-		#				show_name, season, episode
-		#			)
-		#else:
-			
-		callback()
-
-	def getStatesCallback(self, callback, name, state):
-		splog("SeriesPlugin getStatesCallback")
-		splog(state)
-		
-		# Problem we have to collect all deferreds or cancel them
-		#if state:
-			#TODO list of states
-			#states.append( (name, state) )
-		callback( (name, state) )
 
 	def cancel(self):
 		self.stop()
