@@ -84,16 +84,20 @@ class IdentifierBase(ModuleBase, Cacher):
 				
 			except URLError, e:
 				if counter > 2:
+					splog("SSBase URLError counter > 2")
 					raise
 					return
 				elif hasattr(e, "code"):
+					splog("SSBase URLError code")
 					print e.code, e.msg, counter
 					sleep(2)
 					self.getPage(url, headers, expires, counter+1)
 					return
 				else:
+					splog("SSBase URLError else")
 					raise
-				
+		
+		splog("SSBase success")
 		return response
 	
 	################################################

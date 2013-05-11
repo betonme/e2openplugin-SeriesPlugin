@@ -30,7 +30,10 @@ from ManagerBase import ManagerBase
 from GuideBase import GuideBase
 from Channels import ChannelsBase, removeEpisodeInfo, lookupServiceAlternatives
 from Logger import splog
-from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
+
+#from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
+from Queue import Queue
+from threading import Thread
 
 
 # Constants
@@ -102,11 +105,11 @@ def refactorDescription(org, data):
 		return org
 
 
-class SeriesPluginWorkerThread(CancelableThread):
+class SeriesPluginWorkerThread(Thread): #(CancelableThread):
 	# LATER stop thread this way:
 	# http://www.rootninja.com/thread-control-in-python-how-to-safely-stop-a-thread/
 	def __init__(self, queue):
-		CancelableThread.__init__(self)
+		Thread.__init__(self) #CancelableThread.__init__(self)
 		self.queue = queue
 		#self.messagePump = ePythonMessagePump()
 		#self.messagePump.recv_msg.get().append(self.gotThreadMsg)
@@ -125,7 +128,7 @@ class SeriesPluginWorkerThread(CancelableThread):
 #					'SP_PopUp_ID'
 #				)
 	
-	@synchronized(myLock)
+	#@synchronized(myLock)
 	def run(self):
 		while True:
 			self.item = self.queue.get()
@@ -204,7 +207,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		
 		self.serviceHandler = eServiceCenter.getInstance()
 		
-		self.queue = QueueWithTimeOut()
+		self.queue = Queue() #QueueWithTimeOut()
 		
 		#http://bugs.python.org/issue7980
 		datetime.strptime('2012-01-01', '%Y-%m-%d')
@@ -273,12 +276,12 @@ class SeriesPlugin(Modules, ChannelsBase):
 				if not self.queue:
 					# Create new queue
 					splog("SeriesPlugin new Queue")
-					self.queue = QueueWithTimeOut()
+					self.queue = Queue() #QueueWithTimeOut()
 				if not (self.worker and self.worker.isAlive()):
 					
 					# Create new queue
 					splog("SeriesPlugin new Queue")
-					self.queue = QueueWithTimeOut()
+					self.queue = Queue() #QueueWithTimeOut()
 					
 					# Start new worker
 					splog("SeriesPlugin new Worker")
