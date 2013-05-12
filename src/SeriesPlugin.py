@@ -147,7 +147,7 @@ class SeriesPluginWorkerThread(Thread): #(CancelableThread):
 				result = identifier.getEpisode(
 					name, begin, end, service, channels
 				)
-			except Exception, e:
+			except Exception as e:
 				splog("SeriesPluginWorkerThread Identifier Exception:", str(e))
 				
 				# Exception finish job with error
@@ -236,7 +236,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 				splog("SeriesPluginWorker Queue join")
 				self.queue.join() #_with_timeout(1)
 			splog("SeriesPluginWorker Worker terminate")
-			self.worker.terminate()
+			#self.worker.terminate()
 		self.worker = None
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()

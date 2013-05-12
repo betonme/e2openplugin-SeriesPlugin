@@ -82,7 +82,7 @@ class IdentifierBase(ModuleBase, Cacher):
 				#if response:
 				#	self.doCache(url, response)
 				
-			except URLError, e:
+			except URLError as e:
 				if counter > 2:
 					splog("SSBase URLError counter > 2")
 					raise

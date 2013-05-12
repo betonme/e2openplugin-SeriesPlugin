@@ -331,18 +331,15 @@ class Fernsehserien(IdentifierBase):
 		#from urllib import quote_plus
 		from urllib2 import urlopen, URLError
 		
-		try:
-			from Plugins.Extensions.SeriesPlugin.plugin import VERSION
-			parameter = urlencode(
-				{
-					'url' : url,
-					'version' : VERSION,
-					'cached' : str(self.isCached(url))
-				}
-			)
-			response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?" + parameter, timeout=5).read()
-		except URLError, e:
-			raise
+		from Plugins.Extensions.SeriesPlugin.plugin import VERSION
+		parameter = urlencode(
+			{
+				'url' : url,
+				'version' : VERSION,
+				'cached' : str(self.isCached(url))
+			}
+		)
+		response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?" + parameter, timeout=5).read()
 			
 		print "checkLicense"
 		print response
