@@ -234,7 +234,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 			splog("SeriesPluginWorker queue empty", self.queue.empty())
 			if self.queue: # and self.worker.isAlive():
 				splog("SeriesPluginWorker Queue join")
-				self.queue.join_with_timeout(1)
+				self.queue.join() #_with_timeout(1)
 			splog("SeriesPluginWorker Worker terminate")
 			self.worker.terminate()
 		self.worker = None
