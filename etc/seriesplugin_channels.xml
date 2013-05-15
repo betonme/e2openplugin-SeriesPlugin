@@ -3,4 +3,8 @@
   <Channel name="FOX HD" reference="1:0:19:56D7:E5:A018:FFFF0000:0:0:0:">
     <Alternative>FOX HD</Alternative>
   </Channel>
+  <Channel name="NICK/COMEDY" reference="1:0:1:7008:436:1:C00000:0:0:0:">
+    <Alternative>NICK/COMEDY</Alternative>
+    <Alternative>Comedy Central</Alternative>
+  </Channel>
 </SeriesPlugin>
