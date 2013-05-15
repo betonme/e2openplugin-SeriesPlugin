@@ -194,8 +194,8 @@ class SeriesPluginRenameService(object):
 				begin = end - (info.getLength(service) or 0)
 			#MAYBE we could also try to parse the filename
 			# We don't know the exact margins, we will assume the E2 default margins
-			begin + (config.recording.margin_before.value * 60)
-			end - (config.recording.margin_after.value * 60)
+			begin + (int(config.recording.margin_before.value) * 60)
+			end - (int(config.recording.margin_after.value) * 60)
 		
 		rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
 		#channel = ServiceReference(rec_ref_str).getServiceName()
@@ -218,9 +218,9 @@ class SeriesPluginRenameService(object):
 				# Rename was successfully
 				result = None
 		elif data:
-			result = service.getPath() + " : " + str( data )
+			result = self.service.getPath() + " : " + str( data )
 		else:
-			result = service.getPath()
+			result = self.service.getPath()
 		
 		if callable(self.callback):
 			self.callback( result )
