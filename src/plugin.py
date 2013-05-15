@@ -68,6 +68,7 @@ config.plugins.seriesplugin.channel_file              = ConfigText(default = "/e
 config.plugins.seriesplugin.channel_popups            = ConfigYesNo(default = False)
 
 config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = False)
+config.plugins.seriesplugin.rename_file               = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
 

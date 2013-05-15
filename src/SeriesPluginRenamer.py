@@ -70,7 +70,8 @@ def rename(service, name, short, data):
 		# Before renaming change content
 		renameMeta(service, data)
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
-			renameFile(service, name, data)
+			if config.plugins.seriesplugin.rename_file.value == True:
+				renameFile(service, name, data)
 		return True
 	except:
 		#pass

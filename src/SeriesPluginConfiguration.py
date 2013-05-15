@@ -139,7 +139,9 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 			self.list.append( getConfigListEntry(  _("Ask for channel matching")                   , config.plugins.seriesplugin.channel_popups ) )
 			
-			self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
+			self.list.append( getConfigListEntry(  _("Rename files")                    , config.plugins.seriesplugin.rename_file ) )
+			if config.plugins.seriesplugin.rename_file.value:
+				self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
 			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
 					
@@ -147,7 +149,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			if config.plugins.seriesplugin.autotimer_independent.value:
 				self.list.append( getConfigListEntry(  _("Check timer every x minutes")            , config.plugins.seriesplugin.independent_cycle ) )
 			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
-			
+
 			self.list.append( getConfigListEntry(  _("Use local caching")                          , config.plugins.seriesplugin.caching ) )
 			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
@@ -169,7 +171,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		current = self["config"].getCurrent()[1]
 		if (current == config.plugins.seriesplugin.enabled or 
 			current == config.plugins.seriesplugin.autotimer_independent or 
-			current == config.plugins.seriesplugin.write_log):
+			current == config.plugins.seriesplugin.write_log or
+			current == config.plugins.seriesplugin.rename_file):
 			self.changeConfig()
 
 	# Overwrite ConfigListScreen keySave function
