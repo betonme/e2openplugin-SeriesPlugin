@@ -243,7 +243,7 @@ class SeriesPluginRenamer(object):
 		session.openWithCallback(
 			self.confirm,
 			MessageBox,
-			_("Do You want to start background renaming?"),
+			_("Do You want to start renaming?\nThis will block Your Dreambox until all records are renamed!"),
 			MessageBox.TYPE_YESNO,
 			timeout = 15,
 			default = True
@@ -261,6 +261,8 @@ class SeriesPluginRenamer(object):
 			self.failed.append( result )
 
 #TBD Because of E2 Update 05.2013
+		#from threading import currentThread
+		#if currentThread().getName() == 'MainThread':
 #		if self.returned == len(self.services):
 #			if self.failed:
 #				AddPopup(

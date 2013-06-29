@@ -42,6 +42,9 @@ class SeriesPluginTimer(object):
 	
 	def __init__(self, timer, name, begin, end):
 		
+		splog("SeriesPluginTimer")
+		splog(name, timer.name)
+		
 		# We have to compare the length,
 		# because of the E2 special chars handling for creating the filenames
 		#if timer.name == name:
@@ -51,12 +54,13 @@ class SeriesPluginTimer(object):
 		
 		if timer.eit:
 			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
-		
+			splog("LookupEventId event found")
+			
 		else:
 			#timer.service_ref.toString()
 			#timer.service_ref.ref.toString()
 			events = epgcache.lookupEvent(["N" , (timer.service_ref.ref, 0, begin, end)]);
-			splog("Event(s) found", len(events) )
+			splog("LookupEvent event(s) found", len(events) )
 			splog(events)
 			event = events and events[0]
 		
@@ -81,9 +85,6 @@ class SeriesPluginTimer(object):
 			return
 		
 		self.timer = timer
-		
-		splog("SeriesPluginTimer")
-		splog(name, timer.name)
 		
 		self.seriesPlugin = getInstance()
 		
@@ -128,6 +129,9 @@ class SeriesPluginTimer(object):
 			splog("SeriesPluginTimer " + " ".join(SeriesPluginTimer.data))
 			
 #TBD Because of E2 Update 05.2013
+		#from threading import currentThread
+		#if currentThread().getName() == 'MainThread':
+#NoTimerPopUpPossibleActually
 #			if config.plugins.seriesplugin.timer_popups.value:
 #				try:
 #					AddPopup(

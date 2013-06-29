@@ -241,17 +241,18 @@ class SeriesPluginInfoScreen(Screen):
 		
 		self.updateScreen(self.name, _("Retrieving Season, Episode and Title..."), self.short, ext, begin, duration, channel)
 		
+		identifier = self.seriesPlugin.getIdentifier(False, today, elapsed)
+		if identifier:
+			path = os.path.join(PIXMAP_PATH, identifier+".png")
+			if os.path.exists(path):
+				self.loadPixmap("logo", path )
+		
 		identifier = self.seriesPlugin.getEpisode(
 				self.episodeCallback, 
 				#self.name, begin, end, channel, today=today, elapsed=elapsed
 				#self.name, begin, end, self.service, today=today, elapsed=elapsed
 				self.name, begin, end, ref, today=today, elapsed=elapsed
 			)
-		
-		if identifier:
-			path = os.path.join(PIXMAP_PATH, identifier+".png")
-			if os.path.exists(path):
-				self.loadPixmap("logo", path )
 
 	def episodeCallback(self, data=None):
 		#TODO episode list handling
@@ -312,10 +313,6 @@ class SeriesPluginInfoScreen(Screen):
 		self["duration"].setText(_("%d min")%((duration)/60))
 		self["channel"].setText(channel)
 
-	def stateCallback(self, show_name, short, description, state=None):
-		pass
-
-
 	# Handle pixmaps
 	def loadPixmap(self, widget, path):
 		sc = AVSwitch().getFramebufferScale()
@@ -342,8 +339,6 @@ class SeriesPluginInfoScreen(Screen):
 		global instance
 		instance = None
 		
-		if self.seriesPlugin:
-			self.seriesPlugin.cancel()
 		# Call baseclass function
 		Screen.close(self)
 

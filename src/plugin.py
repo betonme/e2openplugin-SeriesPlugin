@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.6.6"
+VERSION = "0.8.6.7"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -74,7 +74,8 @@ config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0,
 
 config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = False)
 config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(5, 24*60, 5, default = 60)
-config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
+#NoTimerPopUpPossibleActually
+#config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
 
@@ -118,6 +119,7 @@ def setup(session, *args, **kwargs):
 # Event Info
 def info(session, service=None, event=None, *args, **kwargs):
 	try:
+#TBD Because of E2 Update 05.2013
 		session.open(SeriesPluginInfoScreen, service, event)
 	except Exception, e:
 		splog(_("SeriesPlugin info exception ") + str(e))
@@ -129,6 +131,7 @@ def info(session, service=None, event=None, *args, **kwargs):
 # Extensions menu
 def extension(session, *args, **kwargs):
 	try:
+#TBD Because of E2 Update 05.2013
 		session.open(SeriesPluginInfoScreen)
 	except Exception, e:
 		splog(_("SeriesPlugin extension exception ") + str(e))
@@ -156,6 +159,7 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 # Movielist menu info
 def movielist_info(session, service, *args, **kwargs):
 	try:
+#TBD Because of E2 Update 05.2013
 		session.open(SeriesPluginInfoScreen, service)
 	except Exception, e:
 		splog(_("SeriesPlugin extension exception ") + str(e))
@@ -218,14 +222,15 @@ def Plugins(**kwargs):
 																				fnc = start) )
 
 #TBD Because of E2 Update 05.2013
-#		if config.plugins.seriesplugin.menu_info.value:
-#			descriptors.append( PluginDescriptor(
-#																					name = SHOWINFO,
-#																					description = SHOWINFO,
-#																					where = PluginDescriptor.WHERE_EVENTINFO,
-#																					needsRestart = False,
-#																					fnc = info) )
-		
+		if config.plugins.seriesplugin.menu_info.value:
+			descriptors.append( PluginDescriptor(
+																					name = SHOWINFO,
+																					description = SHOWINFO,
+																					where = PluginDescriptor.WHERE_EVENTINFO,
+																					needsRestart = False,
+																					fnc = info) )
+
+#TBD Because of E2 Update 05.2013
 		if config.plugins.seriesplugin.menu_extensions.value:
 			descriptors.append(PluginDescriptor(
 																				name = SHOWINFO,
@@ -235,13 +240,13 @@ def Plugins(**kwargs):
 																				needsRestart = False) )
 
 #TBD Because of E2 Update 05.2013
-#		if config.plugins.seriesplugin.menu_movie_info.value:
-#			descriptors.append( PluginDescriptor(
-#																					name = SHOWINFO,
-#																					description = SHOWINFO,
-#																					where = PluginDescriptor.WHERE_MOVIELIST,
-#																					fnc = movielist_info,
-#																					needsRestart = False) )
+		if config.plugins.seriesplugin.menu_movie_info.value:
+			descriptors.append( PluginDescriptor(
+																					name = SHOWINFO,
+																					description = SHOWINFO,
+																					where = PluginDescriptor.WHERE_MOVIELIST,
+																					fnc = movielist_info,
+																					needsRestart = False) )
 		
 		if config.plugins.seriesplugin.menu_movie_rename.value:
 			descriptors.append( PluginDescriptor(

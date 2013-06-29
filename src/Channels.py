@@ -56,6 +56,7 @@ def removeEpisodeInfo(text):
 
 
 ChannelReplaceDict = OrderedDict([
+	('\(S\)', ''),
 	('HD', ''),
 	('III', 'drei'),
 	('II',  'zwei'),

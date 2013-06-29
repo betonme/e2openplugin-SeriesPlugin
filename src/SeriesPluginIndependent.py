@@ -39,16 +39,14 @@ instance = None
 
 def startIndependent():
 	global instance
-	if instance is None:
-		instance = SeriesPluginIndependent()
+	instance = SeriesPluginIndependent()
 	return instance
 
 def stopIndependent():
 	#Rename to closeInstance
 	global instance
-	if instance is not None:
-		instance.stop()
-		instance = None
+	# TEST Does this really stop the process
+	instance = None
 
 
 #######################################################
@@ -66,13 +64,10 @@ class SeriesPluginIndependent(object):
 		# Start timer as single shot, just for testing
 		#self.etimer.start( 10, True )
 
-	def stop(self):
-		if self.etimer.isActive():
-			self.etimer.stop()
-
 	def run(self):
 		splog("SeriesPluginIndependent run ###########################################")
 		splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
+		
 		try:
 		
 			for timer in NavigationInstance.instance.RecordTimer.timer_list:

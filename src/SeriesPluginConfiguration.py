@@ -35,6 +35,7 @@ from Plugins.Plugin import PluginDescriptor
 
 # Plugin internal
 from SeriesPlugin import resetInstance, getInstance
+from SeriesPluginIndependent import startIndependent, stopIndependent
 from EpisodePatterns import readPatternFile
 from Logger import splog, Logger
 
@@ -78,6 +79,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			"blue":			self.blue,
 		}, -2) # higher priority
 		
+		stopIndependent()
 		resetInstance()
 		self.seriesPlugin = getInstance()
 		
@@ -148,7 +150,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			self.list.append( getConfigListEntry(  _("AutoTimer independent mode")                 , config.plugins.seriesplugin.autotimer_independent ) )
 			if config.plugins.seriesplugin.autotimer_independent.value:
 				self.list.append( getConfigListEntry(  _("Check timer every x minutes")            , config.plugins.seriesplugin.independent_cycle ) )
-			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
+#NoTimerPopUpPossibleActually
+#			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
 
 			self.list.append( getConfigListEntry(  _("Use local caching")                          , config.plugins.seriesplugin.caching ) )
 			
@@ -216,12 +219,13 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES)
 		
+		# To set new module configuration
+		resetInstance()
+		
 		if config.plugins.seriesplugin.autotimer_independent.value:
 			from SeriesPluginIndependent import startIndependent
 			startIndependent()
 		
-		# To set new module configuration
-		resetInstance()
 		self.close()
 
 	# Overwrite ConfigListScreen keyCancel function
