@@ -125,7 +125,8 @@ class SeriesPluginTimer(object):
 		
 		# Maybe there is a better way to avoid multiple Popups
 		#print "QUEUE SIZE", self.seriesPlugin.queue.qsize()
-		if self.seriesPlugin and self.seriesPlugin.queueEmpty() and SeriesPluginTimer.data:
+		#if self.seriesPlugin and self.seriesPlugin.queueEmpty() and SeriesPluginTimer.data:
+		if self.seriesPlugin and SeriesPluginTimer.data:
 			splog("SeriesPluginTimer " + " ".join(SeriesPluginTimer.data))
 			
 #TBD Because of E2 Update 05.2013
