@@ -20,6 +20,8 @@ from time import time
 
 from Components.config import *
 
+from cPickle import dumps, loads
+
 from Logger import splog
 
 
@@ -59,7 +61,8 @@ class Cacher(object):
 			# Woooohooo it is, elapsed_time is less than INTER_QUERY_TIME so I
 			# can get the page from the memory, recent enough
 			if elapsed_time < expires:
-				return already_got[1]
+				#splog("####SPCACHE GET ", already_got)
+				return loads(already_got[1])
 			
 			else:	
 				# Uhmmm... actually it's a bit old, I'm going to get it from the
@@ -76,10 +79,12 @@ class Cacher(object):
 		#pushCache
 		global cache
 		
+		#splog("####SPCACHE DO ", url, page)
+		
 		if not config.plugins.seriesplugin.caching.value:
 			return
 		
-		cache[url] = (time(), page)
+		cache[url] = ( time(), dumps(page) )
 
 	def isCached(self, url):
 		global cache

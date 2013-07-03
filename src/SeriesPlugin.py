@@ -57,7 +57,7 @@ def getInstance():
 	splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
 	try:
 		for key, value in config.plugins.seriesplugin.dict().iteritems():
-			splog( "config.plugins.seriesplugin.%s = %s" % (key, value) )
+			splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
 	except Exception, e:
 		pass
 	instance = SeriesPlugin()

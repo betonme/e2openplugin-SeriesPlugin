@@ -147,9 +147,12 @@ class SeriesPluginInfoScreen(Screen):
 		
 		ref = None
 		
+		self.path = None
+		
 		if isinstance(service, eServiceReference):
 			#ref = service  #Problem EPG
-			if service.getPath():
+			self.path = service.getPath()
+			if self.path:
 				# Service is a movie reference
 				info = self.serviceHandler.info(service)
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
@@ -347,9 +350,7 @@ class SeriesPluginInfoScreen(Screen):
 		splog("event eit", self.event and self.event.getEventId())
 		if self.service and self.data:
 			
-			path = self.service.getPath()
-			
-			if path and os.path.exists(path):
+			if self.path and os.path.exists(self.path):
 				# Record file exists
 				self["key_red"].setText(_("Rename"))
 				self.redButtonFunction = self.rename

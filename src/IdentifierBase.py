@@ -91,8 +91,7 @@ class IdentifierBase(ModuleBase, Cacher):
 					splog("SSBase URLError code")
 					print e.code, e.msg, counter
 					sleep(2)
-					self.getPage(url, headers, expires, counter+1)
-					return
+					return self.getPage(url, headers, expires, counter+1)
 				else:
 					splog("SSBase URLError else")
 					raise
