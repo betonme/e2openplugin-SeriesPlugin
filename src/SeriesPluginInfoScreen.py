@@ -122,6 +122,9 @@ class SeriesPluginInfoScreen(Screen):
 		self.short = ""
 		self.data = None
 		
+		self.path = None
+		self.eservice = None
+		
 		self.epg = eEPGCache.getInstance()
 		self.serviceHandler = eServiceCenter.getInstance()
 		self.seriesPlugin = getInstance()
@@ -147,10 +150,9 @@ class SeriesPluginInfoScreen(Screen):
 		
 		ref = None
 		
-		self.path = None
-		
 		if isinstance(service, eServiceReference):
 			#ref = service  #Problem EPG
+			self.eservice = service
 			self.path = service.getPath()
 			if self.path:
 				# Service is a movie reference
@@ -382,7 +384,7 @@ class SeriesPluginInfoScreen(Screen):
 			pass
 
 	def rename(self):
-		ref = self.service
+		ref = self.eservice
 		if ref and self.data:
 			path = ref.getPath()
 			if path and os.path.exists(path):

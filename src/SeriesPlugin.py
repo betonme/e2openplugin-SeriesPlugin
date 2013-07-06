@@ -60,6 +60,36 @@ def getInstance():
 			splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
 	except Exception, e:
 		pass
+	try:
+		import subprocess
+		str = check_output(["ipkg", "list-installed", "*autotimer"])
+		splog( "autotimer version " + str)
+	except:
+		pass
+	try:
+		import subprocess
+		str = check_output(["opkg", "list-installed", "*autotimer"])
+		splog( "autotimer version " + str)
+	except:
+		pass
+	try:
+		import subprocess
+		str = check_output(["uname", "-a"])
+		splog( "autotimer version " + str)
+	except:
+		pass
+	try:
+		import subprocess
+		str = check_output(["ipkg", "list-installed", "enigma2"])
+		splog( "autotimer version " + str)
+	except:
+		pass
+	try:
+		import subprocess
+		str = check_output(["opkg", "list-installed", "enigma2"])
+		splog( "autotimer version " + str)
+	except:
+		pass
 	instance = SeriesPlugin()
 	#instance[os.getpid()] = SeriesPlugin()
 	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
