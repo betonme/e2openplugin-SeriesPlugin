@@ -63,7 +63,7 @@ class Cacher(object):
 			# can get the page from the memory, recent enough
 			if elapsed_time < expires:
 				#splog("####SPCACHE GET ", already_got)
-				#sys.setrecursionlimit(10000)
+				sys.setrecursionlimit(10000)
 				return loads(already_got[1])
 			
 			else:	
@@ -85,7 +85,7 @@ class Cacher(object):
 		
 		if not config.plugins.seriesplugin.caching.value:
 			return
-		#sys.setrecursionlimit(10000)
+		sys.setrecursionlimit(10000)
 		cache[url] = ( time(), dumps(page) )
 
 	def isCached(self, url):
