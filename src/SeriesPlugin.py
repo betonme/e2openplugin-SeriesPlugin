@@ -11,7 +11,6 @@ from . import _
 from datetime import datetime
 
 from Components.config import config
-from Components.Console import Console as eConsole
 
 from enigma import eServiceReference, iServiceInformation, eServiceCenter, ePythonMessagePump
 from ServiceReference import ServiceReference
@@ -41,8 +40,8 @@ from Logger import splog
 
 # Constants
 IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
-MANAGER_PATH    = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Managers/" )
-GUIDE_PATH      = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Guides/" )
+AUTOTIMER_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/AutoTimer/" )
+
 
 
 # Globals
@@ -57,34 +56,35 @@ def getInstance():
 	from plugin import VERSION
 	
 	splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
-		
-	self.console = eConsole()
-	
-	def cmdFinished(self, result, retval, extra_args):
-		if retval and result:
-			try:
-				splog( extra_args ? extra_args + " " + result : result )
-			except:
-				pass
 	
 	try:
-		self.console.ePopen("uname -a", self.cmdFinished, "uname" )
-		self.console.ePopen("ipkg list-installed enigma2", self.cmdFinished, "ipkg enigma2" )
-		self.console.ePopen("opkg list-installed enigma2", self.cmdFinished, "opkg enigma2" )
-		self.console.ePopen("ipkg list-installed *autotimer", self.cmdFinished, "ipkg autotimer" )
-		self.console.ePopen("opkg list-installed *autotimer", self.cmdFinished, "opkg autotimer" )
+		from Tools.HardwareInfo import HardwareInfo
+		splog( "DeviceName " + HardwareInfo().get_device_name().strip() )
+	except:
+		pass
+	try:
+		from Components.About import about
+		splog( "EnigmaVersion " + about.getEnigmaVersionString().strip() )
+		splog( "ImageVersion " + about.getVersionString().strip() )
 	except:
 		pass
 	try:
 		#http://stackoverflow.com/questions/1904394/python-selecting-to-read-the-first-line-only
-		splog( "dreamboxmodel", open("/proc/stb/info/model").readline() );
-		splog( "imageversion", open("/etc/image-version").readline() );
-		splog "imageissue", open("/etc/issue.net").readline() );
+		splog( "dreamboxmodel " + open("/proc/stb/info/model").readline().strip() )
+		splog( "imageversion " + open("/etc/image-version").readline().strip() )
+		splog( "imageissue " + open("/etc/issue.net").readline().strip() )
 	except:
 		pass
 	try:
 		for key, value in config.plugins.seriesplugin.dict().iteritems():
 			splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
+	except Exception, e:
+		pass
+	try:
+		if os.path.exists(AUTOTIMER_PATH):
+			dirList = os.listdir(AUTOTIMER_PATH)
+			for fname in dirList:
+				splog( fname, datetime.fromtimestamp( int( os.path.getctime( os.path.join(AUTOTIMER_PATH,fname) ) ) ).strftime('%Y-%m-%d %H:%M:%S') )
 	except Exception, e:
 		pass
 	
