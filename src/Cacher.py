@@ -21,8 +21,6 @@ from time import time
 
 from Components.config import *
 
-from marshal import dumps, loads
-
 from Logger import splog
 
 
@@ -63,8 +61,7 @@ class Cacher(object):
 			# can get the page from the memory, recent enough
 			if elapsed_time < expires:
 				#splog("####SPCACHE GET ", already_got)
-				sys.setrecursionlimit(10000)
-				return loads(already_got[1])
+				return already_got[1]
 			
 			else:	
 				# Uhmmm... actually it's a bit old, I'm going to get it from the
@@ -77,7 +74,7 @@ class Cacher(object):
 			# now, It's useless to check if it's recent enough, it's not there.
 			return None
 
-	def doCache(self, url, page):
+	def doCacheInternal(self, url, page):
 		#pushCache
 		global cache
 		
@@ -85,8 +82,11 @@ class Cacher(object):
 		
 		if not config.plugins.seriesplugin.caching.value:
 			return
-		sys.setrecursionlimit(10000)
-		cache[url] = ( time(), dumps(page) )
+		cache[url] = ( time(), page )
+	
+	def doCache(self, url, page):
+		# Temporarily disabled
+		return
 
 	def isCached(self, url):
 		global cache

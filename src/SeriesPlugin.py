@@ -11,6 +11,7 @@ from . import _
 from datetime import datetime
 
 from Components.config import config
+from Components.Console import Console as eConsole
 
 from enigma import eServiceReference, iServiceInformation, eServiceCenter, ePythonMessagePump
 from ServiceReference import ServiceReference
@@ -54,42 +55,39 @@ def getInstance():
 	global instance
 	#if instance is None:
 	from plugin import VERSION
+	
 	splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
+		
+	self.console = eConsole()
+	
+	def cmdFinished(self, result, retval, extra_args):
+		if retval and result:
+			try:
+				splog( extra_args ? extra_args + " " + result : result )
+			except:
+				pass
+	
+	try:
+		self.console.ePopen("uname -a", self.cmdFinished, "uname" )
+		self.console.ePopen("ipkg list-installed enigma2", self.cmdFinished, "ipkg enigma2" )
+		self.console.ePopen("opkg list-installed enigma2", self.cmdFinished, "opkg enigma2" )
+		self.console.ePopen("ipkg list-installed *autotimer", self.cmdFinished, "ipkg autotimer" )
+		self.console.ePopen("opkg list-installed *autotimer", self.cmdFinished, "opkg autotimer" )
+	except:
+		pass
+	try:
+		#http://stackoverflow.com/questions/1904394/python-selecting-to-read-the-first-line-only
+		splog( "dreamboxmodel", open("/proc/stb/info/model").readline() );
+		splog( "imageversion", open("/etc/image-version").readline() );
+		splog "imageissue", open("/etc/issue.net").readline() );
+	except:
+		pass
 	try:
 		for key, value in config.plugins.seriesplugin.dict().iteritems():
 			splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
 	except Exception, e:
 		pass
-	try:
-		import subprocess
-		str = check_output(["ipkg", "list-installed", "*autotimer"])
-		splog( "autotimer version " + str)
-	except:
-		pass
-	try:
-		import subprocess
-		str = check_output(["opkg", "list-installed", "*autotimer"])
-		splog( "autotimer version " + str)
-	except:
-		pass
-	try:
-		import subprocess
-		str = check_output(["uname", "-a"])
-		splog( "autotimer version " + str)
-	except:
-		pass
-	try:
-		import subprocess
-		str = check_output(["ipkg", "list-installed", "enigma2"])
-		splog( "autotimer version " + str)
-	except:
-		pass
-	try:
-		import subprocess
-		str = check_output(["opkg", "list-installed", "enigma2"])
-		splog( "autotimer version " + str)
-	except:
-		pass
+	
 	instance = SeriesPlugin()
 	#instance[os.getpid()] = SeriesPlugin()
 	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )

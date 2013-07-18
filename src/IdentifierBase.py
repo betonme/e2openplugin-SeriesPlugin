@@ -79,8 +79,8 @@ class IdentifierBase(ModuleBase, Cacher):
 				response = urlopen(req, timeout=5).read()
 				
 				#splog("SSBase response to cache: ", response) 
-				#if response:
-				#	self.doCache(url, response)
+				if response:
+					self.doCacheInternal(url, response)
 				
 			except URLError as e:
 				if counter > 2:

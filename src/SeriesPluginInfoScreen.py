@@ -195,8 +195,16 @@ class SeriesPluginInfoScreen(Screen):
 			splog("SeriesPluginInfoScreen Fallback ref", str(ref))
 		
 		if not isinstance(self.event, eServiceEvent):
-			ref = eServiceReference(ref)
-			self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
+			try:
+				ref = eServiceReference(ref)
+				self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
+			except:
+				# Maybe it is an old reference
+				# Has the movie been renamed earlier?
+				# Refresh / reload the list?
+				self["event_episode"].setText( "No valid selection!" )
+				splog("SeriesPluginInfoScreen No valid selection", str(ref))
+				return
 			#num = event and event.getNumOfLinkageServices() or 0
 			#for cnt in range(num):
 			#	subservice = event.getLinkageService(sref, cnt)
@@ -390,6 +398,8 @@ class SeriesPluginInfoScreen(Screen):
 			if path and os.path.exists(path):
 				from SeriesPluginRenamer import rename
 				if rename(ref, self.name, self.short, self.data):
+					self["key_red"].setText("")
+					self.redButtonFunction = None
 					self.session.open(MessageBox, _("Successfully renamed") )
 				else:
 					self.session.open(MessageBox, _("Renaming failed") )
