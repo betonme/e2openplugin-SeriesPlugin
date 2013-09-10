@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.7.3"
+VERSION = "0.8.7.4"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -38,6 +38,11 @@ ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
 				+ _("  Support: ") + SUPPORT + "\n" \
 				+ _("  Feel free to donate. \n") \
 				+ _("  PayPal: ") + DONATE
+try:
+	from Tools.HardwareInfo import HardwareInfo
+	DEVICE = HardwareInfo().get_device_name().strip()
+except:
+	DEVICE = ''
 
 
 #######################################################

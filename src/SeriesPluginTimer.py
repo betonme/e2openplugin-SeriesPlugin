@@ -52,25 +52,30 @@ class SeriesPluginTimer(object):
 		
 		epgcache = eEPGCache.getInstance()
 		
+		event = None
+		
 		if timer.eit:
+			splog("Timer Eit is set")
 			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
-			splog("LookupEventId event found")
 			
-		else:
+		if not(event):
 			#timer.service_ref.toString()
 			#timer.service_ref.ref.toString()
-			events = epgcache.lookupEvent(["N" , (timer.service_ref.ref, 0, begin, end)]);
+			#events = epgcache.lookupEvent(["N" , (timer.service_ref.ref, 0, begin, end)]);
+			events = epgcache.lookupEvent(["N" , (timer.service_ref.ref, 0, end - begin)]);
 			splog("LookupEvent event(s) found", len(events) )
 			splog(events)
 			event = events and events[0]
 		
-		if (not event):
-			splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
-			return
-		
-		if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
-			splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
-			return
+		if event:
+			splog("EPG event found")
+			if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
+				splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
+				return
+		else:
+			if not ( len(timer.name) == len(name) ):
+				splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
+				return
 		
 		if timer.begin < time() + 60:
 			splog("Skipping an event because it starts in less than 60 seconds", timer.name )

@@ -400,9 +400,9 @@ class SeriesPluginInfoScreen(Screen):
 				if rename(ref, self.name, self.short, self.data):
 					self["key_red"].setText("")
 					self.redButtonFunction = None
-					self.session.open(MessageBox, _("Successfully renamed") )
+					self.session.open( MessageBox, _("Successfully renamed"), MessageBox.TYPE_INFO )
 				else:
-					self.session.open(MessageBox, _("Renaming failed") )
+					self.session.open( MessageBox, _("Renaming failed"), MessageBox.TYPE_INFO )
 
 	# Adapted from EventView
 	def record(self):
