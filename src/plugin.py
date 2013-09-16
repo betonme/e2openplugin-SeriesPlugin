@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.7.4"
+VERSION = "0.8.7.5"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -185,8 +185,9 @@ def renameTimer(timer, name, begin, end, *args, **kwargs):
 
 # For compatibility reasons
 def modifyTimer(timer, name, *args, **kwargs):
+	splog("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
 	try:
-		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
+		SeriesPluginTimer(timer, name or timer.name, timer.begin, timer.end)
 	except Exception, e:
 		splog(_("SeriesPlugin label exception ") + str(e))
 		#exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -195,6 +196,7 @@ def modifyTimer(timer, name, *args, **kwargs):
 
 # For compatibility reasons
 def labelTimer(timer, begin=None, end=None, *args, **kwargs):
+	splog("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
 	try:
 		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 	except Exception, e:

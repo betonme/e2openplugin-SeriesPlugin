@@ -40,6 +40,7 @@ from Logger import splog
 
 # Constants
 IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
+SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/" )
 AUTOTIMER_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/AutoTimer/" )
 
 
@@ -78,6 +79,13 @@ def getInstance():
 	try:
 		for key, value in config.plugins.seriesplugin.dict().iteritems():
 			splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
+	except Exception, e:
+		pass
+	try:
+		if os.path.exists(SERIESPLUGIN_PATH):
+			dirList = os.listdir(SERIESPLUGIN_PATH)
+			for fname in dirList:
+				splog( fname, datetime.fromtimestamp( int( os.path.getctime( os.path.join(SERIESPLUGIN_PATH,fname) ) ) ).strftime('%Y-%m-%d %H:%M:%S') )
 	except Exception, e:
 		pass
 	try:

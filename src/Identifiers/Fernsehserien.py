@@ -17,6 +17,8 @@ from datetime import datetime, timedelta
 
 import json
 
+import re
+
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
@@ -121,7 +123,7 @@ class Fernsehserien(IdentifierBase):
 			return ( self.returnvalue or _("No matching series found") )
 
 	def getSeries(self, name):
-		url = SERIESLISTURL + urlencode({ 'term' : name })
+		url = SERIESLISTURL + urlencode({ 'term' : re.sub("[^a-zA-Z0-9]", " ", name) })
 		data = self.getPageInternal( url )
 
 		if data and isinstance(data, basestring):
@@ -331,12 +333,13 @@ class Fernsehserien(IdentifierBase):
 		#from urllib import quote_plus
 		from urllib2 import urlopen, URLError
 		
-		from Plugins.Extensions.SeriesPlugin.plugin import VERSION
+		from Plugins.Extensions.SeriesPlugin.plugin import VERSION,DEVICE
 		parameter = urlencode(
 			{
 				'url' : url,
 				'version' : VERSION,
-				'cached' : str(self.isCached(url))
+				'cached' : str(self.isCached(url)),
+				'device' : DEVICE
 			}
 		)
 		response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?" + parameter, timeout=5).read()
