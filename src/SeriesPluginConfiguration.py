@@ -141,15 +141,16 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 			self.list.append( getConfigListEntry(  _("Ask for channel matching")                   , config.plugins.seriesplugin.channel_popups ) )
 			
-			self.list.append( getConfigListEntry(  _("Rename files")                    , config.plugins.seriesplugin.rename_file ) )
+			self.list.append( getConfigListEntry(  _("Rename files")                               , config.plugins.seriesplugin.rename_file ) )
 			if config.plugins.seriesplugin.rename_file.value:
-				self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")                 , config.plugins.seriesplugin.tidy_rename ) )
+				self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")             , config.plugins.seriesplugin.tidy_rename ) )
 			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
 					
 			self.list.append( getConfigListEntry(  _("AutoTimer independent mode")                 , config.plugins.seriesplugin.autotimer_independent ) )
 			if config.plugins.seriesplugin.autotimer_independent.value:
 				self.list.append( getConfigListEntry(  _("Check timer every x minutes")            , config.plugins.seriesplugin.independent_cycle ) )
+				self.list.append( getConfigListEntry(  _("Always retry to find series info")       , config.plugins.seriesplugin.independent_retry ) )
 #NoTimerPopUpPossibleActually
 #			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
 

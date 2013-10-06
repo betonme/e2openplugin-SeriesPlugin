@@ -58,12 +58,15 @@ class SeriesPluginTimer(object):
 			splog("Timer Eit is set", timer.service_ref.ref, timer.eit)
 			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
 			splog("LookupEventId event", event)
-			
 		if not(event):
-			splog("Lookup Event", timer.service_ref.ref, end, begin)
-			events = epgcache.lookupEvent(["N" , (timer.service_ref.ref, 0, end - begin)]);
-			splog("LookupEvent event(s) found", len(events), events )
-			event = events and events[0]
+			splog("Lookup EventTime", timer.service_ref.ref, end, begin)
+			event = epgcache.lookupEventTime( timer.service_ref.ref, begin + ((end - begin) /2) );
+			splog("LookupEvent event found", event )
+		#if not(event):
+		#	splog("Lookup Event", timer.service_ref.ref, end, begin)
+		#	events = epgcache.lookupEvent( [ "T" , ( timer.service_ref.ref, 0, begin + ((end - begin) /2) ) ] );
+		#	splog("LookupEvent event(s) found", len(events), events )
+		#	event = events and events[0]
 		
 		if event:
 			splog("EPG event found")

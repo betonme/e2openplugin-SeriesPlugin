@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.8.7.5"
+VERSION = "0.8.7.6"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -79,11 +79,13 @@ config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0,
 
 config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = False)
 config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(5, 24*60, 5, default = 60)
+config.plugins.seriesplugin.independent_retry         = ConfigYesNo(default = False)
 #NoTimerPopUpPossibleActually
 #config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
 
+#config.plugins.seriesplugin.debug                     = ConfigYesNo(default = False)
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
 config.plugins.seriesplugin.log_file                  = ConfigText(default = "/tmp/seriesplugin.log", fixed_size = False)
 config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)
@@ -347,7 +349,7 @@ def recoverAutoTimer():
 from difflib import SequenceMatcher
 from ServiceReference import ServiceReference
 
-def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref):
+def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref, eit=None):
 	# Never overwrite existing names, You will lost Your series informations
 	#timer.name = name
 	# Only overwrite non existing descriptions
@@ -355,23 +357,25 @@ def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref):
 	timer.begin = int(begin)
 	timer.end = int(end)
 	timer.service_ref = ServiceReference(serviceref)
+	if eit:
+		timer.eit = eit
 
 def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc1, extdesc2, force=False):
 	# Check if the new title is part of the existing one
 	foundTitle = name1 in name2 or name2 in name1
 	
 	if timer.searchForDuplicateDescription > 0 or force:
-		foundShort = shortdesc1 in shortdesc2 or shortdesc2 in shortdesc1
+		foundShort = (shortdesc1 in shortdesc2 or shortdesc2 in shortdesc1) if (timer.searchForDuplicateDescription > 0 or force) else True
 		
 		# NOTE: only check extended if short description already is a match because otherwise
 		# it won't evaluate to True anyway
-		if foundShort:
+		if (timer.searchForDuplicateDescription > 0 or force) and foundShort and extdesc1 != extdesc2:
 			# Some channels indicate replays in the extended descriptions
 			# If the similarity percent is higher then 0.8 it is a very close match
-			if timer.series_labeling and (extdesc1 == "" or extdesc2 == ""):
-				foundExt = True
-			else:
-				foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
+			#if timer.series_labeling and (extdesc1 == "" or extdesc2 == ""):
+			#	foundExt = True
+			#else:
+			foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
 	else:
 		foundShort = True
 		foundExt = True

@@ -24,7 +24,7 @@ from Components.config import *
 
 import NavigationInstance
 from enigma import eTimer
-from time import gmtime
+from time import localtime
 #from ServiceReference import ServiceReference
 
 # Plugin internal
@@ -66,17 +66,28 @@ class SeriesPluginIndependent(object):
 
 	def run(self):
 		splog("SeriesPluginIndependent run ###########################################")
-		splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
+		splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 		
 		try:
 		
 			for timer in NavigationInstance.instance.RecordTimer.timer_list:
 				
-				if timer.isRunning() or timer.justplay:
+				if timer.isRunning():
+					splog("SeriesPluginIndependent: Skip running timer", timer.name)
 					continue
 				
-				if not timer.repeated:
+				if timer.justplay:
+					splog("SeriesPluginIndependent: Skip justplay timer", timer.name)
+					continue
+				
+				if timer.repeated:
+					splog("SeriesPluginIndependent: Skip repeating timer", timer.name)
+					continue
+				
+				if not config.plugins.seriesplugin.independent_retry.value:
+					splog("SeriesPluginIndependent: timer retry is disabled")
 					if hasattr(timer, 'serieslookupdone') and timer.serieslookupdone:
+						splog("SeriesPluginIndependent: Skip timer retry", timer.name)
 						continue
 				
 				#Maybe later add a series whitelist xml

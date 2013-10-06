@@ -16,6 +16,8 @@
 #
 #######################################################################
 
+from . import _
+
 import os, sys, traceback
 
 from Components.config import config
@@ -171,19 +173,19 @@ class Logger(object):
 		user_name = str(config.plugins.seriesplugin.log_reply_user.value)
 		user_email = str(config.plugins.seriesplugin.log_reply_mail.value)
 		
-		subject = 'Dreambox SeriesPlugin Auto Send Log'
+		subject = _('Dreambox SeriesPlugin Auto Send Log')
 		message = \
-			"\nHello\n\nHere is a log for you.\n" + \
+			_("\nHello\n\nHere is a log for you.\n") + \
 			"\n" + \
-			"Supplied forum user name: " + user_name + "\n" + \
-			"Supplied email address: " + user_email + "\n" + \
-			"\n\nThis is an automatically generated email from the SeriesPlugin.\n\n\nHave a nice day.\n"
+			_("Supplied forum user name: ") + user_name + "\n" + \
+			_("Supplied email address: ") + user_email + "\n" + \
+			_("\n\nThis is an automatically generated email from the SeriesPlugin.\n\n\nHave a nice day.\n")
 		
-		response = post_multipart('betonme.lima-city.de', '/SeriesPlugin/mailer.php', [('replyname',user_name), ('replyto',user_email), ('subject',subject), ('message',message)], [('logfile', logfile, filename)] )
+		response = post_multipart('http://betonme.lima-city.de', '/SeriesPlugin/mailer.php', [('replyname',user_name), ('replyto',user_email), ('subject',subject), ('message',message)], [('logfile', logfile, filename)] )
 		
 		splog( "[SP sendLog] - Message sent successfully --> \n", response )
 		self.session.open(
 			MessageBox,
-			"Message sent successfully\n\n"+str(response),
+			_("Server response:") + "\n\n" + str(response),
 			type = MessageBox.TYPE_INFO
 		)

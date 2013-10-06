@@ -2,7 +2,7 @@
 
 import re
 import os, sys, traceback
-from time import gmtime, strftime
+from time import localtime, strftime
 from datetime import datetime
 
 # Localization
@@ -98,7 +98,7 @@ def getInstance():
 	
 	instance = SeriesPlugin()
 	#instance[os.getpid()] = SeriesPlugin()
-	splog( strftime("%a, %d %b %Y %H:%M:%S", gmtime()) )
+	splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 	return instance
 
 def resetInstance():
