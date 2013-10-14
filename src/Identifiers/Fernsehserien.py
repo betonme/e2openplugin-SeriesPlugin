@@ -1,5 +1,6 @@
 # by betonme @2012
 
+import os, sys
 import math
 from sys import maxint
 
@@ -10,7 +11,6 @@ from Tools.BoundFunction import boundFunction
 from urllib import urlencode
 
 #from HTMLParser import HTMLParser
-from bs4 import BeautifulSoup
 
 from time import time
 from datetime import datetime, timedelta
@@ -24,6 +24,9 @@ from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
+#sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4')
+#sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4/builder')
+from bs4 import BeautifulSoup
 
 # Constants
 SERIESLISTURL = "http://www.fernsehserien.de/suche?"
@@ -47,6 +50,8 @@ Headers = {
 class Fernsehserien(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
+		
+		self.license = False
 
 	@classmethod
 	def knowsElapsed(cls):
@@ -63,8 +68,6 @@ class Fernsehserien(IdentifierBase):
 	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
-		
-		self.license = None
 		
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
@@ -123,9 +126,10 @@ class Fernsehserien(IdentifierBase):
 			return ( self.returnvalue or _("No matching series found") )
 
 	def getSeries(self, name):
-		url = SERIESLISTURL + urlencode({ 'term' : re.sub("[^a-zA-Z0-9]", " ", name) })
+		parameter =  urlencode({ 'term' : re.sub("[^a-zA-Z0-9]", " ", name) })
+		url = SERIESLISTURL + parameter
 		data = self.getPageInternal( url )
-
+		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
 			self.doCache(url, data)
@@ -174,11 +178,11 @@ class Fernsehserien(IdentifierBase):
 						trs[-1][5] += ' ' + (tdnodes[3].string or "")
 						#if trs[-1][6] and tdnodes[4].string:
 						trs[-1][6] += ' ' + (tdnodes[4].string or "")
-					else:
-						splog( "tdnodes", len(tdnodes), tdnodes )
+					#else:
+					#	splog( "tdnodes", len(tdnodes), tdnodes )
 				
-				else:
-					splog( "tdnodes", tdnodes )
+				#else:
+				#	splog( "tdnodes", tdnodes )
 		
 		#splog(trs)
 		return trs
@@ -238,7 +242,7 @@ class Fernsehserien(IdentifierBase):
 							
 							# First part: date, times, channel
 							xdate, xbegin = tds[1:3]
-							splog( "tds", tds )
+							#splog( "tds", tds )
 							
 							#xend = xbegin[6:11]
 							xbegin = xbegin[0:5]
@@ -311,7 +315,7 @@ class Fernsehserien(IdentifierBase):
 
 	def getPageInternal(self, url):
 		
-		if self.checkLicense(url):
+		if self.checkLicense(url, self.isCached(url)):
 		
 			# PHP Proxy with 1 day Caching
 			# to minimize server requests
@@ -321,34 +325,3 @@ class Fernsehserien(IdentifierBase):
 			
 		else:
 			return _("No valid license")
-
-	def checkLicense(self, url):
-		
-		if self.license is not None:
-			return self.license
-		
-		import socket
-		socket.setdefaulttimeout(5)
-		from urllib import urlencode
-		#from urllib import quote_plus
-		from urllib2 import urlopen, URLError
-		
-		from Plugins.Extensions.SeriesPlugin.plugin import VERSION,DEVICE
-		parameter = urlencode(
-			{
-				'url' : url,
-				'version' : VERSION,
-				'cached' : str(self.isCached(url)),
-				'device' : DEVICE
-			}
-		)
-		response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?" + parameter, timeout=5).read()
-			
-		print "checkLicense"
-		print response
-		if response == "Valid License":
-			self.license = True
-			return True
-		else:
-			self.license = False
-			return False

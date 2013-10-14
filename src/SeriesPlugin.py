@@ -25,7 +25,6 @@ from Tools.Notifications import AddPopup
 from Screens.MessageBox import MessageBox
 
 # Plugin internal
-from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
 from Channels import ChannelsBase, removeEpisodeInfo, lookupServiceAlternatives
@@ -39,7 +38,6 @@ from Logger import splog
 
 
 # Constants
-IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
 SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/" )
 AUTOTIMER_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/AutoTimer/" )
 
@@ -53,52 +51,55 @@ CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
 
 def getInstance():
 	global instance
-	#if instance is None:
-	from plugin import VERSION
 	
-	splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
+	if instance is None:
+		
+		from plugin import VERSION
+		
+		splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
+		
+		try:
+			from Tools.HardwareInfo import HardwareInfo
+			splog( "DeviceName " + HardwareInfo().get_device_name().strip() )
+		except:
+			pass
+		try:
+			from Components.About import about
+			splog( "EnigmaVersion " + about.getEnigmaVersionString().strip() )
+			splog( "ImageVersion " + about.getVersionString().strip() )
+		except:
+			pass
+		try:
+			#http://stackoverflow.com/questions/1904394/python-selecting-to-read-the-first-line-only
+			splog( "dreamboxmodel " + open("/proc/stb/info/model").readline().strip() )
+			splog( "imageversion " + open("/etc/image-version").readline().strip() )
+			splog( "imageissue " + open("/etc/issue.net").readline().strip() )
+		except:
+			pass
+		try:
+			for key, value in config.plugins.seriesplugin.dict().iteritems():
+				splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
+		except Exception as e:
+			pass
+		try:
+			if os.path.exists(SERIESPLUGIN_PATH):
+				dirList = os.listdir(SERIESPLUGIN_PATH)
+				for fname in dirList:
+					splog( fname, datetime.fromtimestamp( int( os.path.getctime( os.path.join(SERIESPLUGIN_PATH,fname) ) ) ).strftime('%Y-%m-%d %H:%M:%S') )
+		except Exception as e:
+			pass
+		try:
+			if os.path.exists(AUTOTIMER_PATH):
+				dirList = os.listdir(AUTOTIMER_PATH)
+				for fname in dirList:
+					splog( fname, datetime.fromtimestamp( int( os.path.getctime( os.path.join(AUTOTIMER_PATH,fname) ) ) ).strftime('%Y-%m-%d %H:%M:%S') )
+		except Exception as e:
+			pass
+		
+		instance = SeriesPlugin()
+		#instance[os.getpid()] = SeriesPlugin()
+		splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 	
-	try:
-		from Tools.HardwareInfo import HardwareInfo
-		splog( "DeviceName " + HardwareInfo().get_device_name().strip() )
-	except:
-		pass
-	try:
-		from Components.About import about
-		splog( "EnigmaVersion " + about.getEnigmaVersionString().strip() )
-		splog( "ImageVersion " + about.getVersionString().strip() )
-	except:
-		pass
-	try:
-		#http://stackoverflow.com/questions/1904394/python-selecting-to-read-the-first-line-only
-		splog( "dreamboxmodel " + open("/proc/stb/info/model").readline().strip() )
-		splog( "imageversion " + open("/etc/image-version").readline().strip() )
-		splog( "imageissue " + open("/etc/issue.net").readline().strip() )
-	except:
-		pass
-	try:
-		for key, value in config.plugins.seriesplugin.dict().iteritems():
-			splog( "config.plugins.seriesplugin.%s = %s" % (key, str(value.value)) )
-	except Exception, e:
-		pass
-	try:
-		if os.path.exists(SERIESPLUGIN_PATH):
-			dirList = os.listdir(SERIESPLUGIN_PATH)
-			for fname in dirList:
-				splog( fname, datetime.fromtimestamp( int( os.path.getctime( os.path.join(SERIESPLUGIN_PATH,fname) ) ) ).strftime('%Y-%m-%d %H:%M:%S') )
-	except Exception, e:
-		pass
-	try:
-		if os.path.exists(AUTOTIMER_PATH):
-			dirList = os.listdir(AUTOTIMER_PATH)
-			for fname in dirList:
-				splog( fname, datetime.fromtimestamp( int( os.path.getctime( os.path.join(AUTOTIMER_PATH,fname) ) ) ).strftime('%Y-%m-%d %H:%M:%S') )
-	except Exception, e:
-		pass
-	
-	instance = SeriesPlugin()
-	#instance[os.getpid()] = SeriesPlugin()
-	splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 	return instance
 
 def resetInstance():
@@ -153,15 +154,13 @@ class SeriesPlugin(Modules, ChannelsBase):
 		#http://bugs.python.org/issue7980
 		datetime.strptime('2012-01-01', '%Y-%m-%d')
 		
-		self.identifiers = self.loadModules(IDENTIFIER_PATH, IdentifierBase)
-		
-		self.identifier_elapsed = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_elapsed.value )
+		self.identifier_elapsed = self.instantiateModuleWithName( config.plugins.seriesplugin.identifier_elapsed.value )
 		splog(self.identifier_elapsed)
 		
-		self.identifier_today = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_today.value )
+		self.identifier_today = self.instantiateModuleWithName( config.plugins.seriesplugin.identifier_today.value )
 		splog(self.identifier_today)
 		
-		self.identifier_future = self.instantiateModuleWithName( self.identifiers, config.plugins.seriesplugin.identifier_future.value )
+		self.identifier_future = self.instantiateModuleWithName( config.plugins.seriesplugin.identifier_future.value )
 		splog(self.identifier_future)
 
 	def stop(self):
@@ -227,7 +226,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 					splog("SeriesPluginWorkerThread result failed")
 					callback( result )
 					
-			except Exception, e:
+			except Exception as e:
 				splog("SeriesPluginWorkerThread Callback Exception:", str(e))
 				callback( str(e) )
 			

@@ -18,18 +18,25 @@
 
 import os, sys, traceback
 
+from Tools.Directories import resolveFilename, SCOPE_PLUGINS
+
 # Plugin framework
 import imp, inspect
 
 # Plugin internal
 from . import _
 from Logger import splog
+from IdentifierBase import IdentifierBase
+
+# Constants
+IDENTIFIER_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Identifiers/" )
 
 
 class Modules(object):
 
 	def __init__(self):
-		pass
+		self.modules = self.loadModules(IDENTIFIER_PATH, IdentifierBase)
+		splog("SP Modules:", self.modules)
 
 	#######################################################
 	# Module functions
@@ -37,6 +44,7 @@ class Modules(object):
 		modules = {}
 		
 		if not os.path.exists(path):
+			splog("[SP Modules]: Error: Path doesn't exist: " + path)
 			return
 		
 		# Import all subfolders to allow relative imports
@@ -60,29 +68,29 @@ class Modules(object):
 			
 			try:
 				fp, pathname, description = imp.find_module(name, [path])
-			except Exception, e:
-				splog("[SeriesService] Find module exception: " + str(e))
+			except Exception as e:
+				splog("[SP Modules] Find module exception: " + str(e))
 				fp = None
 			
 			if not fp:
-				splog("[SeriesService] No module found: " + str(name))
+				splog("[SP Modules] No module found: " + str(name))
 				continue
 			
 			try:
 				module = imp.load_module( name, fp, pathname, description)
-			except Exception, e:
-				splog("[SeriesService] Load exception: " + str(e))
+			except Exception as e:
+				splog("[SP Modules] Load exception: " + str(e))
 			finally:
 				# Since we may exit via an exception, close fp explicitly.
 				if fp: fp.close()
 			
 			if not module:
-				splog("[SeriesService] No module available: " + str(name))
+				splog("[SP Modules] No module available: " + str(name))
 				continue
 			
 			# Continue only if the attribute is available
 			if not hasattr(module, name):
-				splog("[SeriesService] Warning attribute not available: " + str(name))
+				splog("[SP Modules] Warning attribute not available: " + str(name))
 				continue
 			
 			# Continue only if attr is a class
@@ -93,27 +101,31 @@ class Modules(object):
 			
 			# Continue only if the class is a subclass of the corresponding base class
 			if not issubclass( attr, base):
-				splog("[SeriesService] Warning no subclass of base: " + str(name))
+				splog("[SP Modules] Warning no subclass of base: " + str(name))
 				continue
 			
 			# Add module to the module list
 			modules[name] = attr
 		return modules
 
-	def instantiateModuleWithName(self, modules, name):
-		module = modules.get(name)
-		if module and callable(module):
-			# Create instance
-			try:
-				return module()
-			except Exception, e:
-				splog("[SeriesService] Instantiate exception: " + str(module) + "\n" + str(e))
-				if sys.exc_info()[0]:
-					splog("Unexpected error: ", sys.exc_info()[0])
-					traceback.print_exc(file=sys.stdout)
-					return None
+	def instantiateModuleWithName(self, name):
+		if self.modules:
+			module = self.modules.get(name)
+			if module and callable(module):
+				# Create instance
+				try:
+					return module()
+				except Exception as e:
+					splog("[SeriesService] Instantiate exception: " + str(module) + "\n" + str(e))
+					if sys.exc_info()[0]:
+						splog("Unexpected error: ", sys.exc_info()[0])
+						traceback.print_exc(file=sys.stdout)
+						return None
+			else:
+				splog("[SeriesService] Module is not callable: " + str(name))
+				return None
 		else:
-			splog("[SeriesService] Module is not callable: " + str(name))
+			splog("[SeriesService] No modules for name: " + str(name))
 			return None
 
 	def instantiateModule(self, module):
@@ -121,7 +133,7 @@ class Modules(object):
 			# Create instance
 			try:
 				return module()
-			except Exception, e:
+			except Exception as e:
 				splog("[SeriesService] Instantiate exception: " + str(module) + "\n" + str(e))
 				if sys.exc_info()[0]:
 					splog("Unexpected error: ", sys.exc_info()[0])

@@ -95,6 +95,6 @@ class SeriesPluginIndependent(object):
 				
 				timer.serieslookupdone = True
 		
-		except Exception, e:
+		except Exception as e:
 			splog(_("SeriesPluginIndependent run exception ") + str(e))
 		

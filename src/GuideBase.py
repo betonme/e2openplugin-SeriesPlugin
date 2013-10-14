@@ -44,7 +44,7 @@ class GuideBase(ModuleBase):
 				deferred.addCallback(boundFunction(self.base_callback, callback, url))
 				deferred.addErrback(boundFunction(self.base_errback, callback))
 				self.deferreds.append(deferred)
-			except Exception, e:
+			except Exception as e:
 				splog(_("SeriesPlugin getPage exception ") + str(e))
 				exc_type, exc_value, exc_traceback = sys.exc_info()
 				#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
@@ -63,7 +63,7 @@ class GuideBase(ModuleBase):
 				callback( page )
 			else:
 				callback( None )
-		except Exception, e:
+		except Exception as e:
 			splog(_("SeriesPlugin base_callback exception ") + str(e))
 			exc_type, exc_value, exc_traceback = sys.exc_info()
 			#traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)

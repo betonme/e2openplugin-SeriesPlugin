@@ -44,6 +44,7 @@ class SeriesPluginTimer(object):
 		
 		splog("SeriesPluginTimer")
 		splog(name, timer.name)
+		timer.log(600, "[SeriesPlugin] Try to find infos for %s" % (timer.name) )
 		
 		# We have to compare the length,
 		# because of the E2 special chars handling for creating the filenames
@@ -72,22 +73,27 @@ class SeriesPluginTimer(object):
 			splog("EPG event found")
 			if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
 				splog("Skip timer because it is already modified", timer.name, name, event and event.getEventName(), len(timer.name), len(name), len(event.getEventName()) )
+				timer.log(601, "[SeriesPlugin] Skip timer because it is already modified")
 				return
 		else:
 			if not ( len(timer.name) == len(name) ):
 				splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
+				timer.log(602, "[SeriesPlugin] Skip timer because no event was found")
 				return
 		
 		if timer.begin < time() + 60:
 			splog("Skipping an event because it starts in less than 60 seconds", timer.name )
+			timer.log(603, "[SeriesPlugin] Skip timer because it starts in less than 60 seconds")
 			return
 		
 		if timer.isRunning():
 			splog("Skipping timer because it is already running", timer.name )
+			timer.log(604, "[SeriesPlugin] Skip timer because it is already running")
 			return
 		
 		if timer.justplay:
 			splog("Skipping justplay timer", timer.name )
+			timer.log(605, "[SeriesPlugin] Skip justplay timer")
 			return
 		
 		self.timer = timer
@@ -113,18 +119,23 @@ class SeriesPluginTimer(object):
 		timer = self.timer
 		
 		if data and len(data) == 4 and timer:
+			
 			# Episode data available, refactor name and description
 			from SeriesPluginRenamer import newLegacyEncode
 			timer.name = refactorTitle(timer.name, data)
 			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = refactorDescription(timer.description, data)
+			
+			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 		
 		elif data:
+			timer.log(611, "[SeriesPlugin] Failed: %s." % ( str( data ) ))
 			SeriesPluginTimer.data.append(
 				str(timer.name) + " " + str( data )
 			)
 		
 		else:
+			timer.log(612, "[SeriesPlugin] Failed: %s." % (  str( data ) ))
 			SeriesPluginTimer.data.append(
 				str(timer.name) + " " + _("No data available")
 			)
@@ -147,7 +158,7 @@ class SeriesPluginTimer(object):
 #						0,
 #						'SP_PopUp_ID_TimerFinished'
 #					)
-#				except Exception, e:
+#				except Exception as e:
 #					splog("SeriesPluginTimer AddPopup Exception:", str(e))
 			
 			SeriesPluginTimer.data = []

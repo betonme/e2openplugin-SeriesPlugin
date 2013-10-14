@@ -84,7 +84,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		self.seriesPlugin = getInstance()
 		
 		# Create temporary identifier config elements
-		identifiers = self.seriesPlugin.identifiers
+		identifiers = self.seriesPlugin.modules
 		identifiers_elapsed = [k for k,v in identifiers.items() if v.knowsElapsed()]
 		identifiers_today   = [k for k,v in identifiers.items() if v.knowsToday()]
 		identifiers_future  = [k for k,v in identifiers.items() if v.knowsFuture()]

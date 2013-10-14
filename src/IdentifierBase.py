@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from thread import start_new_thread
 
+#TODO Implement Twisted handler
 #Twisted 12.x
 #from twisted.web.client import getPage as twGetPage
 #Twisted 8.x
@@ -14,7 +15,7 @@ from thread import start_new_thread
 
 from time import sleep
 import socket
-socket.setdefaulttimeout(5)
+socket.setdefaulttimeout(15)
 #import urllib2
 from urllib import urlencode
 from urllib2 import urlopen, URLError, Request, build_opener, HTTPCookieProcessor
@@ -26,15 +27,19 @@ from Tools.BoundFunction import boundFunction
 from ModuleBase import ModuleBase
 from Cacher import Cacher, INTER_QUERY_TIME
 from Logger import splog
+from License import License
 
 
 import recipeMemUse as MemoryUsage
 
 
-class IdentifierBase(ModuleBase, Cacher):
+class MyException(Exception):
+    pass
+class IdentifierBase(ModuleBase, Cacher, License):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
+		License.__init__(self)
 		self.name = ""
 		self.begin = None
 		self.end = None
@@ -58,12 +63,12 @@ class IdentifierBase(ModuleBase, Cacher):
 		#TEST other solutions
 		#http://de.softuses.com/28672
 		#http://code.google.com/p/psutil/
-		VmSize = MemoryUsage.memory()
-		splog("SP VmSize: "+str(VmSize/1024/1024)+" Mb" )
-		VmRSS  = MemoryUsage.resident()
-		splog("SP VmRSS:  "+str(VmRSS/1024/1024)+" Mb" )
-		VmStk  = MemoryUsage.stacksize()
-		splog("SP VmStk:  "+str(VmStk/1024/1024)+" Mb" )
+		#VmSize = MemoryUsage.memory()
+		#splog("SP VmSize: "+str(VmSize/1024/1024)+" Mb" )
+		#VmRSS  = MemoryUsage.resident()
+		#splog("SP VmRSS:  "+str(VmRSS/1024/1024)+" Mb" )
+		#VmStk  = MemoryUsage.stacksize()
+		#splog("SP VmStk:  "+str(VmStk/1024/1024)+" Mb" )
 		
 		cached = self.getCached(url, expires)
 		
@@ -76,17 +81,17 @@ class IdentifierBase(ModuleBase, Cacher):
 			
 			try:
 				req = Request(url, headers=headers)
-				response = urlopen(req, timeout=5).read()
+				response = urlopen(req, timeout=15).read()
 				
 				#splog("SSBase response to cache: ", response) 
 				if response:
 					self.doCacheInternal(url, response)
-				
+			
 			except URLError as e:
+				 # For Python 2.6
 				if counter > 2:
 					splog("SSBase URLError counter > 2")
-					raise
-					return
+					raise MyException("There was an URLError: %r" % e)
 				elif hasattr(e, "code"):
 					splog("SSBase URLError code")
 					print e.code, e.msg, counter
@@ -94,8 +99,22 @@ class IdentifierBase(ModuleBase, Cacher):
 					return self.getPage(url, headers, expires, counter+1)
 				else:
 					splog("SSBase URLError else")
-					raise
-		
+					raise MyException("There was an URLError: %r" % e)
+			
+			except socket.timeout as e:
+				 # For Python 2.7
+				if counter > 2:
+					splog("SSBase URLError counter > 2")
+					raise MyException("There was an SocketTimeout: %r" % e)
+				elif hasattr(e, "code"):
+					splog("SSBase URLError code")
+					print e.code, e.msg, counter
+					sleep(2)
+					return self.getPage(url, headers, expires, counter+1)
+				else:
+					splog("SSBase URLError else")
+					raise MyException("There was an SocketTimeout: %r" % e)
+			
 		splog("SSBase success")
 		return response
 	

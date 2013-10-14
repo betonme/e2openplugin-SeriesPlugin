@@ -1,4 +1,4 @@
-#######################################################################
+﻿#######################################################################
 #
 #    Series Plugin for Enigma-2
 #    Coded by betonme (c) 2012 <glaserfrank(at)gmail.com>
@@ -24,6 +24,8 @@ from Components.config import config
 
 from Screens.MessageBox import MessageBox
 
+import requests
+
 
 def splog(*args):
 	strargs = ""
@@ -43,7 +45,7 @@ def splog(*args):
 			if sys.exc_info()[0]:
 				print "Unexpected error:", sys.exc_info()[0]
 				traceback.print_exc(file=f)
-		except Exception, e:
+		except Exception as e:
 			print "SeriesPlugin splog exception " + str(e)
 		finally:
 			if f:
@@ -55,60 +57,30 @@ def splog(*args):
 	
 	sys.exc_clear()
 
-
-## {{{ http://code.activestate.com/recipes/146306/ (r1)
-import httplib, mimetypes
-
-def post_multipart(host, selector, fields, files):
-    """
-    Post fields and files to an http host as multipart/form-data.
-    fields is a sequence of (name, value) elements for regular form fields.
-    files is a sequence of (name, filename, value) elements for data to be uploaded as files
-    Return the server's response page.
-    """
-    content_type, body = encode_multipart_formdata(fields, files)
-    h = httplib.HTTPConnection(host)
-    h.putrequest('POST', selector)
-    h.putheader('content-type', content_type)
-    h.putheader('content-length', str(len(body)))
-    h.endheaders()
-    h.send(body)
-    return h.getresponse().read()
-
-def encode_multipart_formdata(fields, files):
-    """
-    fields is a sequence of (name, value) elements for regular form fields.
-    files is a sequence of (name, filename, value) elements for data to be uploaded as files
-    Return (content_type, body) ready for httplib.HTTP instance
-    """
-    BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
-    CRLF = '\r\n'
-    L = []
-    for (key, value) in fields:
-        L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"' % key)
-        L.append('')
-        L.append(value)
-    for (key, filename, value) in files:
-        L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
-        L.append('Content-Type: %s' % get_content_type(filename))
-        L.append('')
-        L.append(value)
-    L.append('--' + BOUNDARY + '--')
-    L.append('')
-    body = CRLF.join(L)
-    content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
-    return content_type, body
-
-def get_content_type(filename):
-    return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-## end of http://code.activestate.com/recipes/146306/ }}}
+def post(url, fields, files):
+	from plugin import VERSION
+	
+	headers = {
+			'user-agent'     : 'Enigma2-SeriesPlugin/'+VERSION
+		}
+	
+	for (key, filename, value) in files:
+		
+		# TODO Actually only for one file
+		rfiles = {key: open(filename, 'r')}
+		r = requests.post(url, headers=headers, params=fields, files=rfiles )
+		
+		splog("HTTP Response:", r.status_code, r.text)
+		return r.text
 
 
 class Logger(object):
 	def sendLog(self):
 		print "[SP sendLog]"
+		
+		return
+		
+		#LATER
 		
 		# Check preconditions
 		if not config.plugins.seriesplugin.write_log.value:
@@ -150,9 +122,7 @@ class Logger(object):
 					+ _("I've to spend my free time for this support!\n\n") \
 					+ _("Have You already checked the problem list:\n") \
 					+ _("Is the information available at Wunschliste.de / Fernsehserien.de? \n") \
-					+ _("Does the start time match? \n") \
-					+ _("Check the proxy status: http://lima-status.de? \n") \
-					+ _("Maybe the Cache is not yet uptodate, wait 24 hours and recheck? \n") \
+					+ _("Does the start time match? \n")
 		
 		self.session.openWithCallback(
 				self.confirmSend,
@@ -167,6 +137,18 @@ class Logger(object):
 		if not confirmed:
 			return
 		
+		#LATER
+		#import zipfile
+		#logfile = "/tmp/seriesplugin_log.zip"
+		#print 'creating archive'
+		#zf = zipfile.ZipFile(logfile, mode='w')
+		#try:
+		#	print 'adding README.txt'
+		#	zf.write(config.plugins.seriesplugin.log_file.value)
+		#finally:
+		#	print 'closing'
+		#	zf.close()
+		
 		logfile = config.plugins.seriesplugin.log_file.value
 		filename = str(os.path.basename(logfile))
 		
@@ -175,15 +157,25 @@ class Logger(object):
 		
 		subject = _('Dreambox SeriesPlugin Auto Send Log')
 		message = \
-			_("\nHello\n\nHere is a log for you.\n") + \
+			_("Hello,") + "\n" + \
+			_("this is an email from the SeriesPlugin.\n") + "\n" + \
 			"\n" + \
 			_("Supplied forum user name: ") + user_name + "\n" + \
 			_("Supplied email address: ") + user_email + "\n" + \
-			_("\n\nThis is an automatically generated email from the SeriesPlugin.\n\n\nHave a nice day.\n")
+			_("Have a nice day.") + "\n" + \
+			_("Good bye")
+		try:
+			response = post(
+							'http://betonme.lima-city.de/SeriesPlugin/mailer.php', 
+							#'http://betonme.my3gb.com/SeriesPlugin/mailer.php',
+							#'http://betonme.funpic.de/mailer.php',
+							{'replyname':user_name, 'replyto':user_email, 'subject':subject, 'message':message},
+							[('File', logfile, filename)]
+						)
+		except Exception as e:
+			response = "Failed, " + str(e)
 		
-		response = post_multipart('http://betonme.lima-city.de', '/SeriesPlugin/mailer.php', [('replyname',user_name), ('replyto',user_email), ('subject',subject), ('message',message)], [('logfile', logfile, filename)] )
-		
-		splog( "[SP sendLog] - Message sent successfully --> \n", response )
+		splog( "[SP sendLog] - Server response:\n", response )
 		self.session.open(
 			MessageBox,
 			_("Server response:") + "\n\n" + str(response),

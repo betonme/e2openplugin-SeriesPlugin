@@ -123,7 +123,7 @@ def renameMeta(service, data):
 			metafile = open(meta_file, "w")
 			metafile.write("%s%s\n%s\n%s" % (sid, title, descr, rest))
 			metafile.close()
-	except Exception, e:
+	except Exception as e:
 		splog(e)
 
 def renameFile(service, name, data):
@@ -143,7 +143,7 @@ def renameFile(service, name, data):
 
 		for f in glob.glob(os.path.join(path, src + "*")):
 			os.rename(f, f.replace(src, dst))
-	except Exception, e:
+	except Exception as e:
 		splog(e)
 
 

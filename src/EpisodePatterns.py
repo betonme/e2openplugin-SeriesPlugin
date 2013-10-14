@@ -57,7 +57,7 @@ def readPatternFile():
 			f = open(path, 'rb')
 			header, patterns = json.load(f)
 			patterns = [tuple(p) for p in patterns]
-		except Exception, e:
+		except Exception as e:
 			splog("[SeriesPlugin] Exception in readEpisodePatternsFile: " + str(e))
 		finally:
 			if f is not None:

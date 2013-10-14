@@ -292,7 +292,7 @@ class SeriesPluginInfoScreen(Screen):
 			
 			try:
 				self.setColorButtons()
-			except Exception, e:
+			except Exception as e:
 				# Screen already closed
 				splog("SeriesPluginInfoScreen:", str(e))
 		elif data:
@@ -303,7 +303,7 @@ class SeriesPluginInfoScreen(Screen):
 		# Check if the dialog is already closed
 		try:
 			self["event_episode"].setText( custom )
-		except Exception, e:
+		except Exception as e:
 			# Screen already closed
 			splog("SeriesPluginInfoScreen:", str(e))
 

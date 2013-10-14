@@ -7,7 +7,6 @@ from Tools.BoundFunction import boundFunction
 
 from urllib import urlencode
 
-from iso8601 import parse_date
 from HTMLParser import HTMLParser
 
 from datetime import datetime
@@ -20,6 +19,7 @@ from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
+from iso8601 import parse_date
 
 # Constants
 SERIESLISTURL     = "http://www.wunschliste.de/ajax/search_dropdown.pl?"
@@ -90,6 +90,8 @@ class WLAtomParser(HTMLParser):
 class WunschlisteFeed(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
+		
+		self.license = False
 
 	@classmethod
 	def knowsToday(cls):
@@ -102,8 +104,6 @@ class WunschlisteFeed(IdentifierBase):
 	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
-		
-		self.license = None
 		
 		self.begin = begin
 		self.end = end
@@ -261,7 +261,7 @@ class WunschlisteFeed(IdentifierBase):
 
 	def getPageInternal(self, url):
 		
-		if self.checkLicense(url):
+		if self.checkLicense(url, self.isCached(url)):
 			
 			# PHP Proxy with 1 day Caching
 			# to minimize server requests
@@ -271,34 +271,3 @@ class WunschlisteFeed(IdentifierBase):
 		
 		else:
 			return _("No valid license")
-
-	def checkLicense(self, url):
-		
-		if self.license is not None:
-			return self.license
-		
-		import socket
-		socket.setdefaulttimeout(5)
-		from urllib import urlencode
-		#from urllib import quote_plus
-		from urllib2 import urlopen, URLError
-		
-		from Plugins.Extensions.SeriesPlugin.plugin import VERSION,DEVICE
-		parameter = urlencode(
-			{
-				'url' : url,
-				'version' : VERSION,
-				'cached' : str(self.isCached(url)),
-				'device' : DEVICE
-			}
-		)
-		response = urlopen("http://betonme.lima-city.de/SeriesPlugin/license.php?" + parameter, timeout=5).read()
-			
-		print "checkLicense"
-		print response
-		if response == "Valid License":
-			self.license = True
-			return True
-		else:
-			self.license = False
-			return False
