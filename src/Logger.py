@@ -24,7 +24,7 @@ from Components.config import config
 
 from Screens.MessageBox import MessageBox
 
-import requests
+#import requests
 
 
 def splog(*args):
@@ -56,22 +56,6 @@ def splog(*args):
 		traceback.print_exc(file=sys.stdout)
 	
 	sys.exc_clear()
-
-def post(url, fields, files):
-	from plugin import VERSION
-	
-	headers = {
-			'user-agent'     : 'Enigma2-SeriesPlugin/'+VERSION
-		}
-	
-	for (key, filename, value) in files:
-		
-		# TODO Actually only for one file
-		rfiles = {key: open(filename, 'r')}
-		r = requests.post(url, headers=headers, params=fields, files=rfiles )
-		
-		splog("HTTP Response:", r.status_code, r.text)
-		return r.text
 
 
 class Logger(object):
@@ -136,48 +120,3 @@ class Logger(object):
 	def confirmSend(self, confirmed):
 		if not confirmed:
 			return
-		
-		#LATER
-		#import zipfile
-		#logfile = "/tmp/seriesplugin_log.zip"
-		#print 'creating archive'
-		#zf = zipfile.ZipFile(logfile, mode='w')
-		#try:
-		#	print 'adding README.txt'
-		#	zf.write(config.plugins.seriesplugin.log_file.value)
-		#finally:
-		#	print 'closing'
-		#	zf.close()
-		
-		logfile = config.plugins.seriesplugin.log_file.value
-		filename = str(os.path.basename(logfile))
-		
-		user_name = str(config.plugins.seriesplugin.log_reply_user.value)
-		user_email = str(config.plugins.seriesplugin.log_reply_mail.value)
-		
-		subject = _('Dreambox SeriesPlugin Auto Send Log')
-		message = \
-			_("Hello,") + "\n" + \
-			_("this is an email from the SeriesPlugin.\n") + "\n" + \
-			"\n" + \
-			_("Supplied forum user name: ") + user_name + "\n" + \
-			_("Supplied email address: ") + user_email + "\n" + \
-			_("Have a nice day.") + "\n" + \
-			_("Good bye")
-		try:
-			response = post(
-							'http://betonme.lima-city.de/SeriesPlugin/mailer.php', 
-							#'http://betonme.my3gb.com/SeriesPlugin/mailer.php',
-							#'http://betonme.funpic.de/mailer.php',
-							{'replyname':user_name, 'replyto':user_email, 'subject':subject, 'message':message},
-							[('File', logfile, filename)]
-						)
-		except Exception as e:
-			response = "Failed, " + str(e)
-		
-		splog( "[SP sendLog] - Server response:\n", response )
-		self.session.open(
-			MessageBox,
-			_("Server response:") + "\n\n" + str(response),
-			type = MessageBox.TYPE_INFO
-		)
