@@ -1,0 +1,7 @@
+application: enigma2-seriesplugin
+version: 11
+runtime: php
+api_version: 1
+handlers:
+- url: /license\.php
+  script: license.php
