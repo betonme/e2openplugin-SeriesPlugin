@@ -25,7 +25,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.0.1"
+VERSION = "0.9.0.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -98,113 +98,122 @@ config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0
 #######################################################
 # Start
 def start(reason, **kwargs):
-	# Startup
-	if reason == 0:
-		# Start on demand if it is requested
-		if config.plugins.seriesplugin.autotimer_independent.value:
-			from SeriesPluginIndependent import startIndependent
-			startIndependent()
-		
-	# Shutdown
-	elif reason == 1:
-		from SeriesPlugin import resetInstance
-		resetInstance()
+	if config.plugins.seriesplugin.enabled.value:
+		# Startup
+		if reason == 0:
+			# Start on demand if it is requested
+			if config.plugins.seriesplugin.autotimer_independent.value:
+				from SeriesPluginIndependent import startIndependent
+				startIndependent()
+			
+		# Shutdown
+		elif reason == 1:
+			from SeriesPlugin import resetInstance
+			resetInstance()
 
 
 #######################################################
 # Plugin configuration
 def setup(session, *args, **kwargs):
-	try:
-		session.open(SeriesPluginConfiguration)
-	except Exception as e:
-		splog(_("SeriesPlugin setup exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+			session.open(SeriesPluginConfiguration)
+		except Exception as e:
+			splog(_("SeriesPlugin setup exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Event Info
 def info(session, service=None, event=None, *args, **kwargs):
-	try:
-#TBD Because of E2 Update 05.2013
-		session.open(SeriesPluginInfoScreen, service, event)
-	except Exception as e:
-		splog(_("SeriesPlugin info exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+	#TBD Because of E2 Update 05.2013
+			session.open(SeriesPluginInfoScreen, service, event)
+		except Exception as e:
+			splog(_("SeriesPlugin info exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Extensions menu
 def extension(session, *args, **kwargs):
-	try:
-#TBD Because of E2 Update 05.2013
-		session.open(SeriesPluginInfoScreen)
-	except Exception as e:
-		splog(_("SeriesPlugin extension exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+	#TBD Because of E2 Update 05.2013
+			session.open(SeriesPluginInfoScreen)
+		except Exception as e:
+			splog(_("SeriesPlugin extension exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Movielist menu rename
 def movielist_rename(session, service, services=None, *args, **kwargs):
-	try:
-		if services:
-			if not isinstance(services, list):
-				services = [services]	
-		else:
-			services = [service]
-		SeriesPluginRenamer(session, services)
-	except Exception as e:
-		splog(_("SeriesPlugin renamer exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+			if services:
+				if not isinstance(services, list):
+					services = [services]	
+			else:
+				services = [service]
+			SeriesPluginRenamer(session, services)
+		except Exception as e:
+			splog(_("SeriesPlugin renamer exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Movielist menu info
 def movielist_info(session, service, *args, **kwargs):
-	try:
-#TBD Because of E2 Update 05.2013
-		session.open(SeriesPluginInfoScreen, service)
-	except Exception as e:
-		splog(_("SeriesPlugin extension exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+	#TBD Because of E2 Update 05.2013
+			session.open(SeriesPluginInfoScreen, service)
+		except Exception as e:
+			splog(_("SeriesPlugin extension exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
 # Timer renaming
 def renameTimer(timer, name, begin, end, *args, **kwargs):
-	try:
-		SeriesPluginTimer(timer, name, begin, end)
-	except Exception as e:
-		splog(_("SeriesPlugin label exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+			SeriesPluginTimer(timer, name, begin, end)
+		except Exception as e:
+			splog(_("SeriesPlugin label exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 # For compatibility reasons
 def modifyTimer(timer, name, *args, **kwargs):
-	splog("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
-	try:
-		SeriesPluginTimer(timer, name or timer.name, timer.begin, timer.end)
-	except Exception as e:
-		splog(_("SeriesPlugin label exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		splog("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
+		try:
+			SeriesPluginTimer(timer, name or timer.name, timer.begin, timer.end)
+		except Exception as e:
+			splog(_("SeriesPlugin label exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 # For compatibility reasons
 def labelTimer(timer, begin=None, end=None, *args, **kwargs):
-	splog("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
-	try:
-		SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
-	except Exception as e:
-		splog(_("SeriesPlugin label exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
+	if config.plugins.seriesplugin.enabled.value:
+		splog("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
+		try:
+			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
+		except Exception as e:
+			splog(_("SeriesPlugin label exception ") + str(e))
+			#exc_type, exc_value, exc_traceback = sys.exc_info()
+			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -304,7 +313,8 @@ def removeSeriesPlugin(menu, title):
 # Overwrite AutoTimer support functions
 
 try:
-	from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
+	#from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
+	from Plugins.Extensions.AutoTimer.plugin import autotimer as AutoTimer
 except:
 	AutoTimer = None
 
@@ -351,7 +361,7 @@ from difflib import SequenceMatcher
 from ServiceReference import ServiceReference
 
 def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref, eit=None):
-	# Never overwrite existing names, You will lost Your series informations
+	# Never overwrite existing names, You will lose Your series informations
 	#timer.name = name
 	# Only overwrite non existing descriptions
 	timer.description = timer.description or shortdesc
@@ -377,6 +387,8 @@ def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc
 			#	foundExt = True
 			#else:
 			foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
+		else:
+			foundExt = True
 	else:
 		foundShort = True
 		foundExt = True

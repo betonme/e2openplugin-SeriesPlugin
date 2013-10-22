@@ -1,5 +1,5 @@
 installdir = $(datadir)/meta/
 
-dist_install_DATA = plugin_autotimer.xml
+dist_install_DATA = plugin_seriesplugin.xml
 
-EXTRA_DIST = autotimer_en.jpg autotimer_de.jpg
+EXTRA_DIST = seriesplugin.jpg
