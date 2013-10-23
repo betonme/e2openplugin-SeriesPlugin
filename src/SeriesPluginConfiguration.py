@@ -158,6 +158,14 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
 			
+			try:
+				self.list.append( getConfigListEntry(  _("AT: Poll automatically")     , config.plugins.autotimer.autopoll ) )
+				self.list.append( getConfigListEntry(  _("AT: Startup delay (in min)") , config.plugins.autotimer.delay ) )
+				self.list.append( getConfigListEntry(  _("AT: Poll Interval (in h)")   , config.plugins.autotimer.interval ) )
+				self.list.append( getConfigListEntry(  _("AT: Timeout (in min)")       , config.plugins.autotimer.timeout ) )
+			except:
+				pass
+			
 			self.list.append( getConfigListEntry(  _("Debug: Write Log")                           , config.plugins.seriesplugin.write_log ) )
 			if config.plugins.seriesplugin.write_log.value:
 				self.list.append( getConfigListEntry(  _("Debug: Log file path")                   , config.plugins.seriesplugin.log_file ) )
@@ -189,13 +197,6 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		config.plugins.seriesplugin.pattern_title.value       = self.cfg_pattern_title.value
 		config.plugins.seriesplugin.pattern_description.value = self.cfg_pattern_description.value
 		config.plugins.seriesplugin.save()
-		
-		from plugin import overwriteAutoTimer, recoverAutoTimer
-		
-		if config.plugins.seriesplugin.enabled.value:
-			overwriteAutoTimer()
-		else:
-			recoverAutoTimer()
 		
 		# Set new configuration
 		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, info, extension, movielist_info, movielist_rename

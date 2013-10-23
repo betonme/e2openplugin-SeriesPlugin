@@ -341,7 +341,7 @@ class SeriesPluginInfoScreen(Screen):
 		if self.picload and picInfo:
 			ptr = self.picload.getData()
 			if ptr != None:
-				self[widget].instance.setPixmap(ptr.__deref__())
+				self[widget].instance.setPixmap(ptr)
 				self[widget].show()
 			del self.picload
 
