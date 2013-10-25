@@ -198,6 +198,13 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		config.plugins.seriesplugin.pattern_description.value = self.cfg_pattern_description.value
 		config.plugins.seriesplugin.save()
 		
+		from plugin import overwriteAutoTimer, recoverAutoTimer
+		
+		if config.plugins.seriesplugin.enabled.value:
+			overwriteAutoTimer()
+		else:
+			recoverAutoTimer()
+		
 		# Set new configuration
 		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, info, extension, movielist_info, movielist_rename
 		

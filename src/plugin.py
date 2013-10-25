@@ -27,7 +27,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.1.0"
+VERSION = "0.9.1.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -233,6 +233,8 @@ def Plugins(**kwargs):
 	
 	if config.plugins.seriesplugin.enabled.value:
 		
+		overwriteAutoTimer()
+		
 		descriptors.append( PluginDescriptor(
 																				#where = PluginDescriptor.WHERE_SESSIONSTART,
 																				where = PluginDescriptor.WHERE_AUTOSTART,
@@ -307,3 +309,90 @@ def removeSeriesPlugin(menu, title):
 			if p.name == title:
 				plugins.plugins[ menu ].remove(p)
 				break
+
+
+#######################################################
+# Overwrite AutoTimer support functions
+
+try:
+	#from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
+	from Plugins.Extensions.AutoTimer.plugin import autotimer as AutoTimer
+except:
+	AutoTimer = None
+
+ATmodifyTimer = None
+ATcheckSimilarity = None
+
+
+def overwriteAutoTimer():
+	try:
+		global ATmodifyTimer, ATcheckSimilarity
+		if AutoTimer:
+			if ATmodifyTimer is None:
+				# Backup original function
+				ATmodifyTimer = AutoTimer.modifyTimer
+				# Overwrite function
+				AutoTimer.modifyTimer = SPmodifyTimer
+			if ATcheckSimilarity is None:
+				# Backup original function
+				ATcheckSimilarity = AutoTimer.checkSimilarity
+				# Overwrite function
+				AutoTimer.checkSimilarity = SPcheckSimilarity
+	except:
+		splog("SeriesPlugin found old AutoTimer")
+
+
+def recoverAutoTimer():
+	try:
+		global ATmodifyTimer, ATcheckSimilarity
+		if AutoTimer:
+			if ATmodifyTimer:
+				AutoTimer.modifyTimer = ATmodifyTimer
+				ATmodifyTimer = None
+			if ATcheckSimilarity:
+				AutoTimer.checkSimilarity = ATcheckSimilarity
+				ATcheckSimilarity = None
+	except:
+		splog("SeriesPlugin found old AutoTimer")
+
+
+#######################################################
+# Customized support functions
+
+from difflib import SequenceMatcher
+from ServiceReference import ServiceReference
+
+def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref, eit=None):
+	# Never overwrite existing names, You will lose Your series informations
+	#timer.name = name
+	# Only overwrite non existing descriptions
+	timer.description = timer.description or shortdesc
+	timer.begin = int(begin)
+	timer.end = int(end)
+	timer.service_ref = ServiceReference(serviceref)
+	if eit:
+		timer.eit = eit
+
+def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc1, extdesc2, force=False):
+	# Check if the new title is part of the existing one
+	foundTitle = name1 in name2 or name2 in name1
+	
+	if timer.searchForDuplicateDescription > 0 or force:
+		foundShort = (shortdesc1 in shortdesc2 or shortdesc2 in shortdesc1) if (timer.searchForDuplicateDescription > 0 or force) else True
+		
+		# NOTE: only check extended if short description already is a match because otherwise
+		# it won't evaluate to True anyway
+		if (timer.searchForDuplicateDescription > 0 or force) and foundShort and extdesc1 != extdesc2:
+			# Some channels indicate replays in the extended descriptions
+			# If the similarity percent is higher then 0.8 it is a very close match
+			#if timer.series_labeling and (extdesc1 == "" or extdesc2 == ""):
+			#	foundExt = True
+			#else:
+			foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
+		else:
+			foundExt = True
+	else:
+		foundShort = True
+		foundExt = True
+	
+	return foundTitle and foundShort and foundExt
