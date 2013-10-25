@@ -27,7 +27,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.1.1"
+VERSION = "0.9.1.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -315,8 +315,8 @@ def removeSeriesPlugin(menu, title):
 # Overwrite AutoTimer support functions
 
 try:
-	#from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
-	from Plugins.Extensions.AutoTimer.plugin import autotimer as AutoTimer
+	from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
+	#from Plugins.Extensions.AutoTimer.plugin import autotimer as AutoTimer
 except:
 	AutoTimer = None
 
