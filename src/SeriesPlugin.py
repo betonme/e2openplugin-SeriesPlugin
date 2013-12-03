@@ -47,6 +47,7 @@ AUTOTIMER_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/Auto
 instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
+#CompiledRegexpNonAlphanum = re.compile(r'[^A-Za-z0-9_ ]+')
 
 
 def getInstance():
@@ -142,6 +143,18 @@ def refactorDescription(org, data):
 	else:
 		return org
 
+#def refactorRecord(org, data):
+#	if data:
+#		season, episode, title, series = data
+#		if config.plugins.seriesplugin.pattern_record.value and not config.plugins.seriesplugin.pattern_record.value == "Off":
+#			#if season == 0 and episode == 0:
+#			#	return config.plugins.seriesplugin.pattern_record.value.strip().format( **{'org': org, 'title': title, 'series': series} )
+#			#else:
+#			return config.plugins.seriesplugin.pattern_record.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
+#		else:
+#			return org
+#	else:
+#		return org
 
 class SeriesPlugin(Modules, ChannelsBase):
 	def __init__(self):
@@ -215,6 +228,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 					season, episode, title, series = result
 					season = int(CompiledRegexpNonDecimal.sub('', season))
 					episode = int(CompiledRegexpNonDecimal.sub('', episode))
+					#title = CompiledRegexpNonAlphanum.sub(' ', title)
 					title = title.strip()
 					splog("SeriesPluginWorkerThread result callback")
 					callback( (season, episode, title, series) )
@@ -251,3 +265,4 @@ class SeriesPlugin(Modules, ChannelsBase):
 		#if not available:
 		else:
 			callback( "No identifier available" )
+

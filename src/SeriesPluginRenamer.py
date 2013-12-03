@@ -36,7 +36,7 @@ from enigma import eServiceCenter, iServiceInformation, eServiceReference
 from ServiceReference import ServiceReference
 
 # Plugin internal
-from SeriesPlugin import getInstance, refactorTitle, refactorDescription
+from SeriesPlugin import getInstance, refactorTitle, refactorDescription   #, refactorRecord
 from Logger import splog
 
 
@@ -70,8 +70,11 @@ def rename(service, name, short, data):
 		# Before renaming change content
 		renameMeta(service, data)
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
+
 			if config.plugins.seriesplugin.rename_file.value == True:
 				renameFile(service, name, data)
+		#if config.plugins.seriesplugin.pattern_record.value and not config.plugins.seriesplugin.pattern_record.value == "Off":
+		#	renameFile(service, name, data)
 		return True
 	except:
 		#pass
@@ -136,6 +139,8 @@ def renameFile(service, name, data):
 			name = refactorTitle(name, data)
 		else:
 			name = refactorTitle(file_name, data)
+		# Refactor record file name
+		#name = refactorRecord(file_name, data)
 		name = newLegacyEncode(name)
 		
 		src = os.path.join(path, file_name)

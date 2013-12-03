@@ -1,4 +1,4 @@
-# by betonme @2012
+﻿# by betonme @2012
 
 import os, sys
 import math
@@ -203,16 +203,19 @@ class Fernsehserien(IdentifierBase):
 			yepisode = None
 			ydelta = maxint
 			
-			first = trs[0][2]
-			last = trs[-1][2]
-			
+			#first = trs[0][2]
+			#last = trs[-1][2]
 			#print first[0:5]
 			#print last[6:11] 
 			
 			# trs[0] first line [2] second element = timestamps [a:b] use first time
-			first = datetime.strptime( first[0:5] + trs[0][1], "%H:%M%d.%m.%Y" )
+			first = datetime.strptime( trs[0][2][0:5] + trs[0][1], "%H:%M%d.%m.%Y" )
+			
 			# trs[-1] last line [2] second element = timestamps [a:b] use second time
-			last = datetime.strptime( last[6:11] + trs[-1][1], "%H:%M%d.%m.%Y" )
+			#last = datetime.strptime( trs[-1][2][6:11] + trs[-1][1], "%H:%M%d.%m.%Y" )
+			# Problem with wrap around use also start time
+			# Sa 30.11.2013 23:35 - 01:30 Uhr ProSieben 46 3. 13 Showdown 3
+			last = datetime.strptime( trs[-1][2][0:5] + trs[-1][1], "%H:%M%d.%m.%Y" )
 			
 			first = first - timedelta(seconds=max_time_drift)
 			last = last + timedelta(seconds=max_time_drift)

@@ -96,8 +96,11 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		patterns = readPatternFile()
 		self.cfg_pattern_title       = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_title.value ) )
 		self.cfg_pattern_description = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_description.value ) )
+		#self.cfg_pattern_record      = NoSave( ConfigSelection(choices = patterns, default = config.plugins.seriesplugin.pattern_record.value ) )
+		
 		checkList( self.cfg_pattern_title )
 		checkList( self.cfg_pattern_description )		
+		#checkList( self.cfg_pattern_record )
 		
 		# Initialize Configuration
 		self.list = []
@@ -137,6 +140,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
+			#self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_record ) )
 			
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 			self.list.append( getConfigListEntry(  _("Ask for channel matching")                   , config.plugins.seriesplugin.channel_popups ) )
@@ -171,6 +175,11 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 				self.list.append( getConfigListEntry(  _("Debug: Log file path")                   , config.plugins.seriesplugin.log_file ) )
 				self.list.append( getConfigListEntry(  _("Debug: Forum user name")                 , config.plugins.seriesplugin.log_reply_user ) )
 				self.list.append( getConfigListEntry(  _("Debug: User mail address")               , config.plugins.seriesplugin.log_reply_mail ) )
+			
+			try:
+				self.list.append( getConfigListEntry(  _("E2: Enable recording debug (Timer log)")  , config.recording.debug ) )
+			except:
+				pass
 
 	def changeConfig(self):
 		self.list = []
@@ -196,6 +205,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		config.plugins.seriesplugin.identifier_future.value  = self.cfg_identifier_future.value
 		config.plugins.seriesplugin.pattern_title.value       = self.cfg_pattern_title.value
 		config.plugins.seriesplugin.pattern_description.value = self.cfg_pattern_description.value
+		#config.plugins.seriesplugin.pattern_record.value      = self.cfg_pattern_record.value
 		config.plugins.seriesplugin.save()
 		
 		from plugin import overwriteAutoTimer, recoverAutoTimer

@@ -14,6 +14,9 @@ sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/pyga')
 #https://github.com/kra3/py-ga-mob
 from pyga.requests import Tracker, Page, Session, Visitor
 
+from plugin import VERSION,DEVICE
+
+
 license = False
 
 class License(object):
@@ -28,8 +31,6 @@ class License(object):
 		if license:
 			return True
 		
-		from plugin import VERSION
-		
 		response = urlopen("http://enigma2-seriesplugin.appspot.com/license.php?version="+VERSION, timeout=5).read()
 		splog("[SP] License: ", response)
 		if response == "Valid License":
@@ -41,8 +42,6 @@ class License(object):
 	
 	def checkLicense(self, url, cached):
 	
-		from Plugins.Extensions.SeriesPlugin.plugin import VERSION,DEVICE
-		
 		urlparts = parse(url)
 		
 		parameter = urlencode(
@@ -56,6 +55,7 @@ class License(object):
 		
 		tracker = Tracker('UA-31168065-1', urlparts.netloc)
 		visitor = Visitor()
+		#visitor config.plugins.seriesplugin.uid.value
 		session = Session()
 		if urlparts.query:
 			page = Page(urlparts.path + '?' + urlparts.query + '&' + parameter)

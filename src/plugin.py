@@ -27,7 +27,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.1.2"
+VERSION = "0.9.1.3"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -43,6 +43,14 @@ ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
 try:
 	from Tools.HardwareInfo import HardwareInfo
 	DEVICE = HardwareInfo().get_device_name().strip()
+	
+	# Get Box Info
+	#from Components.Network import iNetwork
+	#self.BoxID = iNetwork.getAdapterAttribute("eth0", "mac")
+	#self.DeviceName = HardwareInfo().get_device_name()
+	#from Components.About import about
+	#self.EnigmaVersion = about.getEnigmaVersionString()
+	#self.ImageVersion = about.getVersionString()
 except:
 	DEVICE = ''
 
@@ -70,6 +78,7 @@ config.plugins.seriesplugin.identifier_future         = ConfigText(default = "",
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin_patterns.json", fixed_size = False)
 config.plugins.seriesplugin.pattern_title             = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
 config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{season:02d}E{episode:02d} {title:s} {org:s}", fixed_size = False)
+#config.plugins.seriesplugin.pattern_record            = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
 
 config.plugins.seriesplugin.channel_file              = ConfigText(default = "/etc/enigma2/seriesplugin_channels.xml", fixed_size = False)
 config.plugins.seriesplugin.channel_popups            = ConfigYesNo(default = False)
