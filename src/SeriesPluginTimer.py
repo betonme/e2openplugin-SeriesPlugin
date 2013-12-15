@@ -76,7 +76,7 @@ class SeriesPluginTimer(object):
 				timer.log(601, "[SeriesPlugin] Skip timer because it is already modified")
 				return
 		else:
-			if not ( len(timer.name) == len(name) ):
+			if ( len(timer.name) == len(name) ):
 				splog("Skip timer because no event was found", timer.name, name, len(timer.name), len(name))
 				timer.log(602, "[SeriesPlugin] Skip timer because no event was found")
 				return
