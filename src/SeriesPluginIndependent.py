@@ -48,6 +48,37 @@ def stopIndependent():
 	# TEST Does this really stop the process
 	instance = None
 
+def runIndependent():
+	try:
+		
+		for timer in NavigationInstance.instance.RecordTimer.timer_list:
+			
+			if timer.isRunning():
+				splog("SeriesPluginIndependent: Skip running timer", timer.name)
+				continue
+			
+			if timer.justplay:
+				splog("SeriesPluginIndependent: Skip justplay timer", timer.name)
+				continue
+			
+			if timer.repeated:
+				splog("SeriesPluginIndependent: Skip repeating timer", timer.name)
+				continue
+			
+			if not config.plugins.seriesplugin.independent_retry.value:
+				splog("SeriesPluginIndependent: timer retry is disabled")
+				if hasattr(timer, 'serieslookupdone') and timer.serieslookupdone:
+					splog("SeriesPluginIndependent: Skip timer retry", timer.name)
+					continue
+			
+			#Maybe later add a series whitelist xml
+			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
+			
+			timer.serieslookupdone = True
+	
+	except Exception as e:
+		splog(_("SeriesPluginIndependent run exception ") + str(e))
+
 
 #######################################################
 # Label timer
@@ -68,33 +99,4 @@ class SeriesPluginIndependent(object):
 		splog("SeriesPluginIndependent run ###########################################")
 		splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 		
-		try:
-		
-			for timer in NavigationInstance.instance.RecordTimer.timer_list:
-				
-				if timer.isRunning():
-					splog("SeriesPluginIndependent: Skip running timer", timer.name)
-					continue
-				
-				if timer.justplay:
-					splog("SeriesPluginIndependent: Skip justplay timer", timer.name)
-					continue
-				
-				if timer.repeated:
-					splog("SeriesPluginIndependent: Skip repeating timer", timer.name)
-					continue
-				
-				if not config.plugins.seriesplugin.independent_retry.value:
-					splog("SeriesPluginIndependent: timer retry is disabled")
-					if hasattr(timer, 'serieslookupdone') and timer.serieslookupdone:
-						splog("SeriesPluginIndependent: Skip timer retry", timer.name)
-						continue
-				
-				#Maybe later add a series whitelist xml
-				SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
-				
-				timer.serieslookupdone = True
-		
-		except Exception as e:
-			splog(_("SeriesPluginIndependent run exception ") + str(e))
-		
+		runIndependent()

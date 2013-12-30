@@ -155,6 +155,9 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			if config.plugins.seriesplugin.autotimer_independent.value:
 				self.list.append( getConfigListEntry(  _("Check timer every x minutes")            , config.plugins.seriesplugin.independent_cycle ) )
 				self.list.append( getConfigListEntry(  _("Always retry to find series info")       , config.plugins.seriesplugin.independent_retry ) )
+			
+			self.list.append( getConfigListEntry(  _("Check timer list from extension menu")       , config.plugins.seriesplugin.check_timer_list ) )
+
 #NoTimerPopUpPossibleActually
 #			self.list.append( getConfigListEntry(  _("Show Timer error popups")                    , config.plugins.seriesplugin.timer_popups ) )
 
@@ -216,7 +219,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			recoverAutoTimer()
 		
 		# Set new configuration
-		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, info, extension, movielist_info, movielist_rename
+		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, CHECKTIMERS, info, extension, movielist_info, movielist_rename, checkTimers
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			addSeriesPlugin(PluginDescriptor.WHERE_EVENTINFO, SHOWINFO, info)
@@ -238,13 +241,18 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, RENAMESERIES)
 		
+		if config.plugins.seriesplugin.check_timer_list.value:
+			addSeriesPlugin(PluginDescriptor.WHERE_EXTENSIONSMENU, CHECKTIMERS, checkTimers)
+		else:
+			removeSeriesPlugin(PluginDescriptor.WHERE_EXTENSIONSMENU, CHECKTIMERS)
+		
 		# To set new module configuration
 		resetInstance()
 		
 		if config.plugins.seriesplugin.autotimer_independent.value:
 			from SeriesPluginIndependent import startIndependent
 			startIndependent()
-		
+			
 		self.close()
 
 	# Overwrite ConfigListScreen keyCancel function

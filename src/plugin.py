@@ -20,6 +20,7 @@ from Plugins.Plugin import PluginDescriptor
 from SeriesPluginTimer import SeriesPluginTimer
 from SeriesPluginInfoScreen import SeriesPluginInfoScreen
 from SeriesPluginRenamer import SeriesPluginRenamer
+from SeriesPluginIndependent import startIndependent, runIndependent
 from SeriesPluginConfiguration import SeriesPluginConfiguration
 from Logger import splog
 
@@ -27,10 +28,11 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.1.4"
+VERSION = "0.9.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
+CHECKTIMERS = _("Check timer list for series")
 SUPPORT = "http://bit.ly/seriespluginihad"
 DONATE = "http://bit.ly/seriespluginpaypal"
 ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
@@ -91,6 +93,9 @@ config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0,
 config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = False)
 config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(5, 24*60, 5, default = 60)
 config.plugins.seriesplugin.independent_retry         = ConfigYesNo(default = False)
+
+config.plugins.seriesplugin.check_timer_list          = ConfigYesNo(default = False)
+
 #NoTimerPopUpPossibleActually
 #config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 
@@ -115,7 +120,6 @@ def start(reason, **kwargs):
 		if reason == 0:
 			# Start on demand if it is requested
 			if config.plugins.seriesplugin.autotimer_independent.value:
-				from SeriesPluginIndependent import startIndependent
 				startIndependent()
 			
 		# Shutdown
@@ -159,6 +163,9 @@ def extension(session, *args, **kwargs):
 			splog(_("SeriesPlugin extension exception ") + str(e))
 			#exc_type, exc_value, exc_traceback = sys.exc_info()
 			#splog( exc_type, exc_value, exc_traceback )
+
+def checkTimers(session, *args, **kwargs):
+	runIndependent()
 
 
 #######################################################
@@ -250,7 +257,6 @@ def Plugins(**kwargs):
 																				needsRestart = False,
 																				fnc = start) )
 
-#TBD Because of E2 Update 05.2013
 		if config.plugins.seriesplugin.menu_info.value:
 			descriptors.append( PluginDescriptor(
 																					name = SHOWINFO,
@@ -259,7 +265,6 @@ def Plugins(**kwargs):
 																					needsRestart = False,
 																					fnc = info) )
 
-#TBD Because of E2 Update 05.2013
 		if config.plugins.seriesplugin.menu_extensions.value:
 			descriptors.append(PluginDescriptor(
 																				name = SHOWINFO,
@@ -267,8 +272,15 @@ def Plugins(**kwargs):
 																				where = PluginDescriptor.WHERE_EXTENSIONSMENU,
 																				fnc = extension,
 																				needsRestart = False) )
-
-#TBD Because of E2 Update 05.2013
+		
+		if config.plugins.seriesplugin.check_timer_list.value:
+			descriptors.append(PluginDescriptor(
+																				name = CHECKTIMERS,
+																				description = CHECKTIMERS,
+																				where = PluginDescriptor.WHERE_EXTENSIONSMENU,
+																				fnc = checkTimers,
+																				needsRestart = False) )
+		
 		if config.plugins.seriesplugin.menu_movie_info.value:
 			descriptors.append( PluginDescriptor(
 																					name = SHOWINFO,
