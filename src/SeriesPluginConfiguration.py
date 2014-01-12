@@ -77,6 +77,9 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			"nextBouquet":	self.pageUp,
 			"prevBouquet":	self.pageDown,
 			"blue":			self.blue,
+			"ok": 			self.keyOK,
+			"left": 		self.keyLeft,
+			"right": 		self.keyRight,
 		}, -2) # higher priority
 		
 		stopIndependent()
