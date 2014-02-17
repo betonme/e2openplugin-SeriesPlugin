@@ -151,66 +151,107 @@ def renameFile(service, name, data):
 	except Exception as e:
 		splog(e)
 
+from ThreadQueue import ThreadQueue
+from threading import Thread
+from enigma import ePythonMessagePump
 
-class SeriesPluginRenameService(object):
-	def __init__(self, service, callback=None):
-		self.callback = callback
-		
-		splog("SeriesPluginRenamer")
-		self.seriesPlugin = getInstance()
-		self.serviceHandler = eServiceCenter.getInstance()
-		
-		if isinstance(service, eServiceReference):
-			self.service = service
-		elif isinstance(service, ServiceReference):
-			self.service = service.ref
-		else:
-			splog(_("SeriesPluginRenamer: Wrong instance"))
-			return self.callback(service)
-		
-		if not os.path.exists( service.getPath() ):
-			splog(_("SeriesPluginRenamer: File not exists: ") + service.getPath())
-			return self.callback(service)
-		
-		info = self.serviceHandler.info(service)
-		if not info:
-			splog(_("SeriesPluginRenamer: No info available: ") + service.getPath())
-			return self.callback(service)
-		
-		self.name = service.getName() or info.getName(service) or ""
-		splog("name", self.name)
-		
-		self.short = ""
-		begin = None
-		
-		event = info.getEvent(service)
-		if event:
-			self.short = event.getShortDescription()
-			begin = event.getBeginTime()
-			duration = event.getDuration() or 0
-			end = begin + duration or 0
-			# We got the exact start times, no need for margin handling
-		
-		if not begin:
-			begin = info.getInfo(service, iServiceInformation.sTimeCreate) or -1
-			if begin != -1:
-				end = begin + (info.getLength(service) or 0)
+class SeriesPluginRenameService(Thread):
+	
+	def __init__(self):
+		Thread.__init__(self)
+		self.__running = False
+		self.__messages = ThreadQueue()
+		self.__messagePump = ePythonMessagePump()
+		self.__beginn = None
+		self.__end = None
+
+	def __getMessagePump(self):
+		return self.__messagePump
+	MessagePump = property(__getMessagePump)
+
+	def __getMessageQueue(self):
+		return self.__messages
+	Message = property(__getMessageQueue)
+
+	def __getRunning(self):
+		return self.__running
+	isRunning = property(__getRunning)
+
+	def Start(self, service, callback=None):
+		if not self.__running:
+			self.__running = True
+			self.callback = callback
+			splog("SeriesPluginRenamer")
+			self.seriesPlugin = getInstance()
+			self.serviceHandler = eServiceCenter.getInstance()
+			
+			if isinstance(service, eServiceReference):
+				self.service = service
+			elif isinstance(service, ServiceReference):
+				self.service = service.ref
 			else:
-				end = os.path.getmtime(service.getPath())
-				begin = end - (info.getLength(service) or 0)
-			#MAYBE we could also try to parse the filename
-			# We don't know the exact margins, we will assume the E2 default margins
-			begin + (int(config.recording.margin_before.value) * 60)
-			end - (int(config.recording.margin_after.value) * 60)
-		
-		rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-		#channel = ServiceReference(rec_ref_str).getServiceName()
-		
+				splog(_("SeriesPluginRenamer: Wrong instance"))
+				self.__messages.push(service)
+				self.__messagePump.send(0)
+				self.__running = False
+				Thread.__init__(self)
+				return # self.callback(service)
+			
+			if not os.path.exists( service.getPath() ):
+				splog(_("SeriesPluginRenamer: File not exists: ") + service.getPath())
+				self.__messages.push(service)
+				self.__messagePump.send(0)
+				self.__running = False
+				Thread.__init__(self)
+				return # self.callback(service)
+			
+			info = self.serviceHandler.info(service)
+			if not info:
+				splog(_("SeriesPluginRenamer: No info available: ") + service.getPath())
+				self.__messages.push(service)
+				self.__messagePump.send(0)
+				self.__running = False
+				Thread.__init__(self)
+				return #  self.callback(service)
+			
+			self.name = service.getName() or info.getName(service) or ""
+			splog("name", self.name)
+			
+			self.short = ""
+			
+			event = info.getEvent(service)
+			if event:
+				self.short = event.getShortDescription()
+				self.__beginn = event.getBeginTime()
+				duration = event.getDuration() or 0
+				self.__end = self.__beginn + duration or 0
+				# We got the exact start times, no need for margin handling
+			
+			if not self.__beginn:
+				self.__beginn = info.getInfo(service, iServiceInformation.sTimeCreate) or -1
+				if self.__beginn != -1:
+					self.__end = self.__beginn + (info.getLength(service) or 0)
+				else:
+					self.__end = os.path.getmtime(service.getPath())
+					self.__beginn = self.__end - (info.getLength(service) or 0)
+				#MAYBE we could also try to parse the filename
+				# We don't know the exact margins, we will assume the E2 default margins
+				self.__beginn + (int(config.recording.margin_before.value) * 60)
+				self.__end - (int(config.recording.margin_after.value) * 60)
+			
+			self.__rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
+			#channel = ServiceReference(rec_ref_str).getServiceName()
+			
+			self.start() # Start blocking code in Thread 
+			
+	def run(self):
+		self.__running = True
+
 		self.seriesPlugin.getEpisode(
 				self.serviceCallback, 
 				#self.name, begin, end, channel, elapsed=True
 				#self.name, begin, end, eServiceReference(rec_ref_str), elapsed=True
-				self.name, begin, end, rec_ref_str, elapsed=True
+				self.name, self.__beginn, self.__end, self.__rec_ref_str, elapsed=True
 			)
 
 	def serviceCallback(self, data=None):
@@ -228,9 +269,16 @@ class SeriesPluginRenameService(object):
 		else:
 			result = self.service.getPath()
 		
-		if callable(self.callback):
-			self.callback( result )
+		#if callable(self.callback):
+		self.__messages.push(result)
+		self.__messagePump.send(0)
 
+		self.__running = False
+		Thread.__init__(self)
+		print ('SeriesPluginRenameService]done')
+
+		
+seriespluginrenameservice = SeriesPluginRenameService()
 
 #######################################################
 # Rename movies
@@ -256,30 +304,32 @@ class SeriesPluginRenamer(object):
 
 	def confirm(self, confirmed):
 		if confirmed and self.services:
+			seriespluginrenameservice.MessagePump.recv_msg.get().append(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread start
 			for service in self.services:
-				SeriesPluginRenameService(service, self.renamerCallback)
+				seriespluginrenameservice.Start(service)
+
+	def gotThreadMsg_seriespluginrenameservice(self, msg):
+		msg = seriespluginrenameservice.Message.pop()
+		print ('gotThreadMsg_seriespluginrenameservice]msg: %s' %str(msg))
+		self.renamerCallback(msg)
+		seriespluginrenameservice.MessagePump.recv_msg.get().remove(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread stop
 
 	def renamerCallback(self, result=None):
 		self.returned += 1
 		if result and isinstance(result, basestring):
 			#Maybe later self.failed.append( name + " " + begin.strftime('%y.%m.%d %H-%M') + " " + channel )
 			self.failed.append( result )
-
-#TBD Because of E2 Update 05.2013
-		#from threading import currentThread
-		#if currentThread().getName() == 'MainThread':
-#		if self.returned == len(self.services):
-#			if self.failed:
-#				AddPopup(
-#					_("Movie rename has been finished with %d errors:\n") % (len(self.failed)) + "\n".join(self.failed),
-#					MessageBox.TYPE_ERROR,
-#					0,
-#					'SP_PopUp_ID_RenameFinished'
-#				)
-#			else:
-#				AddPopup(
-#					_("Movie rename has been finished successfully"),
-#					MessageBox.TYPE_INFO,
-#					0,
-#					'SP_PopUp_ID_RenameFinished'
-#				)
+		if self.failed:
+			AddPopup(
+				_("Movie rename has been finished with %d errors:\n") % (len(self.failed)) + "\n".join(self.failed),
+				MessageBox.TYPE_ERROR,
+				0,
+				'SP_PopUp_ID_RenameFinished'
+			)
+		else:
+			AddPopup(
+				_("Movie rename has been finished successfully"),
+				MessageBox.TYPE_INFO,
+				0,
+				'SP_PopUp_ID_RenameFinished'
+			)
