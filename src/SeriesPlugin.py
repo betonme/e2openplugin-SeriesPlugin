@@ -25,29 +25,36 @@ from Tools.Notifications import AddPopup
 from Screens.MessageBox import MessageBox
 
 # Plugin internal
+from IdentifierBase import IdentifierBase
 from ManagerBase import ManagerBase
 from GuideBase import GuideBase
 from Channels import ChannelsBase, removeEpisodeInfo, lookupServiceAlternatives
 from Logger import splog
+from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
 
-#from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
-#from Queue import Queue, Empty
-#from threading import Thread, Event
+from ThreadQueue import ThreadQueue
+from threading import Thread
+from enigma import ePythonMessagePump
 
-#from threading import Lock
+
+
+
+
 
 
 # Constants
-SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/" )
 AUTOTIMER_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/AutoTimer/" )
-
+SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/" )
 
 
 # Globals
 instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
-#CompiledRegexpNonAlphanum = re.compile(r'[^A-Za-z0-9_ ]+')
+
+def dump(obj):
+	for attr in dir(obj):
+		splog( "config.plugins.seriesplugin.%s = %s" % (attr, getattr(obj, attr)) )
 
 
 def getInstance():
@@ -60,6 +67,8 @@ def getInstance():
 		splog("SERIESPLUGIN NEW INSTANCE " + VERSION)
 		
 		try:
+
+
 			from Tools.HardwareInfo import HardwareInfo
 			splog( "DeviceName " + HardwareInfo().get_device_name().strip() )
 		except:
@@ -102,7 +111,6 @@ def getInstance():
 		splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 	
 	return instance
-
 def resetInstance():
 	#Rename to closeInstance
 	global instance
@@ -142,31 +150,120 @@ def refactorDescription(org, data):
 			return org
 	else:
 		return org
+		
+class ThreadItem:
+	def __init__(self, identifier = None, callback = None, name = None, begin = None, end = None, service = None, channels = None):
+		self.identifier = identifier
+		self.callback = callback
+		self.name = name
+		self.begin = begin
+		self.end = end
+		self.service = service
+		self.channels = channels
 
-#def refactorRecord(org, data):
-#	if data:
-#		season, episode, title, series = data
-#		if config.plugins.seriesplugin.pattern_record.value and not config.plugins.seriesplugin.pattern_record.value == "Off":
-#			#if season == 0 and episode == 0:
-#			#	return config.plugins.seriesplugin.pattern_record.value.strip().format( **{'org': org, 'title': title, 'series': series} )
-#			#else:
-#			return config.plugins.seriesplugin.pattern_record.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-#		else:
-#			return org
-#	else:
-#		return org
+class SeriesPluginWorker(Thread):
+
+	def __init__(self):
+		Thread.__init__(self)
+		self.__running = False
+		self.__messages = ThreadQueue()
+		self.__messagePump = ePythonMessagePump()
+		self.__beginn = None
+		self.__end = None
+
+	def __getMessagePump(self):
+		return self.__messagePump
+	MessagePump = property(__getMessagePump)
+
+	def __getMessageQueue(self):
+		return self.__messages
+	Message = property(__getMessageQueue)
+
+	def __getRunning(self):
+		return self.__running
+	isRunning = property(__getRunning)
+
+	def Start(self, item):
+		if not self.__running:
+			self.__running = True
+			splog("SeriesPluginRenamer")
+			#self.__item = item
+			self.__list = [item]
+			self.start() # Start blocking code in Thread
+		else:
+			self.__list.append(item)
+	
+	def run(self):
+	
+		while self.__list:
+			item = self.__list.pop(0)
+			splog('SeriesPluginWorker is processing: ', item.identifier)
+			# do processing stuff here
+			result = None
+			
+			try:
+				result = item.identifier.getEpisode(
+					item.name, item.begin, item.end, item.service, item.channels
+				)
+			except Exception, e:
+				splog("SeriesPluginWorker Identifier Exception:", str(e))
+				
+				# Exception finish job with error
+				result = str(e)
+			
+			try:
+				splog("SeriesPluginWorker result")
+				if result and len(result) == 4:
+					season, episode, title, series = result
+					season = int(CompiledRegexpNonDecimal.sub('', season))
+					episode = int(CompiledRegexpNonDecimal.sub('', episode))
+					title = title.strip()
+					splog("SeriesPluginWorker result callback")
+					self.__messages.push((2, item.callback, season, episode, title, series,))
+					self.__messagePump.send(0)
+				else:
+					splog("SeriesPluginWorker result failed")
+					self.__messages.push((1, item.callback, result))
+					self.__messagePump.send(0)
+			except Exception, e:
+				splog("SeriesPluginWorker Callback Exception:", str(e))
+			
+			config.plugins.seriesplugin.lookup_counter.value += 1
+			config.plugins.seriesplugin.lookup_counter.save()
+			
+		self.__messages.push((0, result,))
+		self.__messagePump.send(0)
+		self.__running = False
+		Thread.__init__(self)
+		splog('SeriesPluginWorker] list is emty, done')
+
+#TBD Because of E2 Update 05.2013
+#			if (config.plugins.seriesplugin.lookup_counter.value == 10) \
+#				or (config.plugins.seriesplugin.lookup_counter.value == 100) \
+#				or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
+#				from plugin import ABOUT
+#				about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
+#				AddPopup(
+#					about,
+#					MessageBox.TYPE_INFO,
+#					0,
+#					'SP_PopUp_ID_About'
+#				)
+
+seriespluginworker = SeriesPluginWorker()
 
 class SeriesPlugin(Modules, ChannelsBase):
+
 	def __init__(self):
 		splog("SeriesPlugin")
 		Modules.__init__(self)
 		ChannelsBase.__init__(self)
 		
 		self.serviceHandler = eServiceCenter.getInstance()
-		
+		seriespluginworker.MessagePump.recv_msg.get().append(self.gotThreadMsg_seriespluginworker)
 		#http://bugs.python.org/issue7980
 		datetime.strptime('2012-01-01', '%Y-%m-%d')
-		
+			
 		self.identifier_elapsed = self.instantiateModuleWithName( config.plugins.seriesplugin.identifier_elapsed.value )
 		splog(self.identifier_elapsed)
 		
@@ -176,8 +273,9 @@ class SeriesPlugin(Modules, ChannelsBase):
 		self.identifier_future = self.instantiateModuleWithName( config.plugins.seriesplugin.identifier_future.value )
 		splog(self.identifier_future)
 
+
 	def stop(self):
-		splog("SeriesPluginWorker stop")
+		splog("SeriesPlugin stop")
 		if config.plugins.seriesplugin.lookup_counter.isChanged():
 			config.plugins.seriesplugin.lookup_counter.save()
 		self.saveXML()
@@ -201,10 +299,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
 		
-		#MAYBE for all valid identifier in identifiers:
-		
-		# Return a season, episode, title tuple
-		
 		if elapsed:
 			identifier = self.identifier_elapsed
 		elif today:
@@ -215,9 +309,12 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier = None
 		
 		if identifier:
+			channels = lookupServiceAlternatives(service)
+
+			seriespluginworker.Start(ThreadItem(identifier = identifier, callback = callback, name = name, begin = begin, end = end, service = service, channels = channels))
+			'''
 			try:
 				
-				channels = lookupServiceAlternatives(service)
 				
 				result = identifier.getEpisode(
 								name, begin, end, service, channels
@@ -230,20 +327,20 @@ class SeriesPlugin(Modules, ChannelsBase):
 					episode = int(CompiledRegexpNonDecimal.sub('', episode))
 					#title = CompiledRegexpNonAlphanum.sub(' ', title)
 					title = title.strip()
-					splog("SeriesPluginWorkerThread result callback")
+					splog("SeriesPlugin result callback")
 					callback( (season, episode, title, series) )
 					
 					config.plugins.seriesplugin.lookup_counter.value += 1
 					config.plugins.seriesplugin.lookup_counter.save()
 					
 				else:
-					splog("SeriesPluginWorkerThread result failed")
+					splog("SeriesPlugin result failed")
 					callback( result )
 					
 			except Exception as e:
-				splog("SeriesPluginWorkerThread Callback Exception:", str(e))
+				splog("SeriesPlugin Callback Exception:", str(e))
 				callback( str(e) )
-			
+			'''
 			
 #TBD Because of E2 Update 05.2013
 		#from threading import currentThread
@@ -265,4 +362,34 @@ class SeriesPlugin(Modules, ChannelsBase):
 		#if not available:
 		else:
 			callback( "No identifier available" )
+			
+	def gotThreadMsg_seriespluginworker(self, msg):
+		msg = seriespluginworker.Message.pop()
+		print ('gotThreadMsg_seriespluginrenameservice]msg: %s' %str(msg))
+		if msg[0] == 2:
+			callback = msg[1]
+			if callable(callback):
+				callback((msg[2],msg[3],msg[4],msg[5]))
+		elif msg[0] == 1:
+			callback = msg[1]
+			if callable(callback):
+				callback(msg[2])
+		self.renamerCallback()
 
+
+	def renamerCallback(self):
+		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
+			or (config.plugins.seriesplugin.lookup_counter.value == 100) \
+			or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
+			from plugin import ABOUT
+			about = ABOUT.format( **{'lookups': config.plugins.seriesplugin.lookup_counter.value} )
+			AddPopup(
+				about,
+				MessageBox.TYPE_INFO,
+				0,
+				'SP_PopUp_ID_About'
+			)
+
+	def cancel(self):
+		seriespluginworker.MessagePump.recv_msg.get().remove(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread stop
+		self.stop()

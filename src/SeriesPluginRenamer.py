@@ -177,10 +177,16 @@ class SeriesPluginRenameService(Thread):
 		return self.__running
 	isRunning = property(__getRunning)
 
-	def Start(self, service, callback=None):
+	def Start(self, services):
+	
 		if not self.__running:
 			self.__running = True
-			self.callback = callback
+			self.__services = services
+			self.start() # Start blocking code in Thread 
+			
+	def run(self):
+		
+		for service in self.__services:
 			splog("SeriesPluginRenamer")
 			self.seriesPlugin = getInstance()
 			self.serviceHandler = eServiceCenter.getInstance()
@@ -195,7 +201,7 @@ class SeriesPluginRenameService(Thread):
 				self.__messagePump.send(0)
 				self.__running = False
 				Thread.__init__(self)
-				return # self.callback(service)
+				return
 			
 			if not os.path.exists( service.getPath() ):
 				splog(_("SeriesPluginRenamer: File not exists: ") + service.getPath())
@@ -203,7 +209,7 @@ class SeriesPluginRenameService(Thread):
 				self.__messagePump.send(0)
 				self.__running = False
 				Thread.__init__(self)
-				return # self.callback(service)
+				return
 			
 			info = self.serviceHandler.info(service)
 			if not info:
@@ -212,7 +218,7 @@ class SeriesPluginRenameService(Thread):
 				self.__messagePump.send(0)
 				self.__running = False
 				Thread.__init__(self)
-				return #  self.callback(service)
+				return 
 			
 			self.name = service.getName() or info.getName(service) or ""
 			splog("name", self.name)
@@ -241,18 +247,15 @@ class SeriesPluginRenameService(Thread):
 			
 			self.__rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
 			#channel = ServiceReference(rec_ref_str).getServiceName()
+		
 			
-			self.start() # Start blocking code in Thread 
 			
-	def run(self):
-		self.__running = True
-
-		self.seriesPlugin.getEpisode(
-				self.serviceCallback, 
-				#self.name, begin, end, channel, elapsed=True
-				#self.name, begin, end, eServiceReference(rec_ref_str), elapsed=True
-				self.name, self.__beginn, self.__end, self.__rec_ref_str, elapsed=True
-			)
+			self.seriesPlugin.getEpisode(
+					self.serviceCallback, 
+					#self.name, begin, end, channel, elapsed=True
+					#self.name, begin, end, eServiceReference(rec_ref_str), elapsed=True
+					self.name, self.__beginn, self.__end, self.__rec_ref_str, elapsed=True
+				)
 
 	def serviceCallback(self, data=None):
 		splog("SeriesPluginRenamer serviceCallback")
@@ -269,7 +272,6 @@ class SeriesPluginRenameService(Thread):
 		else:
 			result = self.service.getPath()
 		
-		#if callable(self.callback):
 		self.__messages.push(result)
 		self.__messagePump.send(0)
 
@@ -296,7 +298,7 @@ class SeriesPluginRenamer(object):
 		session.openWithCallback(
 			self.confirm,
 			MessageBox,
-			_("Do You want to start renaming?\nThis will block Your Dreambox until all records are renamed!"),
+			_("Do You want to start renaming?"),
 			MessageBox.TYPE_YESNO,
 			timeout = 15,
 			default = True
@@ -305,8 +307,7 @@ class SeriesPluginRenamer(object):
 	def confirm(self, confirmed):
 		if confirmed and self.services:
 			seriespluginrenameservice.MessagePump.recv_msg.get().append(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread start
-			for service in self.services:
-				seriespluginrenameservice.Start(service)
+			seriespluginrenameservice.Start(self.services)
 
 	def gotThreadMsg_seriespluginrenameservice(self, msg):
 		msg = seriespluginrenameservice.Message.pop()
