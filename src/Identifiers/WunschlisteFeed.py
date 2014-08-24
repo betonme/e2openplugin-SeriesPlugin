@@ -142,7 +142,7 @@ class WunschlisteFeed(IdentifierBase):
 			return ( self.returnvalue or _("No matching series found") )
 
 	def getSeries(self, name):
-		url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9]", " ", name) })
+		url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9*]", " ", name) })
 		data = self.getPageInternal( url )
 		
 		if data and isinstance(data, basestring):

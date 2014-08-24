@@ -126,7 +126,7 @@ class Fernsehserien(IdentifierBase):
 			return ( self.returnvalue or _("No matching series found") )
 
 	def getSeries(self, name):
-		parameter =  urlencode({ 'term' : re.sub("[^a-zA-Z0-9]", " ", name) })
+		parameter =  urlencode({ 'term' : re.sub("[^a-zA-Z0-9*]", " ", name) })
 		url = SERIESLISTURL + parameter
 		data = self.getPageInternal( url )
 		
