@@ -295,6 +295,15 @@ class SeriesPlugin(Modules, ChannelsBase):
 	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False):
 		#available = False
 		
+		if config.plugins.seriesplugin.skip_during_records.value:
+			try:
+				import NavigationInstance
+				if NavigationInstance.instance.RecordTimer.isRecording():
+					print("[SeriesPlugin]: Skip check during running records")
+					return
+			except:
+				pass
+		
 		name = removeEpisodeInfo(name)
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
