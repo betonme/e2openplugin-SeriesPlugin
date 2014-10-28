@@ -55,7 +55,7 @@ class IdentifierBase(ModuleBase, Cacher, License):
 	# Helper function
 	def getAlternativeSeries(self, name):
 		
-		self.search_depth++
+		self.search_depth += 1
 		if( self.search_depth < config.plugins.seriesplugin.search_depths.value ):
 			return " ".join(name.split(" ")[:-1])
 		else:
