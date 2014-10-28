@@ -111,6 +111,7 @@ def getInstance():
 		splog( strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 	
 	return instance
+
 def resetInstance():
 	#Rename to closeInstance
 	global instance
@@ -305,6 +306,10 @@ class SeriesPlugin(Modules, ChannelsBase):
 				pass
 		
 		name = removeEpisodeInfo(name)
+		name = removeEpisodeInfo(name)
+		if name.startswith("The ") or name.startswith("Der ") or name.startswith("Die ")or name.startswith("Das "):
+			name = name[4:]
+		
 		begin = datetime.fromtimestamp(begin)
 		end = datetime.fromtimestamp(end)
 		
@@ -316,6 +321,9 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier = self.identifier_future
 		else:
 			identifier = None
+		
+		# Reset title search depth
+		identifier.search_depth = 0;
 		
 		if identifier:
 			channels = lookupServiceAlternatives(service)

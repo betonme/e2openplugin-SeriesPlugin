@@ -35,6 +35,7 @@ import recipeMemUse as MemoryUsage
 
 class MyException(Exception):
     pass
+
 class IdentifierBase(ModuleBase, Cacher, License):
 	def __init__(self):
 		ModuleBase.__init__(self)
@@ -47,11 +48,19 @@ class IdentifierBase(ModuleBase, Cacher, License):
 		self.ids = []
 		
 		self.returnvalue = None
+		
+		self.search_depth = 0;
 
 	################################################
 	# Helper function
 	def getAlternativeSeries(self, name):
-		return " ".join(name.split(" ")[:-1])
+		
+		self.search_depth++
+		if( self.search_depth < config.plugins.seriesplugin.search_depths.value ):
+			return " ".join(name.split(" ")[:-1])
+		else:
+			return ""
+
 
 	################################################
 	# URL functions

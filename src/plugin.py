@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.2.3"
+VERSION = "0.9.3"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -89,6 +89,7 @@ config.plugins.seriesplugin.tidy_rename               = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.rename_file               = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.max_time_drift            = ConfigSelectionNumber(0, 600, 1, default = 15)
+config.plugins.seriesplugin.search_depths             = ConfigSelectionNumber(0, 10, 1, default = 0)
 
 config.plugins.seriesplugin.skip_during_records       = ConfigYesNo(default=False)
 

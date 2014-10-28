@@ -153,6 +153,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 				self.list.append( getConfigListEntry(  _("Tidy up filename on Rename")             , config.plugins.seriesplugin.tidy_rename ) )
 			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
+			self.list.append( getConfigListEntry(  _("Title search depths")                        , config.plugins.seriesplugin.search_depths ) )
 			
 			self.list.append( getConfigListEntry(  _("Skip search during records")                 , config.plugins.seriesplugin.skip_during_records ) )
 			
