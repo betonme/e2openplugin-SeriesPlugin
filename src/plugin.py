@@ -116,7 +116,7 @@ config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0
 
 try:
 	if(config.plugins.autotimer.timeout.value == 1):
-		config.plugins.autotimer.timeout = 5
+		config.plugins.autotimer.timeout.value = 5
 		config.plugins.autotimer.save()
 except Exception as e:
 	splog(_("SeriesPlugin start exception ") + str(e))
