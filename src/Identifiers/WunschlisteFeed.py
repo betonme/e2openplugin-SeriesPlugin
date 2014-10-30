@@ -143,7 +143,7 @@ class WunschlisteFeed(IdentifierBase):
 
 	def getSeries(self, name):
 		url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9*]", " ", name) })
-		data = self.getPageInternal( url )
+		data = self.getPage( url )
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
@@ -178,7 +178,7 @@ class WunschlisteFeed(IdentifierBase):
 		splog("WunschlisteFeed getNextPage")
 		
 		url = EPISODEIDURLATOM + urlencode({ 's' : id })
-		data = self.getPageInternal( url )
+		data = self.getPage( url )
 		
 		if data and isinstance(data, basestring):
 			data = self.parseNextPage(data)
@@ -258,16 +258,3 @@ class WunschlisteFeed(IdentifierBase):
 			
 			if yepisode:
 				return ( yepisode )
-
-	def getPageInternal(self, url):
-		
-		if self.checkLicense(url, self.isCached(url)):
-			
-			# PHP Proxy with 1 day Caching
-			# to minimize server requests
-			#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-			#IdentifierBase.getPage(self, url)
-			return self.getPage( url)
-		
-		else:
-			return _("No valid license")

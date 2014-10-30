@@ -64,7 +64,9 @@ class Logger(object):
 		
 		return
 		
-		#LATER
+		#TODO MAYBE LATER
+		######################################################
+		
 		
 		# Check preconditions
 		if not config.plugins.seriesplugin.write_log.value:
@@ -120,3 +122,5 @@ class Logger(object):
 	def confirmSend(self, confirmed):
 		if not confirmed:
 			return
+		
+		#TODO SEND IT HERE

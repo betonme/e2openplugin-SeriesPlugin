@@ -128,7 +128,7 @@ class Fernsehserien(IdentifierBase):
 	def getSeries(self, name):
 		parameter =  urlencode({ 'term' : re.sub("[^a-zA-Z0-9*]", " ", name) })
 		url = SERIESLISTURL + parameter
-		data = self.getPageInternal( url )
+		data = self.getPage(url, Headers)
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
@@ -189,7 +189,7 @@ class Fernsehserien(IdentifierBase):
 
 	def getNextPage(self, id):
 		url = EPISODEIDURL % (id, self.page)
-		data = self.getPageInternal( url )
+		data = self.getPage(url, Headers)
 		
 		if data and isinstance(data, basestring):
 			data = self.parseNextPage(data)
@@ -315,16 +315,3 @@ class Fernsehserien(IdentifierBase):
 		
 		self.page = None
 		return
-
-	def getPageInternal(self, url):
-		
-		if self.checkLicense(url, self.isCached(url)):
-		
-			# PHP Proxy with 1 day Caching
-			# to minimize server requests
-			#url = 'http://betonme.lima-city.de/SeriesPlugin/proxy.php?' + urlencode({ 'url' : url })
-			#IdentifierBase.getPage(self, url, Headers)
-			return self.getPage(url, Headers)
-			
-		else:
-			return _("No valid license")

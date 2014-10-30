@@ -169,6 +169,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 
 			self.list.append( getConfigListEntry(  _("Use local caching")                          , config.plugins.seriesplugin.caching ) )
 			
+			self.list.append( getConfigListEntry(  _("Allow Google Analytics")                     , config.plugins.seriesplugin.ganalytics ) )
+			
 			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
 			
 			try:

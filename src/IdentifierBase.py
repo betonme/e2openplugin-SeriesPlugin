@@ -15,7 +15,7 @@ from thread import start_new_thread
 
 from time import sleep
 import socket
-socket.setdefaulttimeout(15)
+
 #import urllib2
 from urllib import urlencode
 from urllib2 import urlopen, URLError, Request, build_opener, HTTPCookieProcessor
@@ -27,8 +27,7 @@ from Tools.BoundFunction import boundFunction
 from ModuleBase import ModuleBase
 from Cacher import Cacher, INTER_QUERY_TIME
 from Logger import splog
-from License import License
-
+from Analytics import Analytics
 
 import recipeMemUse as MemoryUsage
 
@@ -36,11 +35,14 @@ import recipeMemUse as MemoryUsage
 class MyException(Exception):
     pass
 
-class IdentifierBase(ModuleBase, Cacher, License):
+class IdentifierBase(ModuleBase, Cacher, Analytics):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
-		License.__init__(self)
+		Analytics.__init__(self)
+		
+		socket.setdefaulttimeout(5)
+		
 		self.name = ""
 		self.begin = None
 		self.end = None
@@ -80,6 +82,8 @@ class IdentifierBase(ModuleBase, Cacher, License):
 		#splog("SP VmStk:  "+str(VmStk/1024/1024)+" Mb" )
 		
 		cached = self.getCached(url, expires)
+		
+		self.sendAnalytics(url, cached)
 		
 		if cached:
 			splog("SSBase cached")
