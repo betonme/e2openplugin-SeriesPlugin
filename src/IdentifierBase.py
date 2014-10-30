@@ -20,7 +20,7 @@ import socket
 from urllib import urlencode
 from urllib2 import urlopen, URLError, Request, build_opener, HTTPCookieProcessor
 
-
+from Components.config import config
 from Tools.BoundFunction import boundFunction
 
 # Internal
@@ -83,7 +83,7 @@ class IdentifierBase(ModuleBase, Cacher, Analytics):
 		
 		cached = self.getCached(url, expires)
 		
-		self.sendAnalytics(url, cached)
+		self.sendAnalytics(url, True if cached else False)
 		
 		if cached:
 			splog("SSBase cached")

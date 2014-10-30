@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "0.9.4"
+VERSION = "0.9.4.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info")
 RENAMESERIES = _("Rename serie(s)")
@@ -115,13 +115,6 @@ config.plugins.seriesplugin.ganalytics                = ConfigYesNo(default = Tr
 # Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
 #config.plugins.seriesplugin.uid                       = ConfigText(default = str(time()), fixed_size = False)
-
-try:
-	if(config.plugins.autotimer.timeout.value == 1):
-		config.plugins.autotimer.timeout.value = 5
-		config.plugins.autotimer.save()
-except Exception as e:
-	splog(_("SeriesPlugin start exception ") + str(e))
 
 
 #######################################################

@@ -37,9 +37,12 @@ from threading import Thread
 from enigma import ePythonMessagePump
 
 
-
-
-
+try:
+	if(config.plugins.autotimer.timeout.value == 1):
+		config.plugins.autotimer.timeout.value = 5
+		config.plugins.autotimer.save()
+except Exception as e:
+	pass
 
 
 # Constants
