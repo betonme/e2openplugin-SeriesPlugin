@@ -1,5 +1,5 @@
 Package: enigma2-plugin-extensions-seriesplugin
-Version: 0.9.4.1-for-tester
+Version: 1.0
 Description: Find and rename series
 Maintainer: betonme
 Architecture: all
