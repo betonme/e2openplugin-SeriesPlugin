@@ -59,7 +59,7 @@ class Modules(object):
 			files = [fname[:-4] for fname in os.listdir(path) if fname.endswith(".pyo")]
 			splog(files)
 		
-		# Import PushService modules
+		# Import modules
 		for name in files:
 			module = None
 			
