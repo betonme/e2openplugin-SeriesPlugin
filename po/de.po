@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SeriesPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-16 13:34+0100\n"
-"PO-Revision-Date: 2014-11-16 13:52+0100\n"
+"POT-Creation-Date: 2014-11-19 09:03+0100\n"
+"PO-Revision-Date: 2014-11-19 09:04+0100\n"
 "Last-Translator: James Blond <alattka@freenet.de>\n"
 "Language-Team: \n"
 "Language: German\n"
@@ -163,6 +163,9 @@ msgstr "Episoden Muster für den Aufnahmetitel"
 msgid "Record description episode pattern"
 msgstr "Aufnahmebeschreibung Episoden Muster"
 
+msgid "Replace special characters from title"
+msgstr "Sonderzeichen im Titel ersetzen"
+
 msgid "Alternative channel names file"
 msgstr "Alternative Kanalnamen Datei"
 
@@ -172,8 +175,14 @@ msgstr "Frage nach Kanalübereinstimmung"
 msgid "Rename files"
 msgstr "Datei(en) umbenennen"
 
-msgid "Tidy up filename on Rename"
+msgid "Tidy up filename on rename"
 msgstr "Bereinige den Dateinamen beim Umbenennen"
+
+msgid "Use legacy filenames"
+msgstr "Verwende ältere Dateinamen"
+
+msgid "Append '_' (if file exist)"
+msgstr "Anhängen '_' (wenn die Datei vorhanden ist)"
 
 msgid "Show warnings after Record renaming"
 msgstr "Fehlermeldung nach Aufnahme(n) umbenennen anzeigen (Popup)"
@@ -321,4 +330,3 @@ msgstr "Timer umbenennen wurde beendet mit %d Fehler:\n"
 #, python-format
 msgid "%d timer renamed successfully"
 msgstr "%d Timer erfolgreich umbenannt"
-
