@@ -130,21 +130,20 @@ def resetInstance():
 	global cache
 	cache = {}
 
-
 def refactorTitle(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
 			if config.plugins.seriesplugin.title_replace_chars.value:
-				splog("SP: refactor org", org)
+				#splog("SP: refactor org", org)
 				org = CompiledRegexpNonAlphanum.sub('', str(org))
-				splog("SP: refactor org", org)
-				splog("SP: refactor title", title)
+				#splog("SP: refactor org", org)
+				#splog("SP: refactor title", title)
 				title = CompiledRegexpNonAlphanum.sub('', str(title))
-				splog("SP: refactor title", title)
-				splog("SP: refactor series", series)
+				#splog("SP: refactor title", title)
+				#splog("SP: refactor series", series)
 				series = CompiledRegexpNonAlphanum.sub('', str(series))
-				splog("SP: refactor series", series)
+				#splog("SP: refactor series", series)
 			return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 		else:
 			return org
