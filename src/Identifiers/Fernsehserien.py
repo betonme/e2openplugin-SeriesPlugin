@@ -28,7 +28,6 @@ from Plugins.Extensions.SeriesPlugin.Logger import splog
 #sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4')
 #sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4/builder')
 from bs4 import BeautifulSoup
-from unidecode import unidecode
 
 # Constants
 SERIESLISTURL = "http://www.fernsehserien.de/suche?"
@@ -105,7 +104,7 @@ class Fernsehserien(IdentifierBase):
 				
 				if idserie and len(idserie) == 2:
 					id, idname = idserie
-					self.series = unidecode(idname.decode('unicode-escape'))
+					self.series = idname.decode('unicode-escape')
 					
 					self.page = 0
 					#if self.future:
@@ -294,7 +293,7 @@ class Fernsehserien(IdentifierBase):
 											xepisode = "0"
 											xtitle = tds[5]
 										if xseason and xepisode and xtitle and self.series:
-											yepisode = (xseason, xepisode, unidecode(xtitle.decode('unicode-escape')), self.series)
+											yepisode = (xseason, xepisode, xtitle.decode('unicode-escape'), self.series)
 											ydelta = delta
 									
 									else: #if delta >= ydelta:
