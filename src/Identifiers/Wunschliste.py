@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # by betonme @2012
 
 # Imports
@@ -104,7 +105,10 @@ class Wunschliste(IdentifierBase):
 				idserie = ids.pop()
 				
 				if idserie and len(idserie) == 2:
-					id, self.series = idserie
+					id, idname = idserie
+					
+					# Handle encodings
+					self.series = str(idname)
 					
 					result = self.getNextPage( id )
 					if result:
@@ -212,7 +216,10 @@ class Wunschliste(IdentifierBase):
 									xseason = "0"
 									xepisode = "0"
 								
-								yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'), self.series.decode('ISO-8859-1').encode('utf8'))
+								# Handle encodings
+								xtitle = str(xtitle)
+								
+								yepisode = (xseason, xepisode, xtitle, self.series)
 								ydelta = delta
 							
 							else: #if delta >= ydelta:

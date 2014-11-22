@@ -146,6 +146,8 @@ def renameFile(service, name, data, tidy=False):
 		else:
 			name = refactorTitle(file_name, data)
 		splog("SPR: name     ", name)
+		#if config.recording.ascii_filenames.value:
+		#	filename = ASCIItranslit.legacyEncode(filename)
 		if config.plugins.seriesplugin.rename_legacy.value:
 			name = newLegacyEncode(name)
 			splog("SPR: name     ", name)

@@ -55,7 +55,7 @@ SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/S
 instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
-CompiledRegexpNonAlphanum = re.compile(r'[^-_/\.,()abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789äÄüÜöÖ ]+')
+CompiledRegexpReplaceChars = re.compile(r'[^-_/\.,()abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789äÄüÜöÖß ]+')
 
 def dump(obj):
 	for attr in dir(obj):

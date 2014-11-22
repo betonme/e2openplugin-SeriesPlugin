@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # by betonme @2012
 
 # Imports
@@ -128,7 +129,10 @@ class WunschlisteFeed(IdentifierBase):
 				idserie = ids.pop()
 				
 				if idserie and len(idserie) == 2:
-					id, self.series = idserie
+					id, idname = idserie
+					
+					# Handle encodings
+					self.series = str(idname)
 					
 					result = self.getNextPage( id )
 					if result:
@@ -247,7 +251,12 @@ class WunschlisteFeed(IdentifierBase):
 											if result and len(result.groups()) >= 1:
 												# Extract episode title
 												xtitle = result.group(1)
-												yepisode = (xseason, xepisode, xtitle.decode('ISO-8859-1').encode('utf8'), self.series.decode('ISO-8859-1').encode('utf8'))
+												
+												# Handle encodings
+												xtitle = str(xtitle)
+												
+												yepisode = (xseason, xepisode, xtitle, self.series)
+												
 												ydelta = delta
 									
 									else: #if delta >= ydelta:
