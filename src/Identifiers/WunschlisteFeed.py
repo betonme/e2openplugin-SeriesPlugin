@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # by betonme @2012
 
 # Imports
@@ -54,6 +54,16 @@ CompiledRegexpAtomTitle = re.compile('.+: (.+)')
 #CompiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
 
 CompiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
+
+
+def iso8859_Decode(txt):
+	txt = unicode(txt, 'ISO-8859-1')
+	txt = txt.encode('utf-8')
+	txt = txt.replace('...','').replace('..','').replace(':','')
+
+	# &apos;, &quot;, &amp;, &lt;, and &gt;
+	txt = txt.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"')
+	return txt
 
 
 class WLAtomParser(HTMLParser):
@@ -132,7 +142,7 @@ class WunschlisteFeed(IdentifierBase):
 					id, idname = idserie
 					
 					# Handle encodings
-					self.series = str(idname)
+					self.series = iso8859_Decode(idname)
 					
 					result = self.getNextPage( id )
 					if result:
@@ -253,7 +263,7 @@ class WunschlisteFeed(IdentifierBase):
 												xtitle = result.group(1)
 												
 												# Handle encodings
-												xtitle = str(xtitle)
+												xtitle = iso8859_Decode(xtitle)
 												
 												yepisode = (xseason, xepisode, xtitle, self.series)
 												

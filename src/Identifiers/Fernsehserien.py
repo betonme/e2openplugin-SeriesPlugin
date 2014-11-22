@@ -1,8 +1,11 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # by betonme @2012
 
 import os, sys
+import json
+import re
 import math
+
 from sys import maxint
 
 from Components.config import config
@@ -16,10 +19,6 @@ from urllib import urlencode
 from time import time
 from datetime import datetime, timedelta
 
-import json
-
-import re
-
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
@@ -28,6 +27,7 @@ from Plugins.Extensions.SeriesPlugin.Logger import splog
 #sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4')
 #sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4/builder')
 from bs4 import BeautifulSoup
+
 
 # Constants
 SERIESLISTURL = "http://www.fernsehserien.de/suche?"

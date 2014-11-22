@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # by betonme @2012
 
 # Imports
@@ -36,6 +36,17 @@ EPISODEIDURLPRINT = "http://www.wunschliste.de/epg_print.pl?"
 #CompiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
 
 CompiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
+
+
+def iso8859_Decode(txt):
+	txt = unicode(txt, 'ISO-8859-1')
+	txt = txt.encode('utf-8')
+	txt = txt.replace('...','').replace('..','').replace(':','')
+
+	# &apos;, &quot;, &amp;, &lt;, and &gt;
+	txt = txt.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"')
+	return txt
+
 
 class WLPrintParser(HTMLParser):
 	def __init__(self):
@@ -108,7 +119,7 @@ class Wunschliste(IdentifierBase):
 					id, idname = idserie
 					
 					# Handle encodings
-					self.series = str(idname)
+					self.series = iso8859_Decode(idname)
 					
 					result = self.getNextPage( id )
 					if result:
@@ -217,7 +228,7 @@ class Wunschliste(IdentifierBase):
 									xepisode = "0"
 								
 								# Handle encodings
-								xtitle = str(xtitle)
+								xtitle = iso8859_Decode(xtitle)
 								
 								yepisode = (xseason, xepisode, xtitle, self.series)
 								ydelta = delta
