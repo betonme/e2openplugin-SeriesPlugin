@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -317,16 +317,16 @@ def Plugins(**kwargs):
 													fnc = movielist_rename,
 													needsRestart = False) )
 		
-		try:
-			if config.plugins.seriesplugin.menu_channel.value:
+		if config.plugins.seriesplugin.menu_channel.value:
+			try:
 				descriptors.append( PluginDescriptor(
 													name = SHOWINFO,
 													description = SHOWINFO,
 													where = PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU,
 													fnc = channel,
 													needsRestart = False) )
-		except:
-			addSeriesPlugin(WHERE_CHANNELMENU, SHOWINFO)
+			except:
+				addSeriesPlugin(WHERE_CHANNELMENU, SHOWINFO)
 		
 		if config.plugins.seriesplugin.menu_epg.value:
 			addSeriesPlugin(WHERE_EPGMENU, SHOWINFO)
