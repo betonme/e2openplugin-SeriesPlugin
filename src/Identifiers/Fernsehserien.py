@@ -47,24 +47,37 @@ Headers = {
 		'Pragma':'no-cache'
 	}
 
+str_utf_map = {
+	#"\\u2013": "-",
+    #"\\u2018": "'",
+	#"\\u2019": "'",
+    #"\\u201c": '"',
+    #"\\u201d": '"',
+	#"\\u00c4": "Ä",
+	#"\\u00e4": "ä",
+	#"\\u00d6": "Ö",
+	#"\\u00f6": "ö",
+	#"\\u00dc": "Ü",
+	#"\\u00fc": "ü",
+	#"\\u00df": "ß",
+	
+	u"\u2013": u"-",
+    u"\u2018": u"'",
+	u"\u2019": u"'",
+    u"\u201c": u'"',
+    u"\u201d": u'"',
+	u"\u00c4": u"Ä",
+	u"\u00e4": u"ä",
+	u"\u00d6": u"Ö",
+	u"\u00f6": u"ö",
+	u"\u00dc": u"Ü",
+	u"\u00fc": u"ü",
+	u"\u00df": u"ß"
+}
+utf_map = dict([(ord(k), ord(v)) for k,v in str_utf_map.items()])
+
 def str_to_utf8(s):
-	if '\\u2013' in s:
-		s = s.replace("\\u2013", "-")
-	if '\\u00c4' in s:
-		s = s.replace("\\u00c4", "Ä")
-	if '\\u00e4' in s:
-		s = s.replace("\\u00e4", "ä")
-	if '\\u00d6' in s:
-		s = s.replace("\\u00d6", "Ö")
-	if '\\u00f6' in s:
-		s= s.replace("\\u00f6", "ö")
-	if '\\u00dc' in s:
-		s = s.replace("\\u00dc", "Ü")
-	if '\\u00fc' in s:
-		s = s.replace("\\u00fc", "ü")
-	if '\\u00df' in s:
-		s = s.replace("\\u00df", "ß")
-	return s
+	return unicode(s).translate(utf_map)
 
 
 class Fernsehserien(IdentifierBase):
