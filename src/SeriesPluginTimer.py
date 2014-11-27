@@ -164,7 +164,7 @@ class SeriesPluginTimer(object):
 						AddPopup(
 							"SeriesPlugin:\n" + _("%d timer renamed successfully") % (SeriesPluginTimer.counter),
 							MessageBox.TYPE_INFO,
-							int(config.plugins.seriesplugin.timer_popups_timeout),
+							int(config.plugins.seriesplugin.timer_popups_timeout.value),
 							'SP_PopUp_ID_TimerFinished'
 						)
 					SeriesPluginTimer.data = []
