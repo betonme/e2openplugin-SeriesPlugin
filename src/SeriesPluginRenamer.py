@@ -359,7 +359,7 @@ class SeriesPluginRenamer(object):
 		if result and isinstance(result, basestring):
 			self.data.append( result )
 		
-		if config.plugins.seriesplugin.rename_popups.value and config.plugins.seriesplugin.rename_popups_success.value:
+		if config.plugins.seriesplugin.rename_popups.value or config.plugins.seriesplugin.rename_popups_success.value:
 			
 			self.counter = self.counter +1
 			
@@ -368,7 +368,7 @@ class SeriesPluginRenamer(object):
 				# Maybe there is a better way to avoid multiple Popups
 				from SeriesPlugin import seriespluginworker
 				
-				splog("SPR: renamerCallback getListLength", not seriespluginworker or seriespluginworker.getListLength())
+				splog("SPR: renamerCallback getListLength", not seriespluginworker or seriespluginworker.getListLength(), not seriespluginworker or seriespluginworker.isListEmpty() )
 				
 				if not seriespluginworker or seriespluginworker.isListEmpty():
 					if self.data:
