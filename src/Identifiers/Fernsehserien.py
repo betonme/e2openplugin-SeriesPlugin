@@ -77,7 +77,7 @@ str_utf_map = {
 utf_map = dict([(ord(k), ord(v)) for k,v in str_utf_map.items()])
 
 def str_to_utf8(s):
-	return unicode(s).translate(utf_map)
+	return unicode(s).translate(utf_map).encode('utf-8')
 
 
 class Fernsehserien(IdentifierBase):
