@@ -22,6 +22,10 @@ from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 from iso8601 import parse_date
 
+import codecs
+utf8_encoder = codecs.getencoder("utf-8")
+
+
 # Constants
 SERIESLISTURL     = "http://www.wunschliste.de/ajax/search_dropdown.pl?"
 EPISODEIDURLPRINT = "http://www.wunschliste.de/epg_print.pl?"
@@ -38,46 +42,15 @@ EPISODEIDURLPRINT = "http://www.wunschliste.de/epg_print.pl?"
 CompiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
 
 
-str_utf_map = {
-	#"\\u2013": "-",
-    #"\\u2018": "'",
-	#"\\u2019": "'",
-    #"\\u201c": '"',
-    #"\\u201d": '"',
-	#"\\u00c4": "Ä",
-	#"\\u00e4": "ä",
-	#"\\u00d6": "Ö",
-	#"\\u00f6": "ö",
-	#"\\u00dc": "Ü",
-	#"\\u00fc": "ü",
-	#"\\u00df": "ß",
-	
-	u"\u2013": u"-",
-    u"\u2018": u"'",
-	u"\u2019": u"'",
-    u"\u201c": u'"',
-    u"\u201d": u'"',
-	u"\u00c4": u"Ä",
-	u"\u00e4": u"ä",
-	u"\u00d6": u"Ö",
-	u"\u00f6": u"ö",
-	u"\u00dc": u"Ü",
-	u"\u00fc": u"ü",
-	u"\u00df": u"ß"
-}
-utf_map = dict([(ord(k), ord(v)) for k,v in str_utf_map.items()])
-
 def str_to_utf8(s):
-	return unicode(s).translate(utf_map).encode('utf-8')
-
-def iso8859_Decode(txt):
-	txt = unicode(txt, 'ISO-8859-1')
-	txt = txt.encode('utf-8')
-	txt = txt.replace('...','').replace('..','').replace(':','')
-
-	# &apos;, &quot;, &amp;, &lt;, and &gt;
-	txt = txt.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"')
-	return str_to_utf8(txt)
+	# Convert a byte string with unicode escaped characters
+	splog("WL: str_to_utf8: s: ", repr(s))
+	unicode_str = s.decode('unicode-escape')
+	splog("WL: str_to_utf8: s: ", repr(unicode_str))
+	# Python 2.x can't convert the special chars nativly
+	utf8_str = utf8_encoder(unicode_str)[0]
+	splog("WL: str_to_utf8: s: ", repr(utf8_str))
+	return utf8_str
 
 
 class WLPrintParser(HTMLParser):
@@ -151,7 +124,7 @@ class Wunschliste(IdentifierBase):
 					id, idname = idserie
 					
 					# Handle encodings
-					self.series = iso8859_Decode(idname)
+					self.series = str_to_utf8(idname)
 					
 					result = self.getNextPage( id )
 					if result:
@@ -260,7 +233,7 @@ class Wunschliste(IdentifierBase):
 									xepisode = "0"
 								
 								# Handle encodings
-								xtitle = iso8859_Decode(xtitle)
+								xtitle = str_to_utf8(xtitle)
 								
 								yepisode = (xseason, xepisode, xtitle, self.series)
 								ydelta = delta
