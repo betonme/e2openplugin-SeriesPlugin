@@ -104,17 +104,32 @@ def lookupServiceAlternatives(service):
 	
 	#splog("lookupServiceAlternatives service", service)
 	ref = str(service)
-	ref = re.sub('::.*', ':', ref)
-	#splog("lookupServiceAlternatives ref", ref)
-	#splog("lookupServiceAlternatives channels before", channels)
-	#splog("lookupServiceAlternatives ref in channels", ref in channels)
+	splog("lookupServiceAlternatives str(ref)", ref)
 	if ref in channels:
+		splog("lookupServiceAlternatives if ref in channels")
 		name, alternatives = channels.get(ref)
 	else:
-		name = ServiceReference(ref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
-		alternatives = [ ( name, unifyChannel(name) ), ]
-		channels[ref] = ( name, alternatives )
-		channels_changed = True
+		splog("lookupServiceAlternatives else ref in channels")
+		name = ServiceReference(ref).getServiceName()
+		if name:
+			splog("lookupServiceAlternatives if name")
+			alternatives = [ ( name, unifyChannel(name) ), ]
+			channels[ref] = ( name, alternatives )
+			channels_changed = True
+		else:
+			splog("lookupServiceAlternatives else name")
+			ref = re.sub('::.*', ':', ref)
+			splog("lookupServiceAlternatives re.sub  ", ref)
+			#splog("lookupServiceAlternatives channels before", channels)
+			if ref in channels:
+				splog("lookupServiceAlternatives if ref in channels")
+				name, alternatives = channels.get(ref)
+			else:
+				splog("lookupServiceAlternatives else ref in channels")
+				name = ServiceReference(ref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+				alternatives = [ ( name, unifyChannel(name) ), ]
+				channels[ref] = ( name, alternatives )
+				channels_changed = True
 	
 	#splog("lookupServiceAlternatives channels")
 	#for channel in channels:
