@@ -45,17 +45,6 @@ except:
 	from OrderedDict import OrderedDict
 
 
-CompiledRegexpSeries = re.compile('(.*)[ _][Ss]{,1}\d{1,2}[EeXx]\d{1,2}.*')  #Only for S01E01 OR 01x01 + optional title
-def removeEpisodeInfo(text):
-	# Very basic Series Episode remove function
-	m = CompiledRegexpSeries.match(text)
-	if m:
-		#splog(m.group(0))     # Entire match
-		#splog(m.group(1))     # First parenthesized subgroup
-		if m.group(1):
-			text = m.group(1)
-	return text
-
 
 ChannelReplaceDict = OrderedDict([
 	('\(S\)', ''),
