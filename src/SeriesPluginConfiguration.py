@@ -153,8 +153,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen, Logger):
 			self.list.append( getConfigListEntry(  _("Replace special characters from title")      , config.plugins.seriesplugin.title_replace_chars ) )
 			
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
-			self.list.append( getConfigListEntry(  _("Ask for channel matching")                   , config.plugins.seriesplugin.channel_popups ) )
-			
+
 			self.list.append( getConfigListEntry(  _("Rename files")                               , config.plugins.seriesplugin.rename_file ) )
 			if config.plugins.seriesplugin.rename_file.value:
 				self.list.append( getConfigListEntry(  _("Tidy up filename on rename")             , config.plugins.seriesplugin.rename_tidy ) )

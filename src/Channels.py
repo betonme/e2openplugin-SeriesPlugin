@@ -149,16 +149,6 @@ def compareChannels(locals, remote, service):
 			# The local channel is unknown
 			return True
 
-		# Ask the user only if we are called from SeriesPluginInfoScreen
-		from SeriesPluginInfoScreen import instance
-		if config.plugins.seriesplugin.channel_popups.value and instance:
-			names = [ name for name, uname in locals ]
-			instance.session.openWithCallback(
-				boundFunction(channelEqual, locals, remote, uremote, service),
-				MessageBox,
-				"SeriesPlugin:\n"+ _("Are these channels equal?")+ "\n"+ str(remote)+ "\n"+str(names),
-				type = MessageBox.TYPE_YESNO
-			)
 	return False
 
 def channelEqual(locals, remote, uremote, service, equal):
