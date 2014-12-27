@@ -76,14 +76,13 @@ class Fernsehserien(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
 		self.end = end
-		self.service = service
 		self.channels = channels
 		
 		self.series = ""
@@ -147,7 +146,7 @@ class Fernsehserien(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
-			self.doCache(url, data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("Fernsehserien ids", data)
@@ -209,7 +208,7 @@ class Fernsehserien(IdentifierBase):
 		if data and isinstance(data, basestring):
 			splog("getNextPage: basestring")
 			data = self.parseNextPage(data)
-			self.doCache(url, data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("getNextPage: list")
@@ -282,7 +281,7 @@ class Fernsehserien(IdentifierBase):
 							
 							if delta <= max_time_drift:
 								
-								if compareChannels(self.channels, tds[3], self.service):
+								if compareChannels(self.channels, tds[3]):
 									
 									if delta < ydelta:
 										

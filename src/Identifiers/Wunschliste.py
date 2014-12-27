@@ -92,13 +92,12 @@ class Wunschliste(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, name, begin, end=None, service=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, channels=[]):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
 		self.begin = begin
 		self.end = end
-		self.service = service
 		self.channels = channels
 		
 		self.knownids = []
@@ -143,7 +142,7 @@ class Wunschliste(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
-			self.doCache(url, data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("WunschlistePrint ids", data)
@@ -179,7 +178,7 @@ class Wunschliste(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseNextPage(data)
-			self.doCache(url, data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			trs = data
@@ -210,7 +209,7 @@ class Wunschliste(IdentifierBase):
 					
 					if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 						
-						if compareChannels(self.channels, xchannel, self.service):
+						if compareChannels(self.channels, xchannel):
 						
 							if delta < ydelta:
 								

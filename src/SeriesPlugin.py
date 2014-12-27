@@ -29,14 +29,11 @@ from Screens.MessageBox import MessageBox
 
 # Plugin internal
 from IdentifierBase import IdentifierBase
-from ManagerBase import ManagerBase
-from GuideBase import GuideBase
 from Channels import ChannelsBase, lookupServiceAlternatives
 from Logger import splog
-from CancelableThread import QueueWithTimeOut, CancelableThread, synchronized, myLock
 
 from ThreadQueue import ThreadQueue
-from threading import Thread
+from threading import Thread, currentThread, _get_ident
 from enigma import ePythonMessagePump
 
 
@@ -122,15 +119,19 @@ def getInstance():
 	return instance
 
 def resetInstance():
-	#Rename to closeInstance
+	if config.plugins.seriesplugin.lookup_counter.isChanged():
+		config.plugins.seriesplugin.lookup_counter.save()
+	
 	global instance
 	if instance is not None:
 		splog("SP: SERIESPLUGIN INSTANCE STOP")
 		instance.stop()
 		instance = None
+	
 	from Cacher import cache
 	global cache
 	cache = {}
+
 
 def refactorTitle(org, data):
 	if data:
@@ -166,19 +167,20 @@ def refactorDescription(org, data):
 			return org
 	else:
 		return org
-		
+
+
 class ThreadItem:
-	def __init__(self, identifier = None, callback = None, name = None, begin = None, end = None, service = None, channels = None):
+	def __init__(self, identifier = None, callback = None, name = None, begin = None, end = None, channels = None):
 		self.identifier = identifier
 		self.callback = callback
 		self.name = name
 		self.begin = begin
 		self.end = end
-		self.service = service
 		self.channels = channels
 
-class SeriesPluginWorker(Thread):
 
+class SeriesPluginWorker(Thread):
+	
 	def __init__(self):
 		Thread.__init__(self)
 		self.__running = False
@@ -194,9 +196,9 @@ class SeriesPluginWorker(Thread):
 		return self.__messages
 	Message = property(__getMessageQueue)
 
-	def __getRunning(self):
-		return self.__running
-	isRunning = property(__getRunning)
+	#def __getRunning(self):
+	#	return self.__running
+	#isRunning = property(__getRunning)
 
 	def isListEmpty(self):
 		return not self.__list
@@ -204,27 +206,35 @@ class SeriesPluginWorker(Thread):
 	def getListLength(self):
 		return len(self.__list)
 
-	def Start(self, item):
+	def add(self, item):
 		if not self.__running:
 			self.__running = True
-			splog("SP: Worker: Start")
-			#self.__item = item
+			splog("SP: Worker: Add: Start")
 			self.__list = [item]
 			self.start() # Start blocking code in Thread
 		else:
+			splog("SP: Worker: Add: Running")
 			self.__list.append(item)
 	
-	def run(self):
+	def stop(self):
+		self.running = False
+		#self.__pump_recv_msg_conn = None
 	
+	def run(self):
+		
 		while self.__list:
+			
+			# NOTE: we have to check this here and not using the while to prevent the parser to be started on shutdown
+			if not self.__running: break
+			
 			item = self.__list.pop(0)
-			splog('SP: Worker is processing: ', item.identifier)
-			# do processing stuff here
+			splog('SP: Worker is processing as thread: ', currentThread(), _get_ident() )
+			
 			result = None
 			
 			try:
 				result = item.identifier.getEpisode(
-					item.name, item.begin, item.end, item.service, item.channels
+					item.name, item.begin, item.end, item.channels
 				)
 			except Exception, e:
 				splog("SP: Worker: Exception:", str(e))
@@ -250,29 +260,27 @@ class SeriesPluginWorker(Thread):
 				splog("SP: Worker: Callback Exception:", str(e))
 			
 			config.plugins.seriesplugin.lookup_counter.value += 1
-			config.plugins.seriesplugin.lookup_counter.save()
-			
-		self.__messages.push((0, result,))
-		self.__messagePump.send(0)
+		#self.__messages.push((0, result,))
+		#self.__messagePump.send(0)
 		self.__running = False
 		Thread.__init__(self)
 		splog('SP: Worker: list is emty, done')
 
-seriespluginworker = SeriesPluginWorker()
 
 class SeriesPlugin(Modules, ChannelsBase):
 
 	def __init__(self):
 		splog("SP: Main: Init")
+		self.thread = SeriesPluginWorker()
 		Modules.__init__(self)
 		ChannelsBase.__init__(self)
 		
 		self.serviceHandler = eServiceCenter.getInstance()
 		self.__pump_recv_msg_conn = None
 		try:
-			self.__pump_recv_msg_conn = seriespluginworker.MessagePump.recv_msg.connect(self.gotThreadMsg_seriespluginworker)
+			self.__pump_recv_msg_conn = self.thread.MessagePump.recv_msg.connect(self.gotThreadMsg_seriespluginworker)
 		except:
-			seriespluginworker.MessagePump.recv_msg.get().append(self.gotThreadMsg_seriespluginworker)
+			self.thread.MessagePump.recv_msg.get().append(self.gotThreadMsg_seriespluginworker)
 		
 		#http://bugs.python.org/issue7980
 		datetime.strptime('2012-01-01', '%Y-%m-%d')
@@ -292,12 +300,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 		pattern = re.sub('{episode:?\d*d?}', '\d+', pattern)
 		pattern = pattern.replace("{title:s}", ".+")
 		self.compiledRegexpSeries = re.compile(pattern)
-
-	def stop(self):
-		splog("SP: Main: stop")
-		if config.plugins.seriesplugin.lookup_counter.isChanged():
-			config.plugins.seriesplugin.lookup_counter.save()
-		self.saveXML()
 	
 	################################################
 	# Identifier functions
@@ -360,36 +362,10 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier.knownids = []
 			
 			channels = lookupServiceAlternatives(service)
-
-			seriespluginworker.Start(ThreadItem(identifier = identifier, callback = callback, name = name, begin = begin, end = end, service = service, channels = channels))
 			
-			'''
-			try:
-				result = identifier.getEpisode(
-								name, begin, end, service, channels
-							)
-				
-				if result and len(result) == 4:
-				
-					season, episode, title, series = result
-					season = int(CompiledRegexpNonDecimal.sub('', season))
-					episode = int(CompiledRegexpNonDecimal.sub('', episode))
-					#title = CompiledRegexpNonAlphanum.sub(' ', title)
-					title = title.strip()
-					splog("SeriesPlugin result callback")
-					callback( (season, episode, title, series) )
-					
-					config.plugins.seriesplugin.lookup_counter.value += 1
-					config.plugins.seriesplugin.lookup_counter.save()
-					
-				else:
-					splog("SeriesPlugin result failed")
-					callback( result )
-					
-			except Exception as e:
-				splog("SeriesPlugin Callback Exception:", str(e))
-				callback( str(e) )
-			'''
+			splog('SP: Add item from thread: ', currentThread(), _get_ident() )
+
+			self.thread.add(ThreadItem(identifier = identifier, callback = callback, name = name, begin = begin, end = end, channels = channels))
 			
 			return identifier.getName()
 			
@@ -398,17 +374,20 @@ class SeriesPlugin(Modules, ChannelsBase):
 			callback( "No identifier available" )
 			
 	def gotThreadMsg_seriespluginworker(self, msg):
-		msg = seriespluginworker.Message.pop()
-		splog("SP: Main: gotThreadMsg:", msg)
-		if msg[0] == 2:
-			callback = msg[1]
-			if callable(callback):
-				callback((msg[2],msg[3],msg[4],msg[5]))
-		elif msg[0] == 1:
-			callback = msg[1]
-			if callable(callback):
-				callback(msg[2])
-
+		splog("SP: Main: Thread: ", currentThread(), _get_ident(), " gotThreadMsg:", msg)
+		msg = self.thread.Message.pop()
+		try:
+			if msg[0] == 2:
+				callback = msg[1]
+				if callable(callback):
+					callback((msg[2],msg[3],msg[4],msg[5]))
+			elif msg[0] == 1:
+				callback = msg[1]
+				if callable(callback):
+					callback(msg[2])
+		except Exception as e:
+			splog("SeriesPlugin gotThreadMsg Exception:", str(e))
+		
 		if (config.plugins.seriesplugin.lookup_counter.value == 10) \
 			or (config.plugins.seriesplugin.lookup_counter.value == 100) \
 			or (config.plugins.seriesplugin.lookup_counter.value % 1000 == 0):
@@ -421,11 +400,14 @@ class SeriesPlugin(Modules, ChannelsBase):
 				'SP_PopUp_ID_About'
 			)
 
-	def cancel(self):
-		splog("SP: Main: cancel")
-		self.__pump_recv_msg_conn = None
+	def stop(self):
+		splog("SP: Main: stop")
+		self.thread.stop()
+		# NOTE: while we don't need to join the thread, we should do so in case it's currently parsing
+		self.thread.join()
+		self.thread = None
 		try:
-			seriespluginworker.MessagePump.recv_msg.get().remove(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread stop
+			self.thread.MessagePump.recv_msg.get().remove(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread stop
 		except:
 			pass
-		self.stop()
+		self.saveXML()

@@ -128,7 +128,7 @@ def lookupServiceAlternatives(service):
 	
 	return alternatives
 
-def compareChannels(locals, remote, service):
+def compareChannels(locals, remote):
 	#global channels
 	
 	uremote = unifyChannel(remote)		
