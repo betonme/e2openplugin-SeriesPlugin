@@ -73,6 +73,12 @@ def getInstance():
 		try:
 			from Tools.HardwareInfo import HardwareInfo
 			splog( "SP: DeviceName " + HardwareInfo().get_device_name().strip() )
+			#from os import uname
+			#uname()[0]'Linux'
+			#uname()[1]'dm7080'
+			#uname()[2]'3.4-3.0-dm7080'
+			#uname()[3]'#13 SMP Thu Dec 4 00:25:51 UTC 2014'
+			#uname()[4]'mips'
 		except:
 			pass
 		
@@ -184,37 +190,41 @@ class SeriesPluginWorker(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 		self.__running = False
-		self.__messages = ThreadQueue()
+		#self.__messages = ThreadQueue()
 		self.__messagePump = ePythonMessagePump()
-		self.__list = []
+		self.__list = ThreadQueue()
 
 	def __getMessagePump(self):
 		return self.__messagePump
 	MessagePump = property(__getMessagePump)
 
-	def __getMessageQueue(self):
-		return self.__messages
-	Message = property(__getMessageQueue)
+	#def __getMessageQueue(self):
+	#	return self.__messages
+	#Message = property(__getMessageQueue)
 
 	#def __getRunning(self):
 	#	return self.__running
 	#isRunning = property(__getRunning)
 
 	def isListEmpty(self):
-		return not self.__list
+		return self.__list.empty()
 
-	def getListLength(self):
-		return len(self.__list)
+	#def getListLength(self):
+	#	return len(self.__list)
 
 	def add(self, item):
+		
+		from ctypes import CDLL
+		SYS_gettid = 4222
+		libc = CDLL("libc.so.6")
+		tid = libc.syscall(SYS_gettid)
+		splog('SP: Worker add from thread: ', currentThread(), _get_ident(), self.ident, os.getpid(), tid )
+		
 		if not self.__running:
 			self.__running = True
-			splog("SP: Worker: Add: Start")
-			self.__list = [item]
-			self.start() # Start blocking code in Thread
-		else:
-			splog("SP: Worker: Add: Running")
-			self.__list.append(item)
+		
+		splog("SP: Worker: Add: Start")
+		self.__list.push(item)
 	
 	def stop(self):
 		self.running = False
@@ -222,13 +232,18 @@ class SeriesPluginWorker(Thread):
 	
 	def run(self):
 		
-		while self.__list:
+		while not self.__list.empty():
 			
 			# NOTE: we have to check this here and not using the while to prevent the parser to be started on shutdown
 			if not self.__running: break
 			
 			item = self.__list.pop(0)
-			splog('SP: Worker is processing as thread: ', currentThread(), _get_ident() )
+			
+			from ctypes import CDLL
+			SYS_gettid = 4222
+			libc = CDLL("libc.so.6")
+			tid = libc.syscall(SYS_gettid)
+			splog('SP: Worker is processing as thread: ', currentThread(), _get_ident(), self.ident, os.getpid(), tid )
 			
 			result = None
 			
@@ -242,24 +257,22 @@ class SeriesPluginWorker(Thread):
 				# Exception finish job with error
 				result = str(e)
 			
-			try:
-				splog("SP: Worker: result")
-				if result and len(result) == 4:
-					season, episode, title, series = result
-					season = int(CompiledRegexpNonDecimal.sub('', season))
-					episode = int(CompiledRegexpNonDecimal.sub('', episode))
-					title = title.strip()
-					splog("SP: Worker: result callback")
-					self.__messages.push((2, item.callback, season, episode, title, series,))
-					self.__messagePump.send(0)
-				else:
-					splog("SP: Worker: result failed")
-					self.__messages.push((1, item.callback, result))
-					self.__messagePump.send(0)
-			except Exception, e:
-				splog("SP: Worker: Callback Exception:", str(e))
-			
 			config.plugins.seriesplugin.lookup_counter.value += 1
+			
+			splog("SP: Worker: result")
+			if result and len(result) == 4:
+				season, episode, title, series = result
+				season = int(CompiledRegexpNonDecimal.sub('', season))
+				episode = int(CompiledRegexpNonDecimal.sub('', episode))
+				title = title.strip()
+				splog("SP: Worker: result callback")
+				self.__messages.push((2, item.callback, season, episode, title, series,))
+				self.__messagePump.send(0)
+			else:
+				splog("SP: Worker: result failed")
+				self.__messages.push((1, item.callback, result))
+				self.__messagePump.send(0)
+		
 		#self.__messages.push((0, result,))
 		#self.__messagePump.send(0)
 		self.__running = False
@@ -362,8 +375,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier.knownids = []
 			
 			channels = lookupServiceAlternatives(service)
-			
-			splog('SP: Add item from thread: ', currentThread(), _get_ident() )
 
 			self.thread.add(ThreadItem(identifier = identifier, callback = callback, name = name, begin = begin, end = end, channels = channels))
 			
@@ -372,9 +383,87 @@ class SeriesPlugin(Modules, ChannelsBase):
 		#if not available:
 		else:
 			callback( "No identifier available" )
+
+	def getEpisodeBlocking(self, name, begin, end=None, service=None, future=False, today=False, elapsed=False):
+		#available = False
+		
+		if config.plugins.seriesplugin.skip_during_records.value:
+			try:
+				import NavigationInstance
+				if NavigationInstance.instance.RecordTimer.isRecording():
+					splog("SP: Main: Skip check during running records")
+					return
+			except:
+				pass
+		
+		# Check for episode information in title
+		match = self.compiledRegexpSeries.match(name)
+		if match:
+			#splog(match.group(0))     # Entire match
+			#splog(match.group(1))     # First parenthesized subgroup
+			if config.plugins.seriesplugin.skip_pattern_match.value:
+				splog("SP: Main: Skip check because of pattern match")
+				return
+			if match.group(1):
+				name = match.group(1)
+		
+		if name.startswith("The ") or name.startswith("Der ") or name.startswith("Die ")or name.startswith("Das "):
+			name = name[4:]
+		
+		begin = datetime.fromtimestamp(begin)
+		splog("SP: Main: begin:", begin.strftime('%Y-%m-%d %H:%M:%S'))
+		end = datetime.fromtimestamp(end)
+		splog("SP: Main: end:", end.strftime('%Y-%m-%d %H:%M:%S'))
+		
+		if elapsed:
+			identifier = self.identifier_elapsed
+		elif today:
+			identifier = self.identifier_today
+		elif future:
+			identifier = self.identifier_future
+		else:
+			identifier = None
+		
+		if identifier:
+		
+			# Reset title search depth on every new request
+			identifier.search_depth = 0;
 			
+			# Reset the knownids on every new request
+			identifier.knownids = []
+			
+			channels = lookupServiceAlternatives(service)
+			
+			result = None
+			
+			try:
+				result = identifier.getEpisode(
+					name, begin, end, channels
+				)
+			except Exception, e:
+				splog("SP: Worker: Exception:", str(e))
+				
+				# Exception finish job with error
+				result = str(e)
+			
+			config.plugins.seriesplugin.lookup_counter.value += 1
+			
+			splog("SP: Worker: result")
+			if result and len(result) == 4:
+				season, episode, title, series = result
+				season = int(CompiledRegexpNonDecimal.sub('', season))
+				episode = int(CompiledRegexpNonDecimal.sub('', episode))
+				title = title.strip()
+				splog("SP: Worker: result callback")
+				return (season, episode, title, series)
+			else:
+				splog("SP: Worker: result failed")
+				return result
+		
+		return _("Error: No identifier")
+
 	def gotThreadMsg_seriespluginworker(self, msg):
-		splog("SP: Main: Thread: ", currentThread(), _get_ident(), " gotThreadMsg:", msg)
+		splog("SP: Main: Thread: gotThreadMsg:", msg)
 		msg = self.thread.Message.pop()
 		try:
 			if msg[0] == 2:

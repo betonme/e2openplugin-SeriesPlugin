@@ -271,6 +271,10 @@ class SeriesPluginRenamer(object):
 							boundFunction(self.renamerCallback, servicepath, name, short),
 							name, begin, end, rec_ref_str, elapsed=True
 						)
+					
+					#result = seriesPlugin.getEpisodeBlocking( name, begin, end, rec_ref_str, elapsed=True )
+					#self.renamerCallback( servicepath, name, short, result )
+					
 			except Exception as e:
 				splog("SPR: Exception:", str(e))
 
