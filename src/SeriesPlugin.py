@@ -404,10 +404,10 @@ class SeriesPlugin(Modules, ChannelsBase):
 		splog("SP: Main: stop")
 		self.thread.stop()
 		# NOTE: while we don't need to join the thread, we should do so in case it's currently parsing
-		self.thread.join()
-		self.thread = None
+		#self.thread.join()
 		try:
 			self.thread.MessagePump.recv_msg.get().remove(self.gotThreadMsg_seriespluginrenameservice) # interconnect to thread stop
 		except:
 			pass
+		self.thread = None
 		self.saveXML()
