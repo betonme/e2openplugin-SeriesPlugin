@@ -14,8 +14,6 @@ from Tools.BoundFunction import boundFunction
 # Imports
 from urllib import urlencode
 
-#from HTMLParser import HTMLParser
-
 from time import time
 from datetime import datetime, timedelta
 
@@ -24,9 +22,8 @@ from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
-#sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4')
-#sys.path.append(os.path.dirname( os.path.realpath( __file__ ) ) + '/bs4/builder')
 from bs4 import BeautifulSoup
+#from HTMLParser import HTMLParser
 
 import codecs
 utf8_encoder = codecs.getencoder("utf-8")
