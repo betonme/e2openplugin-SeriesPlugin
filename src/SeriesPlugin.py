@@ -193,10 +193,10 @@ class SeriesPluginWorker(Thread):
 		self.__running = False
 		self.__messages = ThreadQueue()
 		self.__pump = ePythonMessagePump()
-		#try:
-		#	self.__pump_recv_msg_conn = self.__pump.recv_msg.connect(self.gotThreadMsg)
-		#except:
-		#	self.__pump.recv_msg.get().append(self.gotThreadMsg)
+		try:
+			self.__pump_recv_msg_conn = self.__pump.recv_msg.connect(self.gotThreadMsg)
+		except:
+			self.__pump.recv_msg.get().append(self.gotThreadMsg)
 		self.__queue = ThreadQueue()
 
 	def isListEmpty(self):
@@ -217,6 +217,7 @@ class SeriesPluginWorker(Thread):
 			self.start() # Start blocking code in Thread
 	
 	def gotThreadMsg(self, msg=None):
+		
 		from ctypes import CDLL
 		SYS_gettid = 4222
 		libc = CDLL("libc.so.6")
@@ -229,13 +230,19 @@ class SeriesPluginWorker(Thread):
 
 	def stop(self):
 		self.running = False
-		#try:
-		#	self.__pump.recv_msg.get().remove(self.gotThreadMsg)
-		#except:
-		#	pass
-		#self.__pump_recv_msg_conn = None
+		try:
+			self.__pump.recv_msg.get().remove(self.gotThreadMsg)
+		except:
+			pass
+		self.__pump_recv_msg_conn = None
 	
 	def run(self):
+		
+		from ctypes import CDLL
+		SYS_gettid = 4222
+		libc = CDLL("libc.so.6")
+		tid = libc.syscall(SYS_gettid)
+		splog('SP: Worker got message: ', currentThread(), _get_ident(), self.ident, os.getpid(), tid )
 		
 		while not self.__queue.empty():
 			
@@ -244,11 +251,7 @@ class SeriesPluginWorker(Thread):
 			
 			item = self.__queue.pop()
 			
-			from ctypes import CDLL
-			SYS_gettid = 4222
-			libc = CDLL("libc.so.6")
-			tid = libc.syscall(SYS_gettid)
-			splog('SP: Worker is processing as thread: ', currentThread(), _get_ident(), self.ident, os.getpid(), tid )
+			splog('SP: Worker is processing')
 			
 			result = None
 			
@@ -272,17 +275,16 @@ class SeriesPluginWorker(Thread):
 				title = title.strip()
 				splog("SP: Worker: result callback")
 				self.__messages.push( (item.callback, (season, episode, title, series)) )
-				#self.__pump.send(0)
 			else:
 				splog("SP: Worker: result failed")
 				self.__messages.push( (item.callback, result) )
-				#self.__pump.send(0)
-			from twisted.internet import reactor
-			reactor.callFromThread(self.gotThreadMsg)
+			self.__pump.send(0)
+			#from twisted.internet import reactor
+			#reactor.callFromThread(self.gotThreadMsg)
 		
-		self.__running = False
-		Thread.__init__(self)
 		splog('SP: Worker: list is emty, done')
+		Thread.__init__(self)
+		self.__running = False
 
 
 class SeriesPlugin(Modules, ChannelsBase):
