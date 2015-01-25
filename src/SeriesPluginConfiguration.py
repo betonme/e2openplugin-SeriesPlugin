@@ -150,7 +150,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
 			self.list.append( getConfigListEntry(  _("Skip search if pattern matches")             , config.plugins.seriesplugin.skip_pattern_match ) )
 			
-			self.list.append( getConfigListEntry(  _("Replace special characters from title")      , config.plugins.seriesplugin.title_replace_chars ) )
+			#self.list.append( getConfigListEntry(  _("Replace special characters from title")      , config.plugins.seriesplugin.title_replace_chars ) )
 			
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 

@@ -54,7 +54,7 @@ SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/S
 instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
-CompiledRegexpReplaceChars = re.compile(r'[^-_/\.,()abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789äÄüÜöÖß ]+')
+#CompiledRegexpReplaceChars = re.compile(r'[^-_/\.,()abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789äÄüÜöÖß ]+')
 
 def dump(obj):
 	for attr in dir(obj):
@@ -143,16 +143,16 @@ def refactorTitle(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
-			if config.plugins.seriesplugin.title_replace_chars.value:
-				splog("SP: refactor org", org)
-				org = CompiledRegexpReplaceChars.sub('', str(org))
-				splog("SP: refactor org", org)
-				splog("SP: refactor title", title)
-				title = CompiledRegexpReplaceChars.sub('', str(title))
-				splog("SP: refactor title", title)
-				splog("SP: refactor series", series)
-				series = CompiledRegexpReplaceChars.sub('', str(series))
-				splog("SP: refactor series", series)
+			#if config.plugins.seriesplugin.title_replace_chars.value:
+			#	splog("SP: refactor org", org)
+			#	org = CompiledRegexpReplaceChars.sub('', str(org))
+			#	splog("SP: refactor org", org)
+			#	splog("SP: refactor title", title)
+			#	title = CompiledRegexpReplaceChars.sub('', str(title))
+			#	splog("SP: refactor title", title)
+			#	splog("SP: refactor series", series)
+			#	series = CompiledRegexpReplaceChars.sub('', str(series))
+			#	splog("SP: refactor series", series)
 			return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 		else:
 			return org
