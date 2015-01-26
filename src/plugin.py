@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "1.7.4"
+VERSION = "1.7.5"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -226,6 +226,17 @@ def movielist_info(session, service, *args, **kwargs):
 
 #######################################################
 # Timer renaming
+
+# Synchronous call, blocks until we have the information
+def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
+	data = 
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+			SeriesPluginTimer(timer, name, begin, end, True)
+		except Exception as e:
+			splog(_("SeriesPlugin label exception ") + str(e))
+
+# Call asynchronous
 def renameTimer(timer, name, begin, end, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		try:
