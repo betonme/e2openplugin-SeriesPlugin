@@ -351,9 +351,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 			if match.group(1):
 				name = match.group(1)
 		
-		if name.startswith("The ") or name.startswith("Der ") or name.startswith("Die ")or name.startswith("Das "):
-			name = name[4:]
-		
 		begin = datetime.fromtimestamp(begin)
 		splog("SP: Main: begin:", begin.strftime('%Y-%m-%d %H:%M:%S'))
 		end = datetime.fromtimestamp(end)
@@ -408,9 +405,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 				return
 			if match.group(1):
 				name = match.group(1)
-		
-		if name.startswith("The ") or name.startswith("Der ") or name.startswith("Die ")or name.startswith("Das "):
-			name = name[4:]
 		
 		begin = datetime.fromtimestamp(begin)
 		splog("SP: Main: begin:", begin.strftime('%Y-%m-%d %H:%M:%S'))
