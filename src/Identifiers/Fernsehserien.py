@@ -215,7 +215,8 @@ class Fernsehserien(IdentifierBase):
 			id = line['id']
 			idname = line['value']
 			splog(id, idname)
-			serieslist.append( ( id, idname ) )
+			if not idname.endswith("/person"):
+				serieslist.append( ( id, idname ) )
 		serieslist.reverse()
 		return serieslist
 
@@ -300,8 +301,9 @@ class Fernsehserien(IdentifierBase):
 			new_page = (self.first != first or self.last != last)
 			splog("getNextPage: first_on_prev_page, first, last_on_prev_page, last, if: ", self.first, first, self.last, last, new_page)
 			if new_page:
-				self.first = first
-				self.last = last
+				if self.page != 0:
+					self.first = first
+					self.last = last
 				
 				test_future_timespan = ( (first-timedelta(seconds=max_time_drift)) <= self.begin and self.begin <= (last+timedelta(seconds=max_time_drift)) ) 
 				test_past_timespan = ( (first+timedelta(seconds=max_time_drift)) >= self.begin and self.begin >= (last+timedelta(seconds=max_time_drift)) )
