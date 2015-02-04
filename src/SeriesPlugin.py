@@ -29,9 +29,8 @@ from Screens.MessageBox import MessageBox
 
 # Plugin internal
 from IdentifierBase import IdentifierBase
-from Channels import ChannelsBase, lookupServiceAlternatives
 from Logger import splog
-
+from Channels import ChannelsBase
 from ThreadQueue import ThreadQueue
 from threading import Thread, currentThread, _get_ident
 #from enigma import ePythonMessagePump
@@ -176,13 +175,13 @@ def refactorDescription(org, data):
 
 
 class ThreadItem:
-	def __init__(self, identifier = None, callback = None, name = None, begin = None, end = None, channels = None):
+	def __init__(self, identifier = None, callback = None, name = None, begin = None, end = None, service = None):
 		self.identifier = identifier
 		self.callback = callback
 		self.name = name
 		self.begin = begin
 		self.end = end
-		self.channels = channels
+		self.service = service
 
 
 class SeriesPluginWorker(Thread):
@@ -257,7 +256,7 @@ class SeriesPluginWorker(Thread):
 			
 			try:
 				result = item.identifier.getEpisode(
-					item.name, item.begin, item.end, item.channels
+					item.name, item.begin, item.end, item.service
 				)
 			except Exception, e:
 				splog("SP: Worker: Exception:", str(e))
@@ -373,9 +372,13 @@ class SeriesPlugin(Modules, ChannelsBase):
 			# Reset the knownids on every new request
 			identifier.knownids = []
 			
-			channels = lookupServiceAlternatives(service)
+			if isinstance(service, eServiceReference):
+				serviceref = service.toString()
+			else:
+				serviceref = str(service)
+			serviceref = re.sub('::.*', ':', serviceref)
 
-			self.thread.add(ThreadItem(identifier = identifier, callback = callback, name = name, begin = begin, end = end, channels = channels))
+			self.thread.add( ThreadItem(identifier, callback, name, begin, end, serviceref) )
 			
 			return identifier.getName()
 			
@@ -428,14 +431,16 @@ class SeriesPlugin(Modules, ChannelsBase):
 			# Reset the knownids on every new request
 			identifier.knownids = []
 			
-			channels = lookupServiceAlternatives(service)
+			if isinstance(service, eServiceReference):
+				serviceref = service.toString()
+			else:
+				serviceref = str(service)
+			serviceref = re.sub('::.*', ':', serviceref)
 			
 			result = None
 			
 			try:
-				result = identifier.getEpisode(
-					name, begin, end, channels
-				)
+				result = identifier.getEpisode( name, begin, end, serviceref )
 			except Exception, e:
 				splog("SP: Worker: Exception:", str(e))
 				

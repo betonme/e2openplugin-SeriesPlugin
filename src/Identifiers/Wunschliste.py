@@ -17,7 +17,6 @@ from sys import maxint
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
-from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 from iso8601 import parse_date
@@ -94,7 +93,7 @@ class Wunschliste(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, name, begin, end=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, service=None):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
@@ -104,7 +103,7 @@ class Wunschliste(IdentifierBase):
 		
 		self.begin = begin
 		self.end = end
-		self.channels = channels
+		self.service = service
 		
 		self.knownids = []
 		self.returnvalue = None
@@ -215,7 +214,7 @@ class Wunschliste(IdentifierBase):
 					
 					if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
 						
-						if compareChannels(self.channels, xchannel):
+						if self.compareChannels(self.service, xchannel):
 						
 							if delta < ydelta:
 								

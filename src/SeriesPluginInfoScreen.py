@@ -115,8 +115,7 @@ class SeriesPluginInfoScreen(Screen):
 			#"openSimilarList": self.openSimilarList
 		})
 		
-		splog("SPI: SeriesPluginInfo")
-		#splog(service, event)
+		splog("SPI: SeriesPluginInfo", service, event)
 		self.service = service
 		self.event = event
 		
@@ -194,15 +193,19 @@ class SeriesPluginInfoScreen(Screen):
 			#ref = self.session and self.session.nav.getCurrentService()
 			#ref = eServiceReference(ref.info().getInfoString(iServiceInformation.sServiceref))
 			#ref = eServiceReference(str(ref))
+
+			#service = self.session.nav.getCurrentService()
+			#info = service and service.info()
+			#event = info and info.getEvent(0)
 			
-			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference().toString()
+			sref = self.session and self.session.nav.getCurrentlyPlayingServiceReference().toString()
+			ref = eServiceReference(sref)
+			channel = ServiceReference(str(ref)).getServiceName() or ""
 			
-			channel = ServiceReference(ref).getServiceName() or ""
-			splog("SPI: Fallback ref", str(ref))
+			splog("SPI: Fallback ref", ref, str(ref), channel)
 		
 		if not isinstance(self.event, eServiceEvent):
 			try:
-				ref = eServiceReference(ref)
 				self.event = ref.valid() and self.epg.lookupEventTime(ref, -1)
 			except:
 				# Maybe it is an old reference
@@ -217,7 +220,7 @@ class SeriesPluginInfoScreen(Screen):
 			# Get information from epg
 			today = True
 			elapsed = False
-			splog("SPI: Fallback event")
+			splog("SPI: Fallback event", self.event)
 		
 		self.service = ref
 		

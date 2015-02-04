@@ -27,6 +27,7 @@ from Tools.BoundFunction import boundFunction
 # Internal
 from ModuleBase import ModuleBase
 from Cacher import Cacher, INTER_QUERY_TIME
+from Channels import ChannelsBase
 from Logger import splog
 from Analytics import Analytics
 
@@ -34,10 +35,11 @@ from Analytics import Analytics
 class MyException(Exception):
     pass
 
-class IdentifierBase(ModuleBase, Cacher, Analytics):
+class IdentifierBase(ModuleBase, Cacher, ChannelsBase, Analytics):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
+		ChannelsBase.__init__(self)
 		Analytics.__init__(self)
 		
 		socket.setdefaulttimeout(5)
@@ -153,7 +155,7 @@ class IdentifierBase(ModuleBase, Cacher, Analytics):
 
 	################################################
 	# To be implemented by subclass
-	def getEpisode(self, name, begin, end, channels):
+	def getEpisode(self, name, begin, end, service):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		return None

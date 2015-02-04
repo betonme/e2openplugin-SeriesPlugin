@@ -19,7 +19,6 @@ from datetime import datetime, timedelta
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
-from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 from bs4 import BeautifulSoup
@@ -133,14 +132,14 @@ class Fernsehserien(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, name, begin, end=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, service=None):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
 		self.begin = begin
 		#self.year = datetime.fromtimestamp(begin).year
 		self.end = end
-		self.channels = channels
+		self.service = service
 		
 		self.series = ""
 		self.first = None
@@ -344,7 +343,7 @@ class Fernsehserien(IdentifierBase):
 							
 							if delta <= max_time_drift:
 								
-								if compareChannels(self.channels, tds[3]):
+								if self.compareChannels(self.service, tds[3]):
 									
 									if delta < ydelta:
 										

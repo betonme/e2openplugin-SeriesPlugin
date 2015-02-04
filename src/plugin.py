@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "1.8.0"
+VERSION = "2.0"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -90,6 +90,8 @@ config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{
 #config.plugins.seriesplugin.title_replace_chars       = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.channel_file              = ConfigText(default = "/etc/enigma2/seriesplugin_channels.xml", fixed_size = False)
+
+config.plugins.seriesplugin.bouquet_main              = ConfigText(default = "", fixed_size = False)
 
 config.plugins.seriesplugin.rename_file               = ConfigYesNo(default = True)
 config.plugins.seriesplugin.rename_tidy               = ConfigYesNo(default = False)
@@ -550,25 +552,61 @@ def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref, eit=None
 		timer.eit = eit
 
 def SPcheckSimilarity(self, timer, name1, name2, shortdesc1, shortdesc2, extdesc1, extdesc2, force=False):
-	# Check if the new title is part of the existing one
-	foundTitle = name1 in name2 or name2 in name1
-	
-	if timer.searchForDuplicateDescription > 0 or force:
-		foundShort = (shortdesc1 in shortdesc2 or shortdesc2 in shortdesc1) if (timer.searchForDuplicateDescription > 0 or force) else True
+	def splog_(*args):
+		from Components.config import config
+		strargs = ""
+		for arg in args:
+			if strargs: strargs += " "
+			strargs += str(arg)
+		print strargs
 		
+		if config.plugins.seriesplugin.write_log.value:
+			strargs += "\n"
+			
+			# Append to file
+			f = None
+			try:
+				f = open(config.plugins.seriesplugin.log_file.value, 'a')
+				f.write(strargs)
+				if sys.exc_info()[0]:
+					print "Unexpected error:", sys.exc_info()[0]
+					traceback.print_exc(file=f)
+			except Exception as e:
+				print "SeriesPlugin splog exception " + str(e)
+			finally:
+				if f:
+					f.close()
+		
+		if sys.exc_info()[0]:
+			print "Unexpected error:", sys.exc_info()[0]
+			traceback.print_exc(file=sys.stdout)
+		
+		sys.exc_clear()
+	splog_("SeriesPlugin SPcheckSimilarity")
+	if name1 and name2:
+		sequenceMatcher = SequenceMatcher(" ".__eq__, name1, name2)
+	else:
+		return False
+
+	ratio = sequenceMatcher.ratio()
+	splog_("SeriesPlugin names ratio", name1, name2, ratio)
+	timer.log(700, "[SP] names ratio %f." % (ratio))
+	if 0.8 < ratio: # this is probably a match
+		foundShort = True
+		if (force or timer.searchForDuplicateDescription > 0) and shortdesc1 and shortdesc2:
+			sequenceMatcher.set_seqs(shortdesc1, shortdesc2)
+			ratio = sequenceMatcher.ratio()
+			splog_("SeriesPlugin shortdesc ratio", shortdesc1, shortdesc2, ratio)
+			timer.log(700, "[SP] shortdesc ratio %f." % (ratio))
+			foundShort = (0.8 < ratio)
+
+		foundExt = True
 		# NOTE: only check extended if short description already is a match because otherwise
 		# it won't evaluate to True anyway
-		if (timer.searchForDuplicateDescription > 0 or force) and foundShort and extdesc1 != extdesc2:
-			# Some channels indicate replays in the extended descriptions
-			# If the similarity percent is higher then 0.8 it is a very close match
-			#if timer.series_labeling and (extdesc1 == "" or extdesc2 == ""):
-			#	foundExt = True
-			#else:
-			foundExt = ( 0.8 < SequenceMatcher(lambda x: x == " ",extdesc1, extdesc2).ratio() )
-		else:
-			foundExt = True
-	else:
-		foundShort = True
-		foundExt = True
-	
-	return foundTitle and foundShort and foundExt
+		if foundShort and (force or timer.searchForDuplicateDescription > 1) and extdesc1 and extdesc2:
+			sequenceMatcher.set_seqs(extdesc1, extdesc2)
+			ratio = sequenceMatcher.ratio()
+			splog_("SeriesPlugin extdesc ratio", extdesc1, extdesc2, ratio)
+			timer.log(700, "[SP] extdesc ratio %f." % (ratio))
+			foundExt = (0.8 < ratio)
+		return foundShort and foundExt

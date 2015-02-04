@@ -17,7 +17,6 @@ from sys import maxint
 
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
-from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin.Logger import splog
 
 from iso8601 import parse_date
@@ -116,13 +115,13 @@ class WunschlisteFeed(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getEpisode(self, name, begin, end=None, channels=[]):
+	def getEpisode(self, name, begin, end=None, service=None):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
 		self.begin = begin
 		self.end = end
-		self.channels = channels
+		self.service = service
 		
 		self.knownids = []
 		self.returnvalue = None
@@ -231,7 +230,7 @@ class WunschlisteFeed(IdentifierBase):
 							result = CompiledRegexpAtomChannel.search(xtitle)
 							if result and len(result.groups()) >= 1:
 								
-								if compareChannels(self.channels, result.group(1)):
+								if self.compareChannels(self.service, result.group(1)):
 									
 									if delta < ydelta:
 										# Slice string to remove channel
