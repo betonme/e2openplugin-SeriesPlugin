@@ -158,18 +158,13 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Select identifier for today events")         , self.cfg_identifier_today ) )
 			#if len( config.plugins.seriesplugin.identifier_future.choices ) > 1:
 			self.list.append( getConfigListEntry(  _("Select identifier for future events")        , self.cfg_identifier_future ) )
-			
-			#if len( config.plugins.seriesplugin.manager.choices ) > 1:
-#			self.list.append( getConfigListEntry(  _("Select manager service")                     , config.plugins.seriesplugin.manager ) )
-			#if len( config.plugins.seriesplugin.guide.choices ) > 1:
-#			self.list.append( getConfigListEntry(  _("Select guide service")                       , config.plugins.seriesplugin.guide ) )
-			
+				
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
 			self.list.append( getConfigListEntry(  _("Skip search if pattern matches")             , config.plugins.seriesplugin.skip_pattern_match ) )
 			
-			#self.list.append( getConfigListEntry(  _("Replace special characters from title")      , config.plugins.seriesplugin.title_replace_chars ) )
+			self.list.append( getConfigListEntry(  _("Replace special characters in title")        , config.plugins.seriesplugin.replace_chars ) )
 			
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 			
