@@ -81,5 +81,7 @@ class WebChannels(object):
 
 		if (self.user_callback):
 			self.user_callback(web_chlist)
-
+		
+		web_chlist.sort(key=lambda x: x.lower())
+		
 		return web_chlist

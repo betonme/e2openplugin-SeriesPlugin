@@ -97,6 +97,7 @@ def getTVBouquets():
 def buildSTBchannellist(BouquetName = None):
 	chlist = None
 	chlist = []
+	mask = (eServiceReference.isMarker | eServiceReference.isDirectory)
 	splog("SPC: read STB Channellist..")
 	tvbouquets = getTVBouquets()
 	splog("SPC: found %s bouquet: %s" % (len(tvbouquets), tvbouquets) )
@@ -106,14 +107,18 @@ def buildSTBchannellist(BouquetName = None):
 			bouquetlist = []
 			bouquetlist = getServiceList(bouquet[0])
 			for (serviceref, servicename) in bouquetlist:
-				chlist.append((servicename, serviceref))
+				playable = not (eServiceReference(serviceref).flags & mask)
+				if playable:
+					chlist.append((servicename, serviceref, unifyChannel(servicename)))
 	else:
 		for bouquet in tvbouquets:
 			if bouquet[1] == BouquetName:
 				bouquetlist = []
 				bouquetlist = getServiceList(bouquet[0])
 				for (serviceref, servicename) in bouquetlist:
-					chlist.append((servicename, serviceref))
+					playable = not (eServiceReference(serviceref).flags & mask)
+					if playable:
+						chlist.append((servicename, serviceref, unifyChannel(servicename)))
 				break
 	return chlist
 
@@ -211,10 +216,6 @@ class ChannelsBase(ChannelsFile):
 		ChannelsBase.channels_changed = False
 		
 		self.loadXML()
-		
-		#chlist = buildSTBchannellist(config.plugins.seriesplugin.bouquet_main.value)
-		#for servicename, serviceref in chlist:
-		#	self.lookupServiceAlternatives(serviceref)
 		
 	#
 	# Channel handling

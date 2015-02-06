@@ -41,22 +41,6 @@ from twisted.internet import reactor, defer
 from urllib import urlencode
 from skin import parseColor
 
-#from Screens.ChannelSelection import service_types_tv
-#from ServiceReference import ServiceReference
-
-#from Components.UsageConfig import preferredTimerPath, preferredInstantRecordPath
-
-# Navigation (RecordTimer)
-#import NavigationInstance
-
-# Timer
-#from RecordTimer import RecordTimerEntry, RecordTimer, parseEvent, AFTEREVENT
-#from Components.TimerSanityCheck import TimerSanityCheck
-
-# EPGCache & Event
-#from enigma import eEPGCache, iServiceInformation
-
-#from Tools import Notifications
 
 #Internal
 from Channels import ChannelsBase, buildSTBchannellist, unifyChannel
@@ -147,13 +131,12 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			self.showChannels()
 
 	def setWebChannels(self, data):
-		self.webChlist = data
+		self.webChlist = [ (x,unifyChannel(x)) for x in data]
 		self.showChannels()
 
 	def showChannels(self):
-		#self.webChlist.sort(key=lambda x: x.lower())
 		if len(self.stbChlist) != 0:
-			for servicename,serviceref in self.stbChlist:
+			for servicename,serviceref,uservicename in self.stbChlist:
 				splog("SPC: servicename", servicename)
 				
 				webSender = self.lookupChannelByReference(serviceref)
@@ -162,16 +145,19 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 					
 				else:
 					if len(self.webChlist) != 0:
-						for webSender in self.webChlist:
-							if re.search("\A%s\Z" % webSender.lower().replace('+','\+').replace('.','\.'), servicename.lower(), re.S):
+						for webSender, uwebSender in self.webChlist:
+							#if re.search("\A%s\Z" % webSender.lower().replace('+','\+').replace('.','\.'), servicename.lower(), re.S):
+							if uwebSender in uservicename or uservicename in uwebSender:
 								self.stbToWebChlist.append((servicename, webSender, serviceref, "1"))
 								uremote = unifyChannel(webSender)
 								self.addChannel(serviceref, servicename, webSender, uremote)
 								break
 						else:
 							self.stbToWebChlist.append((servicename, "", serviceref, "0"))
+							
 					else:
 						self.stbToWebChlist.append((servicename, "", serviceref, "0"))
+						
 		if len(self.stbToWebChlist) != 0:
 			self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
 		else:
@@ -194,6 +180,12 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			(eListboxPythonMultiContent.TYPE_TEXT, 600, 3, 250, 26, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow)
 			]
 
+	def getIndexOfWebSender(self, webSender):
+		for pos,webCh in enumerate(self.webChlist):
+			if(webCh[0] == webSender):
+				return pos
+		return 0
+	
 	def keyAdd(self):
 		check = self['list'].getCurrent()
 		if check == None:
@@ -206,24 +198,29 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			splog("keyAdd webSender", webSender)
 			idx = 0
 			if webSender:
-				try:
-					idx = self.webChlist.index(webSender)
-				except:
-					idx = 0
-			list = [(x,x) for x in self.webChlist]
+				idx = self.getIndexOfWebSender(self.webChlist)
+			list = [(x,x) for x,y in self.webChlist]
 			self.session.openWithCallback( boundFunction(self.addConfirm, servicename, serviceref), ChoiceBox,_("Add Web Channel"), list, None, idx)
-
+	
+	def getIndexOfServiceref(self, serviceref):
+		for pos,stbWebChl in enumerate(self.stbToWebChlist):
+			if(stbWebChl[2] == serviceref):
+				return pos
+		return False
+			
+	
 	def addConfirm(self, servicename, serviceref, result):
 		if result:
 			remote = result[0]
-			#serviceref = self['list'].getCurrent()[0][2]
-			#servicename = self['list'].getCurrent()[0][0]
 			uremote = unifyChannel(remote)
 			splog("addConfirm", servicename, serviceref, remote)
 			if servicename and serviceref and remote and uremote:
-				self.addChannel(serviceref, servicename, remote, uremote)
-				self.setTitle(_("Channel '- %s - %s -' added.") % (servicename, remote) )
-				self.readChannels()
+				idx = self.getIndexOfServiceref(serviceref)
+				if idx != False:
+					self.setTitle(_("Channel '- %s - %s -' added.") % (servicename, remote) )
+					self.addChannel(serviceref, servicename, remote, uremote)
+					self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
+					self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
 
 	def keyRemove(self):
 		check = self['list'].getCurrent()
@@ -238,9 +235,12 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 		if not answer:
 			return
 		if serviceref:
-			self.removeChannel(serviceref)
-			self.setTitle(_("Channel '- %s -' removed.") % servicename)
-			self.readChannels()
+			idx = self.getIndexOfServiceref(serviceref)
+			if idx != False:
+				self.setTitle(_("Channel '- %s -' removed.") % servicename)
+				self.removeChannel(serviceref)
+				del self.stbToWebChlist[idx]
+				self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
 
 	def keyResetChannelMapping(self):
 		self.session.openWithCallback(self.channelReset, MessageBox, _("Reset channel list?"), MessageBox.TYPE_YESNO)
