@@ -78,12 +78,13 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 		self["key_red"] = Button(_("Cancel"))
 		self["key_green"] = Button(_("OK"))
 		self["key_blue"] = Button(_("Remove"))
-		self["key_yellow"] = Button(_("Reset"))
+		self["key_yellow"] = Button(_("Auto match"))
 		
 		# Define Actions
 		self["actions_1"] = HelpableActionMap(self, "SetupActions", {
 			"ok"       : (self.keyAdd, _("Show popup to add Stb Channel")),
 			"cancel"   : (self.keyCancel, _("Cancel and close")),
+			"deleteForward"   : (self.keyResetChannelMapping, _("Reset channels")),
 		}, -1)
 		self["actions_2"] = HelpableActionMap(self, "DirectionActions", {
 			"left"     : (self.keyLeft, _("Previeous page")),
@@ -95,7 +96,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			"red"      : (self.keyCancel, _("Cancel and close")),
 			"green"    : (self.keySave, _("Save and close")),
 			"blue"     : (self.keyRemove, _("Remove channel")),
-			"yellow"   : (self.keyResetChannelMapping, _("Reset channels")),
+			"yellow"   : (self.tryToMatchChannels, _("Auto match")),
 		}, -2) # higher priority
 		
 		self.helpList[0][2].sort()
@@ -132,12 +133,29 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			self.showChannels()
 
 	def setWebChannels(self, data):
-		data.append(_("Not assigned")) 
 		self.webChlist = [ (x,unifyChannel(x)) for x in data]
 		self.addWebChlist = [(x,x) for x in data]
 		self.showChannels()
 
 	def showChannels(self):
+		if len(self.stbChlist) != 0:
+			for servicename,serviceref,uservicename in self.stbChlist:
+				splog("SPC: servicename", servicename)
+				
+				webSender = self.lookupChannelByReference(serviceref)
+				if webSender is not False:
+					self.stbToWebChlist.append((servicename, webSender, serviceref, "1"))
+					
+				else:
+					self.stbToWebChlist.append((servicename, "", serviceref, "0"))
+		
+		if len(self.stbToWebChlist) != 0:
+			self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
+		else:
+			splog("SPC: Error creating webChlist..")
+			self.setTitle(_("Error check log file"))
+	
+	def tryToMatchChannels(self):
 		if len(self.stbChlist) != 0:
 			for servicename,serviceref,uservicename in self.stbChlist:
 				splog("SPC: servicename", servicename)
