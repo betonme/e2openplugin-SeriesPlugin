@@ -203,7 +203,7 @@ class ChannelsFile(object):
 
 class ChannelsBase(ChannelsFile):
 
-	channels = {}  # channels[reference] = ( name, [ (name1, uname1), (name2, uname2), ... ] )
+	channels = {}  # channels[reference] = ( name, [ name1, name2, ... ] )
 	channels_changed = False
 	
 	def __init__(self):
@@ -212,7 +212,7 @@ class ChannelsBase(ChannelsFile):
 			self.resetChannels()
 		
 	def resetChannels(self):
-		ChannelsBase.channels = {}  # channels[reference] = ( name, [ (name1, uname1), (name2, uname2), ... ] )
+		ChannelsBase.channels = {}
 		ChannelsBase.channels_changed = False
 		
 		self.loadXML()
@@ -220,87 +220,28 @@ class ChannelsBase(ChannelsFile):
 	#
 	# Channel handling
 	#
-	def lookupServiceAlternatives(self, service):
-		#splog("lookupServiceAlternatives service", service)
-		serviceref = str(service)
-		serviceref = re.sub('::.*', ':', serviceref)
-		#splog("lookupServiceAlternatives ref", ref)
-		#splog("lookupServiceAlternatives ref in channels", ref in channels)
-		if serviceref not in ChannelsBase.channels:
-			name = ServiceReference(serviceref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
-			alternatives = [ ( name, unifyChannel(name) ), ]
-			ChannelsBase.channels[serviceref] = ( name, alternatives )
-			ChannelsBase.channels_changed = True
-		
-		#splog("lookupServiceAlternatives channels")
-		#for channel in channels:
-		#	splog(channel)
-		#splog("lookupServiceAlternatives alternatives")
-		#for alternative in alternatives:
-		#	splog(alternative)
-	
 	def compareChannels(self, serviceref, remote):
 		splog("SP compareChannels", serviceref, remote)
 		if serviceref in ChannelsBase.channels:
-			( name, alternatives ) = ChannelsBase.channels[serviceref]
+			#( name, alternatives ) = ChannelsBase.channels[serviceref]
 			return True
 			
-		#	uremote = unifyChannel(remote)		
-		#	splog("SP compareChannels", remote, uremote, len(uremote))
-		#	
-		#	for name, uname in alternatives:
-		#		if uname == uremote:
-		#			# The channels are equal
-		#			splog("SP compareChannels", name, uname, uremote, len(uremote))
-		#			return True
-		#		elif uname in uremote or uremote in uname:
-		#			# Parts of the channels are equal
-		#			splog("SP compareChannels in", name, uname, uremote, len(uremote))
-		#			return True
-		#		#elif uname == "":
-		#		#	# The local channel is empty
-		#		#	return True
-		#		elif "unknown" in uname:
-		#			# The local channel is unknown
-		#			splog("SP compareChannels unknown", name, remote)
-		#			return True
-
 		return False
 		
 	def lookupChannelByReference(self, serviceref):
 		if serviceref in ChannelsBase.channels:
 			( name, alternatives ) = ChannelsBase.channels[serviceref]
-			for altname, altuname in alternatives:
+			for altname in alternatives:
 				if altname:
 					splog("SP lookupChannelByReference", altname)
 					return altname
 			
 		return False
 	
-	def lookupChannelByRemote(self, remote):
-		uremote = unifyChannel(remote)	
+	def addChannel(self, ref, name, remote):
+		splog("SP addChannel name remote", name, remote)
 		
-		# Add remote to alternative channels
-		for reference, namealternatives in ChannelsBase.channels.iteritems():
-			name, alternatives = namealternatives
-			if name == remote:
-				splog("SP lookupChannel name remote", name, remote)
-				return reference, name
-			else:
-				for altrem, alturem in alternatives:
-					if remote == altrem or uremote == alturem:
-						splog("SP lookupChannel remote, uremote alturem", remote, uremote, alturem)
-						return reference, name
-		return False
-	
-	def addChannel(self, ref, name, remote, uremote):
-		splog("SP addChannel name remote uremote", name, remote, uremote)
-		#if ref in ChannelsBase.channels:
-		#	( ch_name, ch_alternatives ) = ChannelsBase.channels[ref]
-		#	ch_alternatives.append( (remote, uremote) )
-		#	ChannelsBase.channels[ref] = ( name, ch_alternatives )
-		#else:
-		ChannelsBase.channels[ref] = ( name, [(remote, uremote)] )
+		ChannelsBase.channels[ref] = ( name, [remote] )
 		ChannelsBase.channels_changed = True
 
 	def removeChannel(self, ref):
@@ -328,10 +269,9 @@ class ChannelsBase(ChannelsFile):
 							reference = element.get("reference", "")
 							if name and reference:
 								#alternatives = []
-								#alternatives = [(name, unifyChannel(name))]
 								for alternative in element.findall("Alternative"):
-									#alternatives.append( ( alternative.text , unifyChannel(alternative.text) ) )
-									alternatives = [( alternative.text , unifyChannel(alternative.text) )]
+									#alternatives.append( alternative.text )
+									alternatives = [ alternative.text ]
 								channels[reference] = (name, list(set(alternatives)))
 				elif version.startswith("1"):
 					splog("loadXML channels - Skip old file")
@@ -369,8 +309,7 @@ class ChannelsBase(ChannelsFile):
 						element = SubElement( root, "Channel", name = stringToXML(name), reference = stringToXML(reference) )
 						# Add alternatives
 						if alternatives:
-							for name, uname in alternatives:
-								#SubElement( element, "Alternative", identifier = stringToXML(NOTUSED) ).text = stringToXML(name)
+							for name in alternatives:
 								SubElement( element, "Alternative" ).text = stringToXML(name)
 				return root
 			

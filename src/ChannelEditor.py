@@ -112,6 +112,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 
 		self.stbChlist = []
 		self.webChlist = []
+		self.addWebChlist = []
 		self.stbToWebChlist = []
 		
 		self.onLayoutFinish.append(self.readChannels)
@@ -131,7 +132,9 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			self.showChannels()
 
 	def setWebChannels(self, data):
+		data.append(_("Not assigned")) 
 		self.webChlist = [ (x,unifyChannel(x)) for x in data]
+		self.addWebChlist = [(x,x) for x in data]
 		self.showChannels()
 
 	def showChannels(self):
@@ -140,7 +143,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 				splog("SPC: servicename", servicename)
 				
 				webSender = self.lookupChannelByReference(serviceref)
-				if webSender:
+				if webSender is not False:
 					self.stbToWebChlist.append((servicename, webSender, serviceref, "1"))
 					
 				else:
@@ -149,8 +152,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 							#if re.search("\A%s\Z" % webSender.lower().replace('+','\+').replace('.','\.'), servicename.lower(), re.S):
 							if uwebSender in uservicename or uservicename in uwebSender:
 								self.stbToWebChlist.append((servicename, webSender, serviceref, "1"))
-								uremote = unifyChannel(webSender)
-								self.addChannel(serviceref, servicename, webSender, uremote)
+								self.addChannel(serviceref, servicename, webSender)
 								break
 						else:
 							self.stbToWebChlist.append((servicename, "", serviceref, "0"))
@@ -193,14 +195,12 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			return
 		else:
 			idx = 0
-			#webSender = self['list'].getCurrent()[0][1]
 			(servicename, webSender, serviceref, state) = self['list'].getCurrent()[0]
 			splog("keyAdd webSender", webSender)
 			idx = 0
 			if webSender:
 				idx = self.getIndexOfWebSender(self.webChlist)
-			list = [(x,x) for x,y in self.webChlist]
-			self.session.openWithCallback( boundFunction(self.addConfirm, servicename, serviceref), ChoiceBox,_("Add Web Channel"), list, None, idx)
+			self.session.openWithCallback( boundFunction(self.addConfirm, servicename, serviceref), ChoiceBox,_("Add Web Channel"), self.addWebChlist, None, idx)
 	
 	def getIndexOfServiceref(self, serviceref):
 		for pos,stbWebChl in enumerate(self.stbToWebChlist):
@@ -212,13 +212,12 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 	def addConfirm(self, servicename, serviceref, result):
 		if result:
 			remote = result[0]
-			uremote = unifyChannel(remote)
 			splog("addConfirm", servicename, serviceref, remote)
-			if servicename and serviceref and remote and uremote:
+			if servicename and serviceref and remote:
 				idx = self.getIndexOfServiceref(serviceref)
 				if idx != False:
 					self.setTitle(_("Channel '- %s - %s -' added.") % (servicename, remote) )
-					self.addChannel(serviceref, servicename, remote, uremote)
+					self.addChannel(serviceref, servicename, remote)
 					self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
 					self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
 
