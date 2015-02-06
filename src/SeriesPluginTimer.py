@@ -168,7 +168,7 @@ class SeriesPluginTimer(object):
 				
 				instance = getInstance()
 				
-				if instance.thread.isListEmpty():
+				if instance.thread.empty() and instance.thread.finished():
 				
 					if SeriesPluginTimer.data:
 						AddPopup(

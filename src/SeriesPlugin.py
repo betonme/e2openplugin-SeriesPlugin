@@ -200,8 +200,11 @@ class SeriesPluginWorker(Thread):
 			self.__pump.recv_msg.get().append(self.gotThreadMsg)
 		self.__queue = ThreadQueue()
 
-	def isListEmpty(self):
+	def empty(self):
 		return self.__queue.empty()
+	
+	def finished(self):
+		return not self.__running
 
 	def add(self, item):
 		

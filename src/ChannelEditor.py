@@ -214,10 +214,10 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 		else:
 			idx = 0
 			(servicename, webSender, serviceref, state) = self['list'].getCurrent()[0]
-			splog("keyAdd webSender", webSender)
 			idx = 0
 			if webSender:
 				idx = self.getIndexOfWebSender(self.webChlist)
+			splog("SPC: keyAdd webSender", webSender, idx)
 			self.session.openWithCallback( boundFunction(self.addConfirm, servicename, serviceref), ChoiceBox,_("Add Web Channel"), self.addWebChlist, None, idx)
 	
 	def getIndexOfServiceref(self, serviceref):
@@ -230,11 +230,11 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 	def addConfirm(self, servicename, serviceref, result):
 		if result:
 			remote = result[0]
-			splog("addConfirm", servicename, serviceref, remote)
 			if servicename and serviceref and remote:
 				idx = self.getIndexOfServiceref(serviceref)
+				splog("SPC: addConfirm", servicename, serviceref, remote, idx)
 				if idx != False:
-					self.setTitle(_("Channel '- %s - %s -' added.") % (servicename, remote) )
+					self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' added.") % {'servicename': servicename, 'remote':remote } )
 					self.addChannel(serviceref, servicename, remote)
 					self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
 					self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
@@ -242,10 +242,11 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 	def keyRemove(self):
 		check = self['list'].getCurrent()
 		if check == None:
-			splog("SPC: list empty")
+			splog("SPC: keyRemove list empty")
 			return
 		else:
 			(servicename, webSender, serviceref, state) = self['list'].getCurrent()[0]
+			splog("SPC: keyRemove", servicename, webSender, serviceref, state)
 			self.session.openWithCallback( boundFunction(self.removeConfirm, servicename, serviceref), MessageBox, _("Remove '%s'?") % servicename, MessageBox.TYPE_YESNO, default = False)
 
 	def removeConfirm(self, servicename, serviceref, answer):
@@ -254,9 +255,10 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 		if serviceref:
 			idx = self.getIndexOfServiceref(serviceref)
 			if idx != False:
+				splog("SPC: removeConfirm", servicename, serviceref, idx)
 				self.setTitle(_("Channel '- %s -' removed.") % servicename)
 				self.removeChannel(serviceref)
-				del self.stbToWebChlist[idx]
+				self.stbToWebChlist[idx] = (servicename, "", serviceref, "0")
 				self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
 
 	def keyResetChannelMapping(self):

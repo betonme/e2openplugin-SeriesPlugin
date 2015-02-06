@@ -300,7 +300,7 @@ class SeriesPluginRenamer(object):
 				
 				instance = getInstance()
 				
-				if instance.thread.isListEmpty():
+				if instance.thread.empty() and instance.thread.finished():
 					if self.data:
 						AddPopup(
 							"SeriesPlugin:\n" + _("Record rename has been finished with %d errors:\n") % (len(self.data)) +"\n" +"\n".join(self.data),

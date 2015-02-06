@@ -172,8 +172,10 @@ class SeriesPluginInfoScreen(Screen):
 				splog("SPI: eServiceReference movie", str(ref))
 			else:
 				# Service is channel reference
-				ref = eServiceReference(str(service))
-				channel = ServiceReference(ref).getServiceName() or ""
+				#ref = eServiceReference(str(service))
+				ref = service
+				#channel = ServiceReference(ref).getServiceName() or ""
+				channel = ServiceReference(str(service)).getServiceName() or ""
 				#ref = eServiceReference(service.toString())#
 				# Get information from event
 				splog("SPI: eServiceReference channel", str(ref))
@@ -414,7 +416,7 @@ class SeriesPluginInfoScreen(Screen):
 			path = ref.getPath()
 			if path and os.path.exists(path):
 				from SeriesPluginRenamer import rename
-				if rename(ref, self.name, self.short, self.data):
+				if rename(path, self.name, self.short, self.data):
 					self["key_red"].setText("")
 					self.redButtonFunction = None
 					self.session.open( MessageBox, _("Successfully renamed"), MessageBox.TYPE_INFO )
