@@ -44,6 +44,8 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase, Analytics):
 		
 		socket.setdefaulttimeout(5)
 		
+		self.max_time_drift = int(config.plugins.seriesplugin.max_time_drift.value) * 60
+		
 		self.name = ""
 		self.begin = None
 		self.end = None

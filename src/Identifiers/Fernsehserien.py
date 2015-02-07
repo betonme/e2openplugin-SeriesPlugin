@@ -32,8 +32,6 @@ utf8_encoder = codecs.getencoder("utf-8")
 SERIESLISTURL = "http://www.fernsehserien.de/suche?"
 EPISODEIDURL = 'http://www.fernsehserien.de%s/sendetermine/%d'
 
-max_time_drift = int(config.plugins.seriesplugin.max_time_drift.value) * 60
-
 Headers = {
 		'User-Agent' : 'Mozilla/5.0',
 		'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -145,6 +143,8 @@ class Fernsehserien(IdentifierBase):
 		self.first = None
 		self.last = None
 		self.page = 0
+		
+		self.td_max_time_drift = timedelta(seconds=self.max_time_drift)
 		
 		self.knownids = []
 		self.returnvalue = None
@@ -294,18 +294,21 @@ class Fernsehserien(IdentifierBase):
 			# Sa 30.11.2013 23:35 - 01:30 Uhr ProSieben 46 3. 13 Showdown 3
 			last = datetime.strptime( trs[-1][2][0:5] + trs[-1][1], "%H:%M%d.%m.%Y" )
 			
-			#first = first - timedelta(seconds=max_time_drift)
-			#last = last + timedelta(seconds=max_time_drift)
+			#first = first - self.td_max_time_drift
+			#last = last + self.td_max_time_drift
 			
-			new_page = (self.first != first or self.last != last)
-			splog("getNextPage: first_on_prev_page, first, last_on_prev_page, last, if: ", self.first, first, self.last, last, new_page)
-			if new_page:
-				if self.page != 0:
-					self.first = first
-					self.last = last
+			if self.page != 0:
+				self.first = first
+				self.last = last
+				new_page = (self.first != first or self.last != last)
+				splog("getNextPage: first_on_prev_page, first, last_on_prev_page, last, if: ", self.first, first, self.last, last, new_page)
+			else:
+				new_page = True
 				
-				test_future_timespan = ( (first-timedelta(seconds=max_time_drift)) <= self.begin and self.begin <= (last+timedelta(seconds=max_time_drift)) ) 
-				test_past_timespan = ( (first+timedelta(seconds=max_time_drift)) >= self.begin and self.begin >= (last+timedelta(seconds=max_time_drift)) )
+			if new_page:
+				test_future_timespan = ( (first-self.td_max_time_drift) <= self.begin and self.begin <= (last+self.td_max_time_drift) )
+				test_past_timespan = ( (first+self.td_max_time_drift) >= self.begin and self.begin >= (last-self.td_max_time_drift) )
+				
 				splog("first_on_page, self.begin, last_on_page, if, if:", first, self.begin, last, test_future_timespan, test_past_timespan )
 				if ( test_future_timespan or test_past_timespan ):
 					#search in page for matching datetime
@@ -339,9 +342,9 @@ class Fernsehserien(IdentifierBase):
 							delta = abs(self.begin - xbegin)
 							delta = delta.seconds + delta.days * 24 * 3600
 							#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-							splog(self.begin, xbegin, delta, max_time_drift)
+							splog(self.begin, xbegin, delta, self.max_time_drift)
 							
-							if delta <= max_time_drift:
+							if delta <= self.max_time_drift:
 								
 								if self.compareChannels(self.service, tds[3]):
 									

@@ -12,6 +12,7 @@ from urllib2 import urlopen, Request, URLError
 
 from Components.config import config
 
+
 #from SerienRecorder import getUserAgent
 import datetime, random
 def getUserAgent():
@@ -38,7 +39,6 @@ def iso8859_Decode(txt):
 	# &apos;, &quot;, &amp;, &lt;, and &gt;
 	txt = txt.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"')
 	return txt
-########
 
 
 class WebChannels(object):
@@ -77,11 +77,14 @@ class WebChannels(object):
 			for station in stations:
 				if station != 'alle':
 					station = iso8859_Decode(station)
-					web_chlist.append(station.replace(' (Pay-TV)','').replace(' (Schweiz)','').replace(' (GB)','').replace(' (Österreich)','').replace(' (USA)','').replace(' (RP)','').replace(' (F)','').replace('&#x1f512;',''))
+					station = station.replace(' (Pay-TV)','').replace(' (Schweiz)','').replace(' (GB)','').replace(' (Österreich)','').replace(' (USA)','').replace(' (RP)','').replace(' (F)','').replace('&#x1f512;','')
+					#station = station.strip()
+					
+					web_chlist.append(station)
 
 		if (self.user_callback):
 			self.user_callback(web_chlist)
 		
-		web_chlist.sort(key=lambda x: x.lower())
+		#web_chlist.sort()
 		
 		return web_chlist

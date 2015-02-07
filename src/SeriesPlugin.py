@@ -332,7 +332,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		else:
 			return None
 	
-	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False):
+	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False, rename=False):
 		#available = False
 		
 		if config.plugins.seriesplugin.skip_during_records.value:
@@ -349,7 +349,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		if match:
 			#splog(match.group(0))     # Entire match
 			#splog(match.group(1))     # First parenthesized subgroup
-			if config.plugins.seriesplugin.skip_pattern_match.value:
+			if not rename and config.plugins.seriesplugin.skip_pattern_match.value:
 				splog("SP: Main: Skip check because of pattern match")
 				return
 			if match.group(1):
@@ -369,8 +369,13 @@ class SeriesPlugin(Modules, ChannelsBase):
 		else:
 			identifier = None
 		
-		if identifier:
+		if not identifier:
+			callback( "Error: No identifier available" )
 		
+		elif identifier.channelsEmpty():
+			callback( "Error: Open setup and channel editor" )
+		
+		else:
 			# Reset title search depth on every new request
 			identifier.search_depth = 0;
 			
@@ -378,20 +383,18 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier.knownids = []
 			
 			if isinstance(service, eServiceReference):
+			try:
 				serviceref = service.toString()
-			else:
+			#else:
+			except:
 				serviceref = str(service)
 			serviceref = re.sub('::.*', ':', serviceref)
 
 			self.thread.add( ThreadItem(identifier, callback, name, begin, end, serviceref) )
 			
 			return identifier.getName()
-			
-		#if not available:
-		else:
-			callback( "No identifier available" )
 
-	def getEpisodeBlocking(self, name, begin, end=None, service=None, future=False, today=False, elapsed=False):
+	def getEpisodeBlocking(self, name, begin, end=None, service=None, future=False, today=False, elapsed=False, rename=False):
 		#available = False
 		
 		if config.plugins.seriesplugin.skip_during_records.value:
@@ -408,7 +411,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		if match:
 			#splog(match.group(0))     # Entire match
 			#splog(match.group(1))     # First parenthesized subgroup
-			if config.plugins.seriesplugin.skip_pattern_match.value:
+			if not rename and config.plugins.seriesplugin.skip_pattern_match.value:
 				splog("SP: Main: Skip check because of pattern match")
 				return
 			if match.group(1):
@@ -428,8 +431,13 @@ class SeriesPlugin(Modules, ChannelsBase):
 		else:
 			identifier = None
 		
-		if identifier:
+		if not identifier:
+			callback( "Error: No identifier available" )
 		
+		elif identifier.channelsEmpty():
+			callback( "Error: Open setup and channel editor" )
+		
+		else:
 			# Reset title search depth on every new request
 			identifier.search_depth = 0;
 			
@@ -465,8 +473,6 @@ class SeriesPlugin(Modules, ChannelsBase):
 			else:
 				splog("SP: Worker: result failed")
 				return result
-		
-		return _("Error: No identifier")
 
 	def gotResult(self, msg):
 		splog("SP: Main: Thread: gotResult:", msg)

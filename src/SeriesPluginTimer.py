@@ -117,11 +117,11 @@ class SeriesPluginTimer(object):
 				seriesPlugin.getEpisode(
 					boundFunction(self.timerCallback, timer),
 					#name, begin, end, channel, future=True
-					name, begin, end, str(timer.service_ref), future=True
+					name, begin, end, timer.service_ref, future=True
 				)
 			else:
 				result = seriesPlugin.getEpisodeBlocking(
-					name, begin, end, str(timer.service_ref), future=True
+					name, begin, end, timer.service_ref, future=True
 				)
 				self.timerCallback(timer, result)
 				return result

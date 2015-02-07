@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "2.1.3"
+VERSION = "2.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -449,9 +449,9 @@ def addSeriesPlugin(menu, title, fnc=None):
 		SPEPGSelectionInit()
 	elif( menu == WHERE_CHANNELMENU ):
 		try:
-			SPChannelContextMenuInit()
-		except:
 			addSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO, fnc)
+		except:
+			SPChannelContextMenuInit()
 	else:
 		from Components.PluginComponent import plugins
 		if plugins:
@@ -477,9 +477,9 @@ def removeSeriesPlugin(menu, title):
 		SPEPGSelectionUndo()
 	elif( menu == WHERE_CHANNELMENU ):
 		try:
-			SPChannelContextMenuUndo()
-		except:
 			removeSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO)
+		except:
+			SPChannelContextMenuUndo()
 	else:
 		from Components.PluginComponent import plugins
 		if plugins:

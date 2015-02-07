@@ -45,15 +45,17 @@ except:
 	from OrderedDict import OrderedDict
 
 
-
 ChannelReplaceDict = OrderedDict([
 	('\(S\)', ''),
-	('HD', ''),
+	(' HD', ''),
+	(' TV', ''),
+	(' Television', ''),
+	(' Channel', ''),
 	('III', 'drei'),
 	('II',  'zwei'),
 	#('I',   'eins'),
-	('ARD', 'DasErste'),
-	('\+', 'Plus'),
+	('ARD', 'daserste'),
+	('\+', 'plus'),
 	('0', 'null'),
 	('1', 'eins'),
 	('2', 'zwei'),
@@ -210,7 +212,10 @@ class ChannelsBase(ChannelsFile):
 		ChannelsFile.__init__(self)
 		if not ChannelsBase.channels:
 			self.resetChannels()
-		
+	
+	def channelsEmpty(self):
+		return not ChannelsBase.channels
+	
 	def resetChannels(self):
 		ChannelsBase.channels = {}
 		ChannelsBase.channels_changed = False
@@ -220,25 +225,41 @@ class ChannelsBase(ChannelsFile):
 	#
 	# Channel handling
 	#
-	def compareChannels(self, serviceref, remote):
-		splog("SP compareChannels", serviceref, remote)
-		if serviceref in ChannelsBase.channels:
-			#( name, alternatives ) = ChannelsBase.channels[serviceref]
-			return True
+	def compareChannels(self, ref, remote):
+		splog("SP compareChannels", ref, remote)
+		if ref in ChannelsBase.channels:
+			( name, alternatives ) = ChannelsBase.channels[ref]
+			for altname in alternatives:
+				if altname in remote or remote in altname:
+					return True
 			
 		return False
 		
-	def lookupChannelByReference(self, serviceref):
-		if serviceref in ChannelsBase.channels:
-			( name, alternatives ) = ChannelsBase.channels[serviceref]
+	def lookupChannelByReference(self, ref):
+		if ref in ChannelsBase.channels:
+			( name, alternatives ) = ChannelsBase.channels[ref]
+			altnames = []
 			for altname in alternatives:
 				if altname:
 					splog("SP lookupChannelByReference", altname)
-					return altname
+					altnames.append(altname)
+			return ' / '.join(altnames)
 			
 		return False
 	
 	def addChannel(self, ref, name, remote):
+		splog("SP addChannel name remote", name, remote)
+		
+		if ref in ChannelsBase.channels:
+			( name, alternatives ) = ChannelsBase.channels[ref]
+			if remote not in alternatives:
+				alternatives.append(remote)
+				ChannelsBase.channels[ref] = ( name, alternatives )
+		else:
+			ChannelsBase.channels[ref] = ( name, [remote] )
+		ChannelsBase.channels_changed = True
+	
+	def replaceChannel(self, ref, name, remote):
 		splog("SP addChannel name remote", name, remote)
 		
 		ChannelsBase.channels[ref] = ( name, [remote] )
@@ -268,10 +289,9 @@ class ChannelsBase(ChannelsFile):
 							name = element.get("name", "")
 							reference = element.get("reference", "")
 							if name and reference:
-								#alternatives = []
+								alternatives = []
 								for alternative in element.findall("Alternative"):
-									#alternatives.append( alternative.text )
-									alternatives = [ alternative.text ]
+									alternatives.append( alternative.text )
 								channels[reference] = (name, list(set(alternatives)))
 				elif version.startswith("1"):
 					splog("loadXML channels - Skip old file")

@@ -159,12 +159,17 @@ class SeriesPluginInfoScreen(Screen):
 				# Service is a movie reference
 				info = self.serviceHandler.info(service)
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
-				channel = ServiceReference(ref).getServiceName()
+				sref = ServiceReference(ref)
+				ref = sref.ref
+				channel = sref.getServiceName()
 				if not channel:
 					ref = str(ref)
 					ref = re.sub('::.*', ':', ref)
-					channel = ServiceReference(ref).getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+					sref = ServiceReference(ref)
+					ref = sref.ref
+					channel = sref.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
 				#ref = eServiceReference(str(service))
+				#ref = service
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
 				today = False
@@ -416,7 +421,7 @@ class SeriesPluginInfoScreen(Screen):
 			path = ref.getPath()
 			if path and os.path.exists(path):
 				from SeriesPluginRenamer import rename
-				if rename(path, self.name, self.short, self.data):
+				if rename(path, self.name, self.short, self.data) is True:
 					self["key_red"].setText("")
 					self.redButtonFunction = None
 					self.session.open( MessageBox, _("Successfully renamed"), MessageBox.TYPE_INFO )

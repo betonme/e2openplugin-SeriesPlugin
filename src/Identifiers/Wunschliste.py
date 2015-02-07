@@ -210,9 +210,9 @@ class Wunschliste(IdentifierBase):
 					delta = abs(self.begin - xbegin)
 					delta = delta.seconds + delta.days * 24 * 3600
 					#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-					splog(self.begin, xbegin, delta, int(config.plugins.seriesplugin.max_time_drift.value)*60)
+					splog(self.begin, xbegin, delta, self.max_time_drift)
 					
-					if delta <= int(config.plugins.seriesplugin.max_time_drift.value) * 60:
+					if delta <= self.max_time_drift:
 						
 						if self.compareChannels(self.service, xchannel):
 						
