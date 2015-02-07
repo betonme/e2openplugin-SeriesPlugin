@@ -382,7 +382,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 			# Reset the knownids on every new request
 			identifier.knownids = []
 			
-			if isinstance(service, eServiceReference):
+			#if isinstance(service, eServiceReference):
 			try:
 				serviceref = service.toString()
 			#else:
