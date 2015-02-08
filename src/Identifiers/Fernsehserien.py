@@ -297,14 +297,15 @@ class Fernsehserien(IdentifierBase):
 			#first = first - self.td_max_time_drift
 			#last = last + self.td_max_time_drift
 			
+			
 			if self.page != 0:
-				self.first = first
-				self.last = last
 				new_page = (self.first != first or self.last != last)
 				splog("getNextPage: first_on_prev_page, first, last_on_prev_page, last, if: ", self.first, first, self.last, last, new_page)
+				self.first = first
+				self.last = last
 			else:
 				new_page = True
-				
+			
 			if new_page:
 				test_future_timespan = ( (first-self.td_max_time_drift) <= self.begin and self.begin <= (last+self.td_max_time_drift) )
 				test_past_timespan = ( (first+self.td_max_time_drift) >= self.begin and self.begin >= (last-self.td_max_time_drift) )

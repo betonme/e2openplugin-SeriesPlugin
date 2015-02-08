@@ -82,7 +82,10 @@ def unifyChannel(text):
 		return ChannelReplaceDict.get(m, m)
 	
 	text = CompiledRegexpChannelUnify.sub(translate, text)
-	text = text.decode("utf-8").encode("latin1")
+	try:
+		text = text.decode("utf-8").encode("latin1")
+	except:
+		pass
 	text = CompiledRegexpChannelRemoveSpecialChars.sub('', text)
 	return text.strip().lower()
 

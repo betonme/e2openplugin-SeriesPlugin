@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SeriesPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-02-05 23:13+0100\n"
-"PO-Revision-Date: 2015-02-05 23:30+0100\n"
+"POT-Creation-Date: 2015-02-08 15:16+0100\n"
+"PO-Revision-Date: 2015-02-08 15:18+0100\n"
 "Last-Translator: James Blond <alattka@freenet.de>\n"
 "Language-Team: \n"
 "Language: German\n"
@@ -28,14 +28,17 @@ msgstr "OK"
 msgid "Remove"
 msgstr "Entfernen"
 
-msgid "Reset"
-msgstr "Zurücksetzen"
+msgid "Auto match"
+msgstr "Automatisch zuweisen"
 
 msgid "Show popup to add Stb Channel"
 msgstr "Zeige Popup wenn STB Kanal hinzugefügt"
 
 msgid "Cancel and close"
 msgstr "Abbrechen und schließen"
+
+msgid "Reset channels"
+msgstr "Kanäle zurücksetzen"
 
 msgid "Previeous page"
 msgstr "Vorherige Seite"
@@ -55,14 +58,14 @@ msgstr "Speichern und schließen"
 msgid "Remove channel"
 msgstr "Kanal entfernen"
 
-msgid "Reset channels"
-msgstr "Kanäle zurücksetzen"
-
 msgid "Load Web-Channels..."
 msgstr "Lade Web-Kanäle..."
 
 msgid "Error check log file"
 msgstr "Fehler überprüfe Protokoll Datei"
+
+msgid "Channel matching..."
+msgstr "Kanalübereinstimmung..."
 
 msgid "Web-Channel / STB-Channels."
 msgstr "Web-Kanal / STB-Kanäle."
@@ -71,8 +74,15 @@ msgid "Add Web Channel"
 msgstr "Web Kanal zufügen"
 
 #, python-format
-msgid "Channel '- %s - %s -' added."
-msgstr "Kanal '- %s - %s -' hinzugefügt."
+msgid "Channel '- %(servicename)s - %(remote)s -' added."
+msgstr "Kanal '- %(servicename)s - %(remote)s -' hinzugefügt."
+
+msgid "Add channel (Yes) or replace it (No)"
+msgstr "Kanal anfügen (Ja) oder entfernen (Nein)"
+
+#, python-format
+msgid "Channel '- %(servicename)s - %(remote)s -' replaced."
+msgstr "Kanal '- %(servicename)s - %(remote)s -' entfernt."
 
 #, python-format
 msgid "Remove '%s'?"
@@ -143,9 +153,6 @@ msgstr "SeriesPlugin Ausnahme Beschriftung"
 
 msgid "Setup"
 msgstr "Einstellungen"
-
-msgid "Error: No identifier"
-msgstr "Fehler: keine Kennzeichnung"
 
 msgid "Configuration"
 msgstr "Konfiguration"
@@ -388,6 +395,12 @@ msgstr ""
 msgid "No log file found"
 msgstr "Protokolldatei nicht gefunden"
 
+#~ msgid "Error: No identifier"
+#~ msgstr "Fehler: keine Kennzeichnung"
+
+#~ msgid "Reset"
+#~ msgstr "Zurücksetzen"
+
 #~ msgid "SeriesPlugin getPage exception "
 #~ msgstr "SeriesPlugin Seiternaufruf Ausnahmefehler"
 
@@ -417,6 +430,3 @@ msgstr "Protokolldatei nicht gefunden"
 
 #~ msgid "Does the start time match? \n"
 #~ msgstr "Stimmt die Startzeit überein? \n"
-
-#~ msgid "Ask for channel matching"
-#~ msgstr "Frage nach Kanalübereinstimmung"
