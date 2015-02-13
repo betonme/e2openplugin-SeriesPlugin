@@ -97,10 +97,6 @@ class Wunschliste(IdentifierBase):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
-		today = datetime.today()
-		self.actual_month = today.month
-		self.actual_year = today.year
-		
 		self.begin = begin
 		self.end = end
 		self.service = service

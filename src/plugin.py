@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "2.2.2"
+VERSION = "2.3"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -119,7 +119,7 @@ config.plugins.seriesplugin.timer_popups_timeout     = ConfigSelectionNumber(-1,
 
 config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
 
-#config.plugins.seriesplugin.debug                     = ConfigYesNo(default = False)
+config.plugins.seriesplugin.debug_prints              = ConfigYesNo(default = False)
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
 config.plugins.seriesplugin.log_file                  = ConfigText(default = "/tmp/seriesplugin.log", fixed_size = False)
 config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)
