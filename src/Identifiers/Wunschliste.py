@@ -82,8 +82,6 @@ class WLPrintParser(HTMLParser):
 class Wunschliste(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
-		self.actual_month = 0
-		self.actual_year = 0
 
 	@classmethod
 	def knowsToday(cls):
@@ -197,7 +195,7 @@ class Wunschliste(IdentifierBase):
 						year = str(self.actual_year+1)
 					else:
 						year = str(self.actual_year)
-					xbegin   = datetime.strptime( xdate+year+xbegin, "%d.%m.%Y%H.%M Uhr" )
+					xbegin   = datetime.strptime( xdate+" "+year+xbegin, "%d.%m.%Y %H.%M Uhr" )
 					#xend     = datetime.strptime( xdate+xend, "%d.%m.%Y%H.%M Uhr" )
 					#splog(xchannel, xdate, xbegin, xend, xtitle)
 					#splog(datebegin, xbegin, abs((datebegin - xbegin)))
