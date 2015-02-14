@@ -195,7 +195,7 @@ class Wunschliste(IdentifierBase):
 						year = str(self.actual_year+1)
 					else:
 						year = str(self.actual_year)
-					xbegin   = datetime.strptime( xdate+" "+year+xbegin, "%d.%m.%Y %H.%M Uhr" )
+					xbegin   = datetime.strptime( xdate+year+" "+xbegin, "%d.%m.%Y %H.%M Uhr" )
 					#xend     = datetime.strptime( xdate+xend, "%d.%m.%Y%H.%M Uhr" )
 					#splog(xchannel, xdate, xbegin, xend, xtitle)
 					#splog(datebegin, xbegin, abs((datebegin - xbegin)))
