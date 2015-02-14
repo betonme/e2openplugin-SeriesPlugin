@@ -12,8 +12,8 @@ from Components.config import config
 from Tools.BoundFunction import boundFunction
 
 # Imports
-from urllib import urlencode, addinfourl
-from urllib2 import build_opener, HTTPRedirectHandler
+from urllib import urlencode
+from urllib2 import urlopen
 
 from time import time
 from datetime import datetime, timedelta
@@ -45,16 +45,6 @@ Headers = {
 		'Pragma':'no-cache'
 	}
 
-class NoRedirectHandler(HTTPRedirectHandler):
-	def http_error_302(self, req, fp, code, msg, headers):
-		infourl = addinfourl(fp, headers, req.get_full_url())
-		infourl.status = code
-		infourl.code = code
-		return infourl
-	http_error_300 = http_error_302
-	http_error_301 = http_error_302
-	http_error_303 = http_error_302
-	http_error_307 = http_error_302
 
 def str_to_utf8(s):
 	# Convert a byte string with unicode escaped characters
@@ -128,9 +118,6 @@ class FSParser(HTMLParser):
 class Fernsehserien(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
-		
-		self.opener = build_opener(NoRedirectHandler())
-		#urllib2.install_opener(opener)
 
 	@classmethod
 	def knowsElapsed(cls):
@@ -149,7 +136,7 @@ class Fernsehserien(IdentifierBase):
 		# On Failure: Return a empty list or String or None
 		
 		self.begin = begin
-		self.year = datetime.fromtimestamp(begin).year
+		self.year = begin.year
 		self.end = end
 		self.service = service
 		
@@ -194,21 +181,19 @@ class Fernsehserien(IdentifierBase):
 						self.page = 0
 					else:
 						if self.actual_year == self.year:
-							if self.begin > self.now-3600:
-								self.page = 0
-							else:
-								self.page = -1
+							#if self.begin > self.now-timedelta(seconds=3600):
+							self.page = 0
+							#else:
+							#	self.page = -1
 						else:
-							self.page = -1
+							self.page = 0
 							
 							year_url = EPISODEIDURL % (id, '')
 							#/sendetermine/jahr-2014
-							#response = opener.open( url, urllib.urlencode(data) )
-							response = opener.open( year_url+"jahr-"+str(year) )
-							#assert response.code == 302
+							response = urlopen( year_url+"jahr-"+str(year) )
 							
 							#redirecturl = http://www.fernsehserien.de/criminal-intent-verbrechen-im-visier/sendetermine/-14
-							redirect_url = response.getURL()
+							redirect_url = response.geturl()
 							
 							page = int( redirect_url.replace(year_url,'') )
 							
