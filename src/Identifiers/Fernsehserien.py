@@ -190,7 +190,7 @@ class Fernsehserien(IdentifierBase):
 							
 							year_url = EPISODEIDURL % (id, '')
 							#/sendetermine/jahr-2014
-							response = urlopen( year_url+"jahr-"+str(year) )
+							response = urlopen( year_url+"jahr-"+str(self.year) )
 							
 							#redirecturl = http://www.fernsehserien.de/criminal-intent-verbrechen-im-visier/sendetermine/-14
 							redirect_url = response.geturl()
