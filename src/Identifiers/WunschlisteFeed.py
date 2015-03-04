@@ -71,29 +71,29 @@ def str_to_utf8(s):
 	#return utf8_str  #.decode("utf-8").encode("ascii", "ignore")
 	if type(s) == unicode:
 		try:
-			s = s.encode('utf-8')
-			splog("WL: str_to_utf8 encode utf8: s: ", repr(s))
+			s = s.encode('ISO-8859-1')
+			splog("WL: str_to_utf8 encode ISO-8859-1: s: ", repr(s))
 		except:
-			s = s.encode('utf-8', 'ignore')
-			splog("WL: str_to_utf8 except encode utf8 ignore: s: ", repr(s))
+			s = s.encode('ISO-8859-1', 'ignore')
+			splog("WL: str_to_utf8 except encode ISO-8859-1 ignore: s: ", repr(s))
 	else:
 		try:
-			s = s.decode('utf-8')
-			splog("WL: str_to_utf8 decode utf8: s: ", repr(s))
+			s = s.decode('ISO-8859-1')
+			splog("WL: str_to_utf8 decode ISO-8859-1: s: ", repr(s))
 		except:
 			try:
-				s = unicode(s, 'ISO-8859-1')
-				s = s.encode('utf-8')
-				splog("WL: str_to_utf8 decode ISO-8859-1: s: ", repr(s))
+				s = unicode(s, 'utf-8')
+				s = s.encode('ISO-8859-1')
+				splog("WL: str_to_utf8 decode utf-8: s: ", repr(s))
 			except:
 				try:
 					s = unicode(s, 'cp1252')
-					s = s.encode('utf-8')
+					s = s.encode('ISO-8859-1')
 					splog("WL: str_to_utf8 decode cp1252: s: ", repr(s))
 				except:
-					s = unicode(s, 'ISO-8859-1', 'ignore')
-					s = s.encode('utf-8')
-					splog("WL: str_to_utf8 decode ISO-8859-1 ignore: s: ", repr(s))
+					s = unicode(s, 'utf-8', 'ignore')
+					s = s.encode('ISO-8859-1')
+					splog("WL: str_to_utf8 decode utf-8 ignore: s: ", repr(s))
 	return s
 
 
