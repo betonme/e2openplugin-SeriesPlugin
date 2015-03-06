@@ -69,14 +69,8 @@ def str_to_utf8(s):
 	#utf8_str = utf8_encoder(unicode_str)[0]
 	#splog("WL: str_to_utf8: s: ", repr(utf8_str))
 	#return utf8_str  #.decode("utf-8").encode("ascii", "ignore")
-	if type(s) == unicode:
-		try:
-			s = s.encode('ISO-8859-1')
-			splog("WL: str_to_utf8 encode ISO-8859-1: s: ", repr(s))
-		except:
-			s = s.encode('ISO-8859-1', 'ignore')
-			splog("WL: str_to_utf8 except encode ISO-8859-1 ignore: s: ", repr(s))
-	else:
+	if type(s) != unicode:
+		# Default shoud be here
 		try:
 			s = s.decode('ISO-8859-1')
 			splog("WL: str_to_utf8 decode ISO-8859-1: s: ", repr(s))
@@ -94,6 +88,13 @@ def str_to_utf8(s):
 					s = unicode(s, 'utf-8', 'ignore')
 					s = s.encode('ISO-8859-1')
 					splog("WL: str_to_utf8 decode utf-8 ignore: s: ", repr(s))
+	else:
+		try:
+			s = s.encode('ISO-8859-1')
+			splog("WL: str_to_utf8 encode ISO-8859-1: s: ", repr(s))
+		except:
+			s = s.encode('ISO-8859-1', 'ignore')
+			splog("WL: str_to_utf8 except encode ISO-8859-1 ignore: s: ", repr(s))
 	return s
 
 

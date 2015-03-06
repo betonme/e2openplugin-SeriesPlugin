@@ -144,18 +144,19 @@ def refactorTitle(org, data):
 			if config.plugins.seriesplugin.replace_chars.value:
 				repl = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
 				splog("SP: refactor org", org)
-				org = repl.sub('', str(org))
+				org = repl.sub('', org)
 				splog("SP: refactor org", org)
 				
 				splog("SP: refactor title", title)
-				title = repl.sub('', str(title))
+				title = repl.sub('', title)
 				splog("SP: refactor title", title)
 				
 				splog("SP: refactor series", series)
-				series = repl.sub('', str(series))
+				series = repl.sub('', series)
 				splog("SP: refactor series", series)
+			#return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 			cust_title = config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			return cust_title.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","")
+			return cust_title.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('  ',' ')
 		else:
 			return org
 	else:
@@ -165,11 +166,14 @@ def refactorDescription(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
-			#if season == 0 and episode == 0:
-			#	cust_plot = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'title': title, 'series': series} )
-			#else:
+			##if season == 0 and episode == 0:
+			##	description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'title': title, 'series': series} )
+			##else:
+			#description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
+			#description = description.replace("\n", " ")
+			#return description
 			cust_plot = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			return cust_plot.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","")
+			return cust_plot.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('  ',' ')
 		else:
 			return org
 	else:
