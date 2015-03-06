@@ -81,7 +81,7 @@ def str_to_utf8(s):
 					s = unicode(s, 'ISO-8859-1', 'ignore')
 					s = s.encode('utf-8')
 					splog("WL: str_to_utf8 decode ISO-8859-1 ignore: s: ", repr(s))
-	return s.replace('\xe2\x80\x93','-')
+	return s.replace('\xe2\x80\x93','-').replace('\xc3\x9f','ß')
 
 
 class FSParser(HTMLParser):
