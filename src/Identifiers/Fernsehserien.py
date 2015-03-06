@@ -45,6 +45,8 @@ Headers = {
 		'Pragma':'no-cache'
 	}
 
+CompiledRegexpNonASCII = re.compile('\xe2\x80.')
+
 
 def str_to_utf8(s):
 	# Convert a byte string with unicode escaped characters
@@ -81,7 +83,8 @@ def str_to_utf8(s):
 					s = unicode(s, 'ISO-8859-1', 'ignore')
 					s = s.encode('utf-8')
 					splog("WL: str_to_utf8 decode ISO-8859-1 ignore: s: ", repr(s))
-	return s.replace('\xe2\x80\x93','-').replace('\xc3\x9f','ß')
+	s = s.replace('\xe2\x80\x93','-').replace('\xc3\x9f','ß')
+	return CompiledRegexpNonASCII.sub('', s)
 
 
 class FSParser(HTMLParser):
