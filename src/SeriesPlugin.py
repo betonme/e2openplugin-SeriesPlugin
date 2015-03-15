@@ -146,17 +146,9 @@ def refactorTitle(org, data):
 				splog("SP: refactor org", org)
 				org = repl.sub('', org)
 				splog("SP: refactor org", org)
-				
-				splog("SP: refactor title", title)
-				title = repl.sub('', title)
-				splog("SP: refactor title", title)
-				
-				splog("SP: refactor series", series)
-				series = repl.sub('', series)
-				splog("SP: refactor series", series)
 			#return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 			cust_title = config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			return cust_title.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('  ',' ')
+			return cust_title.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('/',' ').replace('  ',' ')
 		else:
 			return org
 	else:
@@ -166,6 +158,11 @@ def refactorDescription(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
+			if config.plugins.seriesplugin.replace_chars.value:
+				repl = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+				splog("SP: refactor org", org)
+				org = repl.sub('', org)
+				splog("SP: refactor org", org)
 			##if season == 0 and episode == 0:
 			##	description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'title': title, 'series': series} )
 			##else:
@@ -173,7 +170,7 @@ def refactorDescription(org, data):
 			#description = description.replace("\n", " ")
 			#return description
 			cust_plot = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			return cust_plot.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('  ',' ')
+			return cust_plot.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('/',' ').replace('  ',' ')
 		else:
 			return org
 	else:
@@ -275,13 +272,22 @@ class SeriesPluginWorker(Thread):
 			
 			config.plugins.seriesplugin.lookup_counter.value += 1
 			
-			splog("SP: Worker: result")
 			if result and len(result) == 4:
+				splog("SP: Worker: result callback")
 				season, episode, title, series = result
 				season = int(CompiledRegexpNonDecimal.sub('', season))
 				episode = int(CompiledRegexpNonDecimal.sub('', episode))
 				title = title.strip()
-				splog("SP: Worker: result callback")
+				if config.plugins.seriesplugin.replace_chars.value:
+					repl = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+					
+					splog("SP: refactor title", title)
+					title = repl.sub('', title)
+					splog("SP: refactor title", title)
+					
+					splog("SP: refactor series", series)
+					series = repl.sub('', series)
+					splog("SP: refactor series", series)
 				self.__messages.push( (item.callback, (season, episode, title, series)) )
 			else:
 				splog("SP: Worker: result failed")
