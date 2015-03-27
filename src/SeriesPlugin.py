@@ -143,12 +143,14 @@ def refactorTitle(org, data):
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
 			if config.plugins.seriesplugin.replace_chars.value:
 				repl = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
-				splog("SP: refactor org", org)
+				splog("SP: refactor org1", org)
 				org = repl.sub('', org)
-				splog("SP: refactor org", org)
+				splog("SP: refactor org2", org)
 			#return config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 			cust_title = config.plugins.seriesplugin.pattern_title.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			return cust_title.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('/',' ').replace('  ',' ')
+			cust_title.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('/',' ').replace('  ',' ')
+			splog("SP: refactor org3", cust_title)
+			return cust_title
 		else:
 			return org
 	else:
@@ -160,9 +162,9 @@ def refactorDescription(org, data):
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
 			if config.plugins.seriesplugin.replace_chars.value:
 				repl = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
-				splog("SP: refactor org", org)
+				splog("SP: refactor des1", org)
 				org = repl.sub('', org)
-				splog("SP: refactor org", org)
+				splog("SP: refactor des2", org)
 			##if season == 0 and episode == 0:
 			##	description = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'title': title, 'series': series} )
 			##else:
@@ -170,7 +172,9 @@ def refactorDescription(org, data):
 			#description = description.replace("\n", " ")
 			#return description
 			cust_plot = config.plugins.seriesplugin.pattern_description.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			return cust_plot.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("\'","").replace('/',' ').replace('  ',' ')
+			cust_plot = cust_plot.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('/',' ').replace('  ',' ')
+			splog("SP: refactor des3", cust_plot)
+			return cust_plot
 		else:
 			return org
 	else:
