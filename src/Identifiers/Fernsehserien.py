@@ -473,7 +473,7 @@ class Fernsehserien(IdentifierBase):
 											# Second part: s1e1, s1e2,
 											xseason = tds[COL_SEASON] or "1"
 											xepisode = tds[COL_EPISODE]
-											xtitle = " ".join(tds[COL_TITLE])  # Use all available titles
+											xtitle = tds[COL_TITLE]
 										elif len(tds) >= 7:
 											#TODO
 											# Second part: s1e1, s1e2,
@@ -481,10 +481,10 @@ class Fernsehserien(IdentifierBase):
 											xepisode = tds[5]
 											if xseason and xseason.find(".") != -1:
 												xseason = xseason[:-1]
-												xtitle = " ".join(tds[6])  # Use all available titles
+												xtitle = tds[6]
 											else:
 												xseason = "1"
-												xtitle = " ".join(tds[6])  # Use all available titles
+												xtitle = tds[6]
 										elif len(tds) == 6:
 											xseason = "0"
 											xepisode = "0"
