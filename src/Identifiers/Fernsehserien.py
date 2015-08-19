@@ -326,7 +326,12 @@ class Fernsehserien(IdentifierBase):
 							tds.append(tdnode.string or "")
 						tds[COL_TIME] = tds[COL_TIME][0:5]
 						tds[COL_DATE] = tds[COL_DATE][0:11]
-						tds[COL_CHANNEL] = tds[COL_CHANNEL]['title']
+						
+						#tds[COL_CHANNEL] = tdnode[COL_CHANNEL]['title']
+						spans = tdnode[COL_CHANNEL].find('span')
+						if spans:
+							tds[COL_CHANNEL] = spans[0].get('title', '')
+						
 						if tds[COL_TIME].find('\xc2\xa0') != -1:
 							splog( "tdnodes xc2xa0", len(tdnodes), tdnodes)
 							continue
@@ -462,7 +467,7 @@ class Fernsehserien(IdentifierBase):
 											# Second part: s1e1, s1e2,
 											xseason = tds[COL_SEASON] or "1"
 											xepisode = tds[COL_EPISODE]
-											xtitle = " ".join(tds[COL_TITLE:])  # Use all available titles
+											xtitle = " ".join(tds[COL_TITLE])  # Use all available titles
 										elif len(tds) >= 7:
 											#TODO
 											# Second part: s1e1, s1e2,
@@ -470,10 +475,10 @@ class Fernsehserien(IdentifierBase):
 											xepisode = tds[5]
 											if xseason and xseason.find(".") != -1:
 												xseason = xseason[:-1]
-												xtitle = " ".join(tds[6:])  # Use all available titles
+												xtitle = " ".join(tds[6])  # Use all available titles
 											else:
 												xseason = "1"
-												xtitle = " ".join(tds[6:])  # Use all available titles
+												xtitle = " ".join(tds[6])  # Use all available titles
 										elif len(tds) == 6:
 											xseason = "0"
 											xepisode = "0"
