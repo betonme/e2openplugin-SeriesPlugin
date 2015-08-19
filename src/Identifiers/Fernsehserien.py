@@ -326,6 +326,7 @@ class Fernsehserien(IdentifierBase):
 							tds.append(tdnode.string or "")
 						tds[COL_TIME] = tds[COL_TIME][0:5]
 						tds[COL_DATE] = tds[COL_DATE][0:11]
+						tds[COL_CHANNEL] = tds[COL_CHANNEL]['title']
 						if tds[COL_TIME].find('\xc2\xa0') != -1:
 							splog( "tdnodes xc2xa0", len(tdnodes), tdnodes)
 							continue
