@@ -322,15 +322,21 @@ class Fernsehserien(IdentifierBase):
 					# Filter for known rows
 					if len(tdnodes) >= 11:		# >= 6 and tdnodes[COL_DATE].string and len(tdnodes[COL_DATE].string) >= 10:
 						tds = []
-						for tdnode in tdnodes:
-							tds.append(tdnode.string or "")
-						tds[COL_TIME] = tds[COL_TIME][0:5]
-						tds[COL_DATE] = tds[COL_DATE][0:11]
-						
-						#tds[COL_CHANNEL] = tdnode[COL_CHANNEL]['title']
-						spans = tdnode[COL_CHANNEL].find('span')
-						if spans:
-							tds[COL_CHANNEL] = spans[0].get('title', '')
+						for idx, tdnode in enumerate(tdnodes):
+							if idx == COL_TIME:
+								tds.append( tdnode.string[0:5] )
+							elif idx == COL_DATE:
+								tds.append( tdnode.string[0:11] )
+							elif idx == COL_CHANNEL:
+								#tds[COL_CHANNEL] = tdnode[COL_CHANNEL]['title']
+								spans = tdnode.find('span')
+								if spans:
+									splog( "spans", len(spans), spans)
+									tds.append( spans.get('title', '') )
+								else:
+									tds.append(tdnode.string or "")
+							else:
+								tds.append(tdnode.string or "")
 						
 						if tds[COL_TIME].find('\xc2\xa0') != -1:
 							splog( "tdnodes xc2xa0", len(tdnodes), tdnodes)
