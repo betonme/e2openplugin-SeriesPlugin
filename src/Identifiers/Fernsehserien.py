@@ -384,7 +384,7 @@ class Fernsehserien(IdentifierBase):
 				cust_date += trs[0][-1]
 			splog(cust_date)
 			if len(cust_date) != 15:
-				continue
+				return
 			first = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
 			
 			# trs[-1] last line [2] second element = timestamps [a:b] use second time
@@ -393,7 +393,7 @@ class Fernsehserien(IdentifierBase):
 				cust_date += trs[-1][-1]
 			splog(cust_date)
 			if len(cust_date) != 15:
-				continue
+				return
 			last = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
 			
 			#first = first - self.td_max_time_drift
