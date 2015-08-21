@@ -114,6 +114,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 		self.chooseMenuList = MenuList([], enableWrapAround=True, content=eListboxPythonMultiContent)
 		global TemplatedListFonts
 		if TemplatedListFonts is not None:
+			tlf = TemplatedListFonts()
 			self.chooseMenuList.l.setFont(0, gFont(tlf.face(tlf.MEDIUM), tlf.size(tlf.MEDIUM)))
 			self.chooseMenuList.l.setItemHeight(30)
 		else:
