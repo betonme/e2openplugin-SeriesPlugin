@@ -345,6 +345,7 @@ class Fernsehserien(IdentifierBase):
 							splog( "tdnodes xc2xa0", len(tdnodes), tdnodes)
 							continue
 						tds.append( year )
+						splog( "FS table tds", tds)
 						trs.append( tds )
 					# This row belongs to the previous
 					#TODO
@@ -365,6 +366,9 @@ class Fernsehserien(IdentifierBase):
 				if tds[COL_DATE] == "&nbsp;":
 					if idx > 0:
 						tds[COL_DATE] = trs[idx-1][COL_DATE]
+		else:
+			splog( "FS table not found")
+		
 		#splog(trs)
 		return trs
 
