@@ -13,8 +13,6 @@ from Components.MenuList import MenuList
 from Components.Button import Button
 from Screens.Screen import Screen
 #from Plugins.Plugin import PluginDescriptor
-#from twisted.web.client import getPage
-#from twisted.web.client import downloadPage
 
 #from Components.ServicePosition import ServicePositionGauge
 #from Tools.NumericalTextInput import NumericalTextInput

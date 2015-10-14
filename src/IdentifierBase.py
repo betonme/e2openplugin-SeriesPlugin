@@ -88,7 +88,7 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase, Analytics):
 
 	################################################
 	# URL functions
-	def getPage(self, url, headers={}, expires=INTER_QUERY_TIME, counter=0):
+	def getPage(self, url, expires=INTER_QUERY_TIME, counter=0):
 		response = None
 		
 		splog("SSBase getPage", url)
@@ -105,8 +105,9 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase, Analytics):
 			splog("SSBase not cached")
 			
 			try:
-				req = Request(url, headers=headers)
-				response = urlopen(req, timeout=15).read()
+				from plugin import PROXY, USER_AGENT
+				req = Request(PROXY+url, agent=USER_AGENT)
+				response = urlopen(req, timeout=60).read()
 				
 				#splog("SSBase response to cache: ", response) 
 				if response:
@@ -121,7 +122,7 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase, Analytics):
 					splog("SSBase URLError code")
 					print e.code, e.msg, counter
 					sleep(2)
-					return self.getPage(url, headers, expires, counter+1)
+					return self.getPage(url, expires, counter+1)
 				else:
 					splog("SSBase URLError else")
 					raise MyException("There was an URLError: %r" % e)
@@ -135,7 +136,7 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase, Analytics):
 					splog("SSBase URLError code")
 					print e.code, e.msg, counter
 					sleep(2)
-					return self.getPage(url, headers, expires, counter+1)
+					return self.getPage(url, expires, counter+1)
 				else:
 					splog("SSBase URLError else")
 					raise MyException("There was an SocketTimeout: %r" % e)
