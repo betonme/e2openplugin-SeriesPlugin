@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "2.6.2"
+VERSION = "3.0.0"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -42,6 +42,10 @@ ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
 				+ _("  Support: ") + SUPPORT + "\n" \
 				+ _("  Feel free to donate. \n") \
 				+ _("  PayPal: ") + DONATE
+
+PROXY = "http://serienrecorder.lima-city.de/proxy.php?url="
+USER_AGENT = "Enigma2-"+NAME
+
 try:
 	from Tools.HardwareInfo import HardwareInfo
 	DEVICE = HardwareInfo().get_device_name().strip()
