@@ -230,7 +230,8 @@ class Fernsehserien(IdentifierBase):
 							
 							#/sendetermine/jahr-2014
 							# Increment year by one, because we want to start at the end of the year
-							response = urlopen( year_url )
+							from plugin import PROXY
+							response = urlopen( PROXY + year_url )
 							
 							#redirecturl = http://www.fernsehserien.de/criminal-intent-verbrechen-im-visier/sendetermine/-14
 							redirect_url = response.geturl()
@@ -270,6 +271,7 @@ class Fernsehserien(IdentifierBase):
 
 	def parseSeries(self, data):
 		serieslist = []
+		#splog( "parseSeries", data)
 		for line in json.loads(data):
 			id = line['id']
 			idname = line['value']

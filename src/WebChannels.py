@@ -31,6 +31,8 @@ class WebChannels(object):
 	def __init__(self, user_callback=None, user_errback=None):
 		self.user_callback = user_callback
 		self.user_errback  = user_errback
+		
+		socket.setdefaulttimeout( float(config.plugins.seriesplugin.socket_timeout.value) )
 
 	def	request(self):
 		print "[SP] request webpage.."
