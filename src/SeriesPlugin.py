@@ -131,10 +131,6 @@ def resetInstance():
 		splog("SP: SERIESPLUGIN INSTANCE STOP")
 		instance.stop()
 		instance = None
-	
-	from Cacher import cache
-	global cache
-	cache = {}
 
 
 def refactorTitle(org, data):

@@ -85,70 +85,6 @@ def str_to_utf8(s):
 	return CompiledRegexpNonASCII.sub('', s)
 
 
-class FSParser(HTMLParser):
-	def __init__(self):
-		HTMLParser.__init__(self)
-		# Hint: xpath from Firebug without tbody elements
-		#xpath = '/html/body/div[2]/div[2]/div/table/tr[3]/td/div/table[2]/tr/td'
-		#xpath = '/html/body/div/div[3]/main/div[3]/article/table/tr/td'
-		xpath = '/html/body/div/div[3]/main/div[3]/article/table'
-		
-		self.xpath = [ e for e in xpath.split('/') if e ]
-		self.xpath.reverse()
-
-		self.lookfor = self.xpath.pop()
-		self.waitforendtag = 0
-
-		self.start = False
-		self.table = False
-		self.tr= False
-		self.td= False
-		self.data = []
-		self.list = []
-
-	def handle_starttag(self, tag, attributes):
-		if self.waitforendtag == 0:
-			if tag == self.lookfor:
-				if self.xpath:
-					self.lookfor = self.xpath.pop()
-					s = self.lookfor.split('[')
-					if len(s) == 2:
-						self.lookfor = s[0]
-						self.waitforendtag = int( s[1].split(']' )[0]) - 1
-				else:
-					self.start = True
-					#splog("FSParser: START")
-
-		if self.start and tag == 'table':
-			self.table = True
-			#splog("FSParser: TABLE")
-
-		if self.table:
-			if tag == 'td':
-				self.td= True
-			elif tag == 'tr':
-				self.tr= True
-
-	def handle_endtag(self, tag):
-		if self.table:
-			if tag == 'td':
-				self.td= False
-			elif tag == 'tr':
-				self.tr= False
-				self.list.append(self.data)
-				self.data= []
-
-		if tag == 'table':
-			self.table = False
-
-		if tag == self.lookfor:
-			if self.waitforendtag > 0: self.waitforendtag -= 1
-
-	def handle_data(self, data):
-		if self.tr and self.td:
-			self.data.append(data)
-
-
 class Fernsehserien(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
@@ -263,7 +199,6 @@ class Fernsehserien(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
-			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("Fernsehserien ids", data)
@@ -284,10 +219,6 @@ class Fernsehserien(IdentifierBase):
 	def parseNextPage(self, data):
 		trs = []
 		
-		#parser = FSParser()
-		#parser.feed(data)
-		#return parser.list
-		
 		# Handle malformed HTML issues
 		data = data.replace('\\"','"')  # target=\"_blank\"
 		data = data.replace('\'+\'','') # document.write('<scr'+'ipt
@@ -305,14 +236,18 @@ class Fernsehserien(IdentifierBase):
 		table = soup.find('table', 'sendetermine')
 		if table:
 			for trnode in table.find_all('tr'):
-				# TODO skip first header row
-				tdnodes = trnode and trnode.find_all('td')
 				
+				tdnodes = trnode and trnode.find_all('td')
 				if tdnodes:
 					# Filter for known rows
-					if len(tdnodes) >= 11:		# >= 6 and tdnodes[COL_DATE].string and len(tdnodes[COL_DATE].string) >= 10:
+					if len(tdnodes) == 12:
 						tds = []
+						
 						for idx, tdnode in enumerate(tdnodes):
+							if tdnode is None:
+								splog( "Error: tdnode is none" )
+								return []
+							
 							if idx == COL_TIME:
 								tds.append( tdnode.string[0:5] )
 							elif idx == COL_DATE:
@@ -334,9 +269,11 @@ class Fernsehserien(IdentifierBase):
 						if tds[COL_DATE].find('\xc2\xa0') != -1:
 							splog( "tdnodes xc2xa0", len(tdnodes), tdnodes)
 							continue
+						
 						tds.append( year )
 						splog( "FS table tds", tds)
 						trs.append( tds )
+					
 					# This row belongs to the previous
 					#TODO
 					#elif trs and len(tdnodes) == 5:
@@ -369,7 +306,6 @@ class Fernsehserien(IdentifierBase):
 		if data and isinstance(data, basestring):
 			splog("getNextPage: basestring")
 			data = self.parseNextPage(data)
-			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("getNextPage: list")

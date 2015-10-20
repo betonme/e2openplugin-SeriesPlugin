@@ -372,6 +372,7 @@ class SeriesPluginInfoScreen(Screen):
 
 	# Overwrite Screen close function
 	def close(self):
+		splog("SPI: user close")
 		
 		global instance
 		instance = None
@@ -416,6 +417,7 @@ class SeriesPluginInfoScreen(Screen):
 			pass
 
 	def rename(self):
+		splog("SPI: rename")
 		ref = self.eservice
 		if ref and self.data:
 			path = ref.getPath()
@@ -430,6 +432,7 @@ class SeriesPluginInfoScreen(Screen):
 
 	# Adapted from EventView
 	def record(self):
+		splog("SPI: record")
 		if self.event and self.service:
 			event = self.event
 			ref = self.service

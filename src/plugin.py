@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "3.0.1"
+VERSION = "3.0.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -124,9 +124,6 @@ config.plugins.seriesplugin.timer_popups_success      = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.timer_popups_timeout      = ConfigSelectionNumber(-1, 20, 1, default = 3)
 
 config.plugins.seriesplugin.socket_timeout            = ConfigSelectionNumber(0, 600, 1, default = 30)
-
-config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
-config.plugins.seriesplugin.caching_expiration        = ConfigSelectionNumber(0, 48, 1, default = 6)
 
 config.plugins.seriesplugin.debug_prints              = ConfigYesNo(default = False)
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
@@ -543,7 +540,7 @@ def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref, eit=None
 	# Never overwrite existing names, You will lose Your series informations
 	#timer.name = name
 	# Only overwrite non existing descriptions
-	timer.description = timer.description or shortdesc
+	#timer.description = timer.description or shortdesc
 	timer.begin = int(begin)
 	timer.end = int(end)
 	timer.service_ref = ServiceReference(serviceref)

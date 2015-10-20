@@ -192,7 +192,6 @@ class WunschlisteFeed(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
-			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("WunschlisteFeed ids", data)
@@ -227,7 +226,6 @@ class WunschlisteFeed(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseNextPage(data)
-			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			trs = data

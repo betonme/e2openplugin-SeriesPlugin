@@ -55,6 +55,7 @@ class SeriesPluginTimer(object):
 			if timer.sp_in_queue:
 				splog("SPT: SeriesPluginTimer: Skip timer is already in queue:", timer.name)
 				timer.log(601, "[SeriesPlugin] Skip timer is already in queue %s" % (timer.name) )
+				return
 		
 		timer.sp_in_queue = True
 		
@@ -136,6 +137,7 @@ class SeriesPluginTimer(object):
 			if timer.sp_in_queue:
 				splog("SPT: SeriesPluginTimer: Skip timer is already in queue:", timer.name)
 				timer.log(601, "[SeriesPlugin] Skip timer is already in queue %s" % (timer.name) )
+				return
 		
 		timer.sp_in_queue = True
 		
