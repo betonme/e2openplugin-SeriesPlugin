@@ -109,7 +109,7 @@ class IdentifierBase(ModuleBase, ChannelsBase):
 				splog("SSBase URLError code")
 				print e.code, e.msg, counter
 				sleep(2)
-				return self.getPage(url, counter+1)
+				return self.getPage(url, use_proxy, counter+1)
 			else:
 				splog("SSBase URLError else")
 				raise MyException("There was an URLError: %r" % e)
@@ -123,7 +123,7 @@ class IdentifierBase(ModuleBase, ChannelsBase):
 				splog("SSBase URLError code")
 				print e.code, e.msg, counter
 				sleep(2)
-				return self.getPage(url, counter+1)
+				return self.getPage(url, use_proxy, counter+1)
 			else:
 				splog("SSBase URLError else")
 				raise MyException("There was an SocketTimeout: %r" % e)
