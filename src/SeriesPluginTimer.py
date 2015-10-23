@@ -126,7 +126,7 @@ class SeriesPluginTimer(object):
 			)
 		else:
 			splog("SPT: SeriesPluginTimer: No channel specified")
-			self.timerCallback("No channel specified")
+			self.timerCallback(timer, "No channel specified")
 
 	def getSeasonAndEpisode(self, timer, name, begin, end):
 		
@@ -207,7 +207,7 @@ class SeriesPluginTimer(object):
 			return self.timerCallback(timer, result)
 		else:
 			splog("SPT: SeriesPluginTimer: No channel specified")
-			self.timerCallback("No channel specified")
+			self.timerCallback(timer, "No channel specified")
 			return None
 
 	def timerCallback(self, timer, data=None):

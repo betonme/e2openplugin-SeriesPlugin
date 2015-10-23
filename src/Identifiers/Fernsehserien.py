@@ -199,6 +199,7 @@ class Fernsehserien(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("Fernsehserien ids", data)
@@ -256,7 +257,7 @@ class Fernsehserien(IdentifierBase):
 								#tds[COL_CHANNEL] = tdnode[COL_CHANNEL]['title']
 								spans = tdnode.find('span')
 								if spans:
-									splog( "spans", len(spans), spans)
+									#splog( "spans", len(spans), spans)
 									tds.append( spans.get('title', '') )
 								else:
 									tds.append(tdnode.string or "")
@@ -306,6 +307,7 @@ class Fernsehserien(IdentifierBase):
 		if data and isinstance(data, basestring):
 			splog("getNextPage: basestring")
 			data = self.parseNextPage(data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("getNextPage: list")
@@ -324,7 +326,7 @@ class Fernsehserien(IdentifierBase):
 			cust_date = trs[0][COL_TIME] + trs[0][COL_DATE]
 			if len(cust_date) == 11:
 				cust_date += trs[0][-1]
-			splog(cust_date)
+			#splog(cust_date)
 			if len(cust_date) != 15:
 				return
 			first = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
@@ -333,7 +335,7 @@ class Fernsehserien(IdentifierBase):
 			cust_date = trs[-1][COL_TIME] + trs[-1][COL_DATE]
 			if len(cust_date) == 11:
 				cust_date += trs[-1][-1]
-			splog(cust_date)
+			#splog(cust_date)
 			if len(cust_date) != 15:
 				return
 			last = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
@@ -379,7 +381,7 @@ class Fernsehserien(IdentifierBase):
 							cust_date = xbegin+xdate
 							if len(cust_date) == 11:
 								cust_date += tds[-1]
-							splog(cust_date)
+							#splog(cust_date)
 							if len(cust_date) != 15:
 								continue
 							xbegin = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )

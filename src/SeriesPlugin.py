@@ -131,6 +131,10 @@ def resetInstance():
 		splog("SP: SERIESPLUGIN INSTANCE STOP")
 		instance.stop()
 		instance = None
+	
+	from Cacher import cache
+	global cache
+	cache = {}
 
 
 def refactorTitle(org, data):
@@ -350,6 +354,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 				import NavigationInstance
 				if NavigationInstance.instance.RecordTimer.isRecording():
 					splog("SP: Main: Skip check during running records")
+					callback( "Skip check during running records (Can be disabled)" )
 					return
 			except:
 				pass

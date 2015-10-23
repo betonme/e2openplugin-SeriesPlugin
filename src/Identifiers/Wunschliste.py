@@ -168,6 +168,7 @@ class Wunschliste(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseSeries(data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			splog("WunschlistePrint ids", data)
@@ -203,6 +204,7 @@ class Wunschliste(IdentifierBase):
 		
 		if data and isinstance(data, basestring):
 			data = self.parseNextPage(data)
+			self.doCacheList(url, data)
 		
 		if data and isinstance(data, list):
 			trs = data

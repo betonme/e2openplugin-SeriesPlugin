@@ -284,6 +284,7 @@ class SeriesPluginInfoScreen(Screen):
 				)
 		except Exception as e:
 			splog("SPI: exception:", str(e))
+			self.episodeCallback(str(e))
 
 	def episodeCallback(self, data=None):
 		#TODO episode list handling

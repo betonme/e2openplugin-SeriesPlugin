@@ -28,7 +28,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "3.0.3"
+VERSION = "3.0.4"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -124,6 +124,9 @@ config.plugins.seriesplugin.timer_popups_success      = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.timer_popups_timeout      = ConfigSelectionNumber(-1, 20, 1, default = 3)
 
 config.plugins.seriesplugin.socket_timeout            = ConfigSelectionNumber(0, 600, 1, default = 30)
+
+config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
+config.plugins.seriesplugin.caching_expiration        = ConfigSelectionNumber(0, 48, 1, default = 6)
 
 config.plugins.seriesplugin.debug_prints              = ConfigYesNo(default = False)
 config.plugins.seriesplugin.write_log                 = ConfigYesNo(default = False)
