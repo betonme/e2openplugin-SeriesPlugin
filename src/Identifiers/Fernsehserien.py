@@ -166,8 +166,8 @@ class Fernsehserien(IdentifierBase):
 							
 							#/sendetermine/jahr-2014
 							# Increment year by one, because we want to start at the end of the year
-							from plugin import PROXY
-							response = urlopen( PROXY + year_url )
+							from plugin import buildURL
+							response = urlopen( buildURL(year_url) )
 							
 							#redirecturl = http://www.fernsehserien.de/criminal-intent-verbrechen-im-visier/sendetermine/-14
 							redirect_url = response.geturl()

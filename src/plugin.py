@@ -45,7 +45,7 @@ ABOUT = "\n  " + NAME + " " + VERSION + "\n\n" \
 				+ _("  Feel free to donate. \n") \
 				+ _("  PayPal: ") + DONATE
 
-PROXY = "http://serienrecorder.lima-city.de/proxy.php?url="
+PROXY = "http://serienrecorder.lima-city.de/proxy.php"
 USER_AGENT = "Enigma2-"+NAME
 
 try:
@@ -64,6 +64,10 @@ except:
 
 WHERE_EPGMENU     = 'WHERE_EPGMENU'
 WHERE_CHANNELMENU = 'WHERE_CHANNELMENU'
+
+
+def buildURL(url):
+	return PROXY + "?device=" + DEVICE + "&version=" + VERSION + "&url=" + url
 
 
 #######################################################
