@@ -180,6 +180,23 @@ def refactorDescription(org, data):
 	else:
 		return org
 
+def refactorDirectory(org, data):
+	if data:
+		season, episode, title, series = data
+		if config.plugins.seriesplugin.pattern_directory.value and not config.plugins.seriesplugin.pattern_directory.value == "Off":
+			if config.plugins.seriesplugin.replace_chars.value:
+				repl = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+				splog("SP: refactor dir1", org)
+				org = repl.sub('', org)
+				splog("SP: refactor dir2", org)
+			cust_dir = config.plugins.seriesplugin.pattern_directory.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
+			cust_dir = cust_dir.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('/',' ').replace('  ',' ')
+			splog("SP: refactor des3", cust_dir)
+			return cust_dir
+		else:
+			return org
+	else:
+		return org
 
 class ThreadItem:
 	def __init__(self, identifier = None, callback = None, name = None, begin = None, end = None, service = None):

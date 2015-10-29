@@ -32,7 +32,7 @@ from Tools.Notifications import AddPopup
 from Tools.BoundFunction import boundFunction
 
 # Plugin internal
-from SeriesPlugin import getInstance, refactorTitle, refactorDescription
+from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
 from Logger import splog
 
 
@@ -221,6 +221,14 @@ class SeriesPluginTimer(object):
 			timer.name = str(refactorTitle(timer.name, data))
 			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = str(refactorDescription(timer.description, data))
+			
+			try: timer.Filename
+			except: timer.calculateFilename()
+			
+			if not timer.dirname:
+				splog("SPT: SeriesPluginTimer: No dirname")
+			else:
+				timer.dirname  = str(refactorDirectory(timer.dirname, data))
 			
 			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 		
