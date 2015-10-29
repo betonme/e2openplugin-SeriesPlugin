@@ -418,8 +418,8 @@ class Fernsehserien(IdentifierBase):
 												xseason = "1"
 												xtitle = tds[6]
 										elif len(tds) == 6:
-											xseason = "0"
-											xepisode = "0"
+											xseason = "1"
+											xepisode = "1"
 											xtitle = tds[5]
 										if xseason and xepisode and xtitle and self.series:
 										
