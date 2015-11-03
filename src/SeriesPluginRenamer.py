@@ -177,9 +177,12 @@ def renameFile(servicepath, name, data, tidy=False):
 		
 		
 		if not os.path.exists(to):
-			os.rename(f, to)
+			try:
+				os.rename(f, to)
+			except:
+				splog("SPR: rename error", f, to)
 		elif config.plugins.seriesplugin.rename_existing_files.value:
-			splog("SPR: Destination file alreadey exists", to, " - Append _")
+			splog("SPR: Destination file already exists", to, " - Append _")
 			renameFile(servicepath, name + "_", data, True)
 			break
 		else:

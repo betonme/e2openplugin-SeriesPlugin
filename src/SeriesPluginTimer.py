@@ -222,8 +222,10 @@ class SeriesPluginTimer(object):
 			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = str(refactorDescription(timer.description, data))
 			
-			try: timer.Filename
-			except: timer.calculateFilename()
+			#try: timer.Filename
+			#except: timer.calculateFilename()
+			if not hasattr(timer, 'Filename'):
+				timer.calculateFilename()
 			
 			if not timer.dirname:
 				splog("SPT: SeriesPluginTimer: No dirname")
