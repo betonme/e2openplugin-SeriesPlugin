@@ -163,7 +163,7 @@ class Wunschliste(IdentifierBase):
 
 	def getSeries(self, name):
 		#url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9-*]", " ", name) })
-		url = SERIESLISTURL + urlencode({ 'q' : name })
+		url = SERIESLISTURL + urlencode({ 'q' : name.lower() })
 		data = self.getPage( url )
 		
 		if data and isinstance(data, basestring):
