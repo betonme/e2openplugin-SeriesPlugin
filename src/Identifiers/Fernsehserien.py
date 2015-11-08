@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import splog
+from Plugins.Extensions.SeriesPlugin import _
 
 from bs4 import BeautifulSoup
 from HTMLParser import HTMLParser
