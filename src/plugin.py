@@ -8,6 +8,7 @@ from time import time
 
 # GUI (Screens)
 from Screens.MessageBox import MessageBox
+from Tools.Notifications import AddPopup
 
 # Config
 from Components.config import config, ConfigSubsection, ConfigEnableDisable, ConfigNumber, ConfigSelection, ConfigYesNo, ConfigText, ConfigSelectionNumber
@@ -28,7 +29,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "3.1.2"
+VERSION = "3.2.0"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -249,6 +250,34 @@ def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 		try:
 			spt = SeriesPluginTimer(timer, name, begin, end, True)
 			result = spt.getSeasonAndEpisode(timer, name, begin, end)
+		except Exception as e:
+			splog(_("SeriesPlugin label exception ") + str(e))
+	return result
+
+# Synchronous call, blocks until we have the information
+def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
+	result = None
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+			from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
+			seriesPlugin = getInstance()
+			data = seriesPlugin.getEpisodeBlocking(
+				name, begin, end, service_ref, future=True
+			)
+			if data and len(data) == 4:
+				name = str(refactorTitle(name, data))
+				description = str(refactorDescription(description, data))
+				path = refactorDirectory(path, data)
+				return (name, description, path)
+			elif data:
+				if config.plugins.seriesplugin.timer_popups.value:
+					AddPopup(
+							"SeriesPlugin:\n" + _("SP has been finished with errors:\n") +"\n" +"\n".join(data),
+							MessageBox.TYPE_ERROR,
+							int(config.plugins.seriesplugin.timer_popups_timeout.value),
+							'SP_PopUp_ID_Finished'
+						)
+			return str(data)
 		except Exception as e:
 			splog(_("SeriesPlugin label exception ") + str(e))
 	return result
