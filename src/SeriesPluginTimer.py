@@ -229,6 +229,7 @@ class SeriesPluginTimer(object):
 			
 			if not timer.dirname:
 				splog("SPT: SeriesPluginTimer: No dirname")
+				timer.dirname  = str(refactorDirectory(config.usage.default_path.value, data))
 			else:
 				timer.dirname  = str(refactorDirectory(timer.dirname, data))
 			
