@@ -257,6 +257,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		config.plugins.seriesplugin.pattern_title.value       = self.cfg_pattern_title.value
 		config.plugins.seriesplugin.pattern_description.value = self.cfg_pattern_description.value
 		#config.plugins.seriesplugin.pattern_record.value      = self.cfg_pattern_record.value
+		config.plugins.seriesplugin.pattern_directory.value       = self.cfg_pattern_directory.value
 		config.plugins.seriesplugin.bouquet_main.value = self.cfg_bouquet_main.value
 		config.plugins.seriesplugin.save()
 		
