@@ -163,7 +163,7 @@ class Wunschliste(IdentifierBase):
 			return ( self.returnvalue or _("No matching series found") )
 
 	def getSeries(self, name):
-		#url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9-*]", " ", name) })
+		#url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9-*]", " ", name.lower()) })
 		url = SERIESLISTURL + urlencode({ 'q' : name.lower() })
 		data = self.getPage( url )
 		
