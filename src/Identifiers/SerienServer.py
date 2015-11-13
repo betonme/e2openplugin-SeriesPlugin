@@ -8,7 +8,7 @@ from Tools.BoundFunction import boundFunction
 
 from urllib import urlencode
 
-from time import mktime
+from time import time, mktime
 from datetime import datetime
 
 import re
@@ -110,7 +110,10 @@ class SerienServer(IdentifierBase):
 				name = self.getAlternativeSeries(name)
 		
 		else:
-			return ( _("No matching series found") )
+			if unixtime < time():
+				return ( _("Please try Fernsehserien.de") )
+			else:
+				return ( _("No matching series found") )
 
 #	def getSeries(self, name):
 #		#url = SERIESLISTURL + urlencode({ 'q' : re.sub("[^a-zA-Z0-9-*]", " ", name.lower()) })
