@@ -248,19 +248,19 @@ class Wunschliste(IdentifierBase):
 										result = CompiledRegexpEpisode.search(xepisode)
 										
 										if result and len(result.groups()) >= 3:
-											xseason = result and result.group(2) or "1"
-											xepisode = result and result.group(3) or "1"
+											xseason = result and result.group(2) or config.plugins.seriesplugin.default_season.value
+											xepisode = result and result.group(3) or config.plugins.seriesplugin.default_episode.value
 										else:
-											xseason = "1"
-											xepisode = "1"
+											xseason = config.plugins.seriesplugin.default_season.value
+											xepisode = config.plugins.seriesplugin.default_episode.value
 									else:
-										xseason = "1"
-										xepisode = "1"
+										xseason = config.plugins.seriesplugin.default_season.value
+										xepisode = config.plugins.seriesplugin.default_episode.value
 								
 								elif len(tds) == 6:
 									xtitle = tds[5]
-									xseason = "1"
-									xepisode = "1"
+									xseason = config.plugins.seriesplugin.default_season.value
+									xepisode = config.plugins.seriesplugin.default_episode.value
 								
 								# Handle encodings
 								xtitle = str_to_utf8(xtitle)

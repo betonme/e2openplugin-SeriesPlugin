@@ -100,6 +100,9 @@ config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{
 config.plugins.seriesplugin.pattern_file_directories  = ConfigText(default = "/etc/enigma2/seriesplugin_patterns_directories.json", fixed_size = False)
 config.plugins.seriesplugin.pattern_directory         = ConfigText(default = "Disabled", fixed_size = False)
 
+config.plugins.seriesplugin.default_season            = ConfigSelectionNumber(0, 1, 1, default = 1)
+config.plugins.seriesplugin.default_episode           = ConfigSelectionNumber(0, 1, 1, default = 1)
+
 config.plugins.seriesplugin.replace_chars             = ConfigText(default = ":\!/\\,\(\)'\?", fixed_size = False)
 
 config.plugins.seriesplugin.channel_file              = ConfigText(default = "/etc/enigma2/seriesplugin_channels.xml", fixed_size = False)
