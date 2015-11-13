@@ -258,6 +258,8 @@ def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 	return result
 
 # Synchronous call, blocks until we have the information
+loop_data = []
+loop_counter = 0
 def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
 	result = None
 	if config.plugins.seriesplugin.enabled.value:
@@ -267,23 +269,39 @@ def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **
 			data = seriesPlugin.getEpisodeBlocking(
 				name, begin, end, service_ref, future=True
 			)
+			global loop_counter
+			loop_counter += 1
 			if data and len(data) == 4:
 				name = str(refactorTitle(name, data))
 				description = str(refactorDescription(description, data))
 				path = refactorDirectory(path, data)
 				return (name, description, path)
 			elif data:
-				if config.plugins.seriesplugin.timer_popups.value:
-					AddPopup(
-							"SeriesPlugin:\n" + _("SP has been finished with errors:\n") +"\n" +"\n".join(data),
-							MessageBox.TYPE_ERROR,
-							int(config.plugins.seriesplugin.timer_popups_timeout.value),
-							'SP_PopUp_ID_Finished'
-						)
+				global loop_data
+				loop_data.append( str(data) )
 			return str(data)
 		except Exception as e:
 			splog(_("SeriesPlugin label exception ") + str(e))
 	return result
+
+def showResult(*args, **kwargs):
+	global loop_data, loop_counter
+	if not loop_data and config.plugins.seriesplugin.timer_popups_success.value:
+		AddPopup(
+			"SeriesPlugin:\n" + _("%d timer renamed successfully") % (loop_counter),
+			MessageBox.TYPE_ERROR,
+			int(config.plugins.seriesplugin.timer_popups_timeout.value),
+			'SP_PopUp_ID_Finished'
+		)
+	elif loop_data and config.plugins.seriesplugin.timer_popups.value:
+		AddPopup(
+			"SeriesPlugin:\n" + _("SP has been finished with errors:\n") +"\n" +"\n".join(loop_data),
+			MessageBox.TYPE_ERROR,
+			int(config.plugins.seriesplugin.timer_popups_timeout.value),
+			'SP_PopUp_ID_Finished'
+		)
+	loop_data = []
+	loop_counter = 0
 
 # Call asynchronous
 def renameTimer(timer, name, begin, end, *args, **kwargs):
