@@ -29,7 +29,7 @@ from Logger import splog
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "3.3.1"
+VERSION = "3.3.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -129,6 +129,7 @@ config.plugins.seriesplugin.independent_retry         = ConfigYesNo(default = Fa
 
 config.plugins.seriesplugin.check_timer_list          = ConfigYesNo(default = False)
 
+config.plugins.seriesplugin.timer_eit_check           = ConfigYesNo(default = True)
 config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 config.plugins.seriesplugin.timer_popups_success      = ConfigYesNo(default = False)
 config.plugins.seriesplugin.timer_popups_timeout      = ConfigSelectionNumber(-1, 20, 1, default = 3)
