@@ -229,7 +229,7 @@ class Fernsehserien(IdentifierBase):
 		
 		div = soup.find('div', 'gray-bar-header nicht-nochmal')
 		if div and div.string:
-			year = div.string[-4:]
+			year = div.string[7:11]
 			splog( "FS: year by div", year)
 		else:
 			year = self.year
