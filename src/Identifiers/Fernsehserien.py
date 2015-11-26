@@ -114,7 +114,6 @@ class Fernsehserien(IdentifierBase):
 		self.series = ""
 		self.first = None
 		self.last = None
-		self.page = 0
 		
 		self.td_max_time_drift = timedelta(seconds=self.max_time_drift)
 		
@@ -147,17 +146,16 @@ class Fernsehserien(IdentifierBase):
 					# Handle encodings
 					self.series = str_to_utf8(idname)
 					
-					#self.page = 0
 					if self.future:
-						self.page = 0
+						page = 0
 					else:
 						if self.actual_year == self.year:
 							#if self.begin > self.now-timedelta(seconds=3600):
-							self.page = 0
+							page = 0
 							#else:
-							#	self.page = -1
+							#	page = -1
 						else:
-							self.page = 0
+							page = 0
 							
 							year_base_url = EPISODEIDURL % (id, '')
 							splog("FS: year_base_url: ", year_base_url)
@@ -175,15 +173,15 @@ class Fernsehserien(IdentifierBase):
 							splog("FS: redirect_url: ", redirect_url)
 							
 							try:
-								self.page = int( redirect_url.replace(year_base_url,'') )
+								page = int( redirect_url.replace(year_base_url,'') )
 							except:
-								self.page = 0
+								page = 0
 					
 					self.first = None
 					self.last = None
 					
-					while self.page is not None:
-						result = self.getNextPage(id)
+					if page is not None:
+						result = self.getNextPage(id, page)
 						if result:
 							return result
 					
@@ -229,7 +227,7 @@ class Fernsehserien(IdentifierBase):
 		
 		div = soup.find('div', 'gray-bar-header nicht-nochmal')
 		if div and div.string:
-			year = div.string[7:11]
+			year = div.string[6:11]
 			splog( "FS: year by div", year)
 		else:
 			year = self.year
@@ -295,14 +293,18 @@ class Fernsehserien(IdentifierBase):
 				if tds[COL_DATE] == "&nbsp;":
 					if idx > 0:
 						tds[COL_DATE] = trs[idx-1][COL_DATE]
+						if len(tds[COL_DATE]) == 5:
+							tds[COL_DATE] += "." + year
+						elif len(tds[COL_DATE]) == 6:
+							tds[COL_DATE] += year
 		else:
 			splog( "FS: table not found")
 		
 		#splog("FS: ", trs)
 		return trs
 
-	def getNextPage(self, id):
-		url = EPISODEIDURL % (id, self.page)
+	def getNextPage(self, id, page):
+		url = EPISODEIDURL % (id, page)
 		data = self.getPage(url)
 		
 		if data and isinstance(data, basestring):
@@ -329,6 +331,7 @@ class Fernsehserien(IdentifierBase):
 				cust_date += trs[0][-1]
 			#splog("FS: ", cust_date)
 			if len(cust_date) != 15:
+				splog("FS: cust_date, len:", cust_date, len(cust_date))
 				return
 			first = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
 			
@@ -338,6 +341,7 @@ class Fernsehserien(IdentifierBase):
 				cust_date += trs[-1][-1]
 			#splog("FS: ", cust_date)
 			if len(cust_date) != 15:
+				splog("FS: cust_date, len:", cust_date, len(cust_date))
 				return
 			last = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
 			
@@ -345,7 +349,7 @@ class Fernsehserien(IdentifierBase):
 			#last = last + self.td_max_time_drift
 			
 			
-			if self.page != 0:
+			if page != 0:
 				new_page = (self.first != first or self.last != last)
 				splog("FS: getNextPage: first_on_prev_page, first, last_on_prev_page, last, if: ", self.first, first, self.last, last, new_page)
 				self.first = first
@@ -384,6 +388,7 @@ class Fernsehserien(IdentifierBase):
 								cust_date += tds[-1]
 							#splog("FS: ", cust_date)
 							if len(cust_date) != 15:
+								splog("FS: cust_date, len:", cust_date, len(cust_date))
 								continue
 							xbegin = datetime.strptime( cust_date, "%H:%M%d.%m.%Y" )
 							#xend = datetime.strptime( xend+xdate, "%H:%M%d.%m.%Y" )
@@ -446,13 +451,12 @@ class Fernsehserien(IdentifierBase):
 					# TODO calculate next page : use firstrow lastrow datetime
 					if not self.future:
 						if first > self.begin:
-							self.page -= 1
-							return
+							page -= 1
+							return self.getNextPage(id, page)
 					
 					else:
 						if self.begin > last:
-							self.page += 1
-							return
+							page += 1
+							return self.getNextPage(id, page)
 		
-		self.page = None
 		return
