@@ -52,14 +52,6 @@ USER_AGENT = "Enigma2-"+NAME
 try:
 	from Tools.HardwareInfo import HardwareInfo
 	DEVICE = HardwareInfo().get_device_name().strip()
-	
-	# Get Box Info
-	#from Components.Network import iNetwork
-	#self.BoxID = iNetwork.getAdapterAttribute("eth0", "mac")
-	#self.DeviceName = HardwareInfo().get_device_name()
-	#from Components.About import about
-	#self.EnigmaVersion = about.getEnigmaVersionString()
-	#self.ImageVersion = about.getVersionString()
 except:
 	DEVICE = ''
 
@@ -83,8 +75,6 @@ config.plugins.seriesplugin.menu_epg                  = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.menu_channel              = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_movie_info           = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_movie_rename         = ConfigYesNo(default = True)
-
-#TODO config.plugins.seriesplugin.open MessageBox or TheTVDB  ConfigSelection if hasTheTVDB
 
 config.plugins.seriesplugin.identifier_elapsed        = ConfigText(default = "", fixed_size = False)
 config.plugins.seriesplugin.identifier_today          = ConfigText(default = "", fixed_size = False)
@@ -173,8 +163,6 @@ def setup(session, *args, **kwargs):
 		session.open(SeriesPluginConfiguration)
 	except Exception as e:
 		splog(_("SeriesPlugin setup exception ") + str(e))
-		#exc_type, exc_value, exc_traceback = sys.exc_info()
-		#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
@@ -185,8 +173,6 @@ def info(session, service=None, event=None, *args, **kwargs):
 			session.open(SeriesPluginInfoScreen, service, event)
 		except Exception as e:
 			splog(_("SeriesPlugin info exception ") + str(e))
-			#exc_type, exc_value, exc_traceback = sys.exc_info()
-			#splog( exc_type, exc_value, exc_traceback )
 
 
 #######################################################
