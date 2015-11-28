@@ -174,7 +174,7 @@ class SeriesPluginTimer(object):
 			
 			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 			
-			timer.tag.append(TAG)
+			timer.tags.append(TAG)
 		
 		elif data:
 			timer.log(611, "[SeriesPlugin] Failed: %s." % ( str( data ) ))
