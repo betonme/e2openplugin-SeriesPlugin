@@ -319,7 +319,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 	
 	def getEpisodeBlocking(self, name, begin, end=None, service=None, future=False, today=False, elapsed=False, rename=False):
 		
-		return self.getEpisode(callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False, rename=False, block=True)
+		return self.getEpisode(None, name, begin, end, service, future, today, elapsed, rename, block=True)
 
 	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False, rename=False, block=False):
 		
@@ -346,6 +346,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		
 		begin = datetime.fromtimestamp(begin)
 		splog("SP: Main: begin:", begin.strftime('%Y-%m-%d %H:%M:%S'))
+		
 		end = datetime.fromtimestamp(end)
 		splog("SP: Main: end:", end.strftime('%Y-%m-%d %H:%M:%S'))
 		
