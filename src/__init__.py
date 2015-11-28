@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from Components.config import config, ConfigSubsection, ConfigEnableDisable, ConfigNumber, ConfigSelection, ConfigYesNo, ConfigText, ConfigSelectionNumber
+from Components.config import config, ConfigSubsection, ConfigOnOff, ConfigNumber, ConfigSelection, ConfigYesNo, ConfigText, ConfigSelectionNumber
 from Components.Language import language
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS, SCOPE_LANGUAGE
 from os import environ as os_environ
@@ -11,7 +11,7 @@ import gettext
 # Initialize Configuration
 config.plugins.seriesplugin = ConfigSubsection()
 
-config.plugins.seriesplugin.enabled                   = ConfigEnableDisable(default = False)
+config.plugins.seriesplugin.enabled                   = ConfigOnOff(default = False)
 
 config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
