@@ -146,6 +146,16 @@ def start(reason, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		# Startup
 		if reason == 0:
+			
+			#TEST
+			#if kwargs.has_key("session"):
+			#	print "#################################### TEST ######################################"
+			#	session = kwargs["session"]
+			#	from enigma import eServiceReference
+			#	service = eServiceReference(eServiceReference.idDVB, 0, "/media/hdd/movie/20151120 0139 - Pro7 HD - The 100.ts")
+			#	movielist_info(session, service)
+			#TESTEND
+
 			# Start on demand if it is requested
 			if config.plugins.seriesplugin.autotimer_independent.value:
 				startIndependent()
@@ -324,7 +334,6 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 def Plugins(**kwargs):
 	descriptors = []
 	
-	#TODO icon
 	descriptors.append( PluginDescriptor(
 											name = NAME + " " + _("Setup"),
 											description = NAME + " " + _("Setup"),
@@ -337,8 +346,7 @@ def Plugins(**kwargs):
 		overwriteAutoTimer()
 		
 		descriptors.append( PluginDescriptor(
-													#where = PluginDescriptor.WHERE_SESSIONSTART,
-													where = PluginDescriptor.WHERE_AUTOSTART,
+													where = PluginDescriptor.WHERE_SESSIONSTART,
 													needsRestart = False,
 													fnc = start) )
 
@@ -404,7 +412,7 @@ def Plugins(**kwargs):
 EPGSelection_enterDateTime = None
 #EPGSelection_openOutdatedEPGSelection = None
 def SPEPGSelectionInit():
-	print "SeriesPlugin override EPGSelection"
+	print "[SeriesPlugin] override EPGSelection"
 	global EPGSelection_enterDateTime #, EPGSelection_openOutdatedEPGSelection
 	if EPGSelection_enterDateTime is None: # and EPGSelection_openOutdatedEPGSelection is None:
 		from Screens.EpgSelection import EPGSelection
@@ -415,7 +423,7 @@ def SPEPGSelectionInit():
 		EPGSelection.SPcloseafterfinish = closeafterfinish
 
 def SPEPGSelectionUndo():
-	print "SeriesPlugin undo override EPGSelection"
+	print "[SeriesPlugin] undo override EPGSelection"
 	global EPGSelection_enterDateTime #, EPGSelection_openOutdatedEPGSelection
 	if EPGSelection_enterDateTime: # and EPGSelection_openOutdatedEPGSelection:
 		from Screens.EpgSelection import EPGSelection
