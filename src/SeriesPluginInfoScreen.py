@@ -274,6 +274,7 @@ class SeriesPluginInfoScreen(Screen):
 		identifier = self.seriesPlugin.getIdentifier(False, today, elapsed)
 		if identifier:
 			path = os.path.join(PIXMAP_PATH, identifier+".png")
+			
 			if self.session and os.path.exists(path):
 				self.loadPixmap("logo", path )
 		try:

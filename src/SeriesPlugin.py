@@ -29,7 +29,7 @@ from Screens.MessageBox import MessageBox
 
 # Plugin internal
 from IdentifierBase import IdentifierBase
-from Logger import splog
+from Logger import splog, initLog
 from Channels import ChannelsBase
 from ThreadQueue import ThreadQueue
 from threading import Thread, currentThread, _get_ident
@@ -62,6 +62,8 @@ def getInstance():
 	global instance
 	
 	if instance is None:
+		
+		initLog()
 		
 		from plugin import VERSION
 		
