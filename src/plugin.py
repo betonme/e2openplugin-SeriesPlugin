@@ -147,13 +147,17 @@ def start(reason, **kwargs):
 		# Startup
 		if reason == 0:
 			
-			#TEST
+			#TEST AUTOTIMER
+			#from SeriesPluginBare import bareGetSeasonEpisode
+			#bareGetSeasonEpisode("1:0:19:7C:6:85:FFFF0000:0:0:0:", "The Walking Dead", 1448740500, 1448745600, "Description", "/media/hdd/movie")
+			
+			#TEST INFOSCREEN MOVIE
 			#if kwargs.has_key("session"):
-			#	print "#################################### TEST ######################################"
-			#	session = kwargs["session"]
 			#	from enigma import eServiceReference
+			#	session = kwargs["session"]
 			#	service = eServiceReference(eServiceReference.idDVB, 0, "/media/hdd/movie/20151120 0139 - Pro7 HD - The 100.ts")
 			#	movielist_info(session, service)
+			
 			#TESTEND
 
 			# Start on demand if it is requested
@@ -244,61 +248,20 @@ def movielist_info(session, service, *args, **kwargs):
 # Timer renaming
 
 # Synchronous call, blocks until we have the information
-def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
-	result = None
+def getSeasonEpisode4(service_ref, name, begin, end, description, path, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
+		from SeriesPluginBare import bareGetSeasonEpisode
 		try:
-			spt = SeriesPluginTimer(timer, name, begin, end, True)
-			result = spt.getSeasonAndEpisode(timer, name, begin, end)
+			return bareGetSeasonEpisode(service_ref, name, begin, end, description, path)
 		except Exception as e:
-			splog(_("SeriesPlugin label exception ") + str(e))
-	return result
-
-# Synchronous call, blocks until we have the information
-loop_data = []
-loop_counter = 0
-def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
-	result = None
-	if config.plugins.seriesplugin.enabled.value:
-		try:
-			from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
-			seriesPlugin = getInstance()
-			data = seriesPlugin.getEpisodeBlocking(
-				name, begin, end, service_ref, future=True
-			)
-			global loop_counter
-			loop_counter += 1
-			if data and len(data) == 4:
-				name = str(refactorTitle(name, data))
-				description = str(refactorDescription(description, data))
-				path = refactorDirectory(path, data)
-				return (name, description, path)
-			elif data:
-				global loop_data
-				loop_data.append( str(data) )
-			return str(data)
-		except Exception as e:
-			splog(_("SeriesPlugin label exception ") + str(e))
-	return result
+			splog( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
+			return str(e)
 
 def showResult(*args, **kwargs):
-	global loop_data, loop_counter
-	if not loop_data and config.plugins.seriesplugin.timer_popups_success.value:
-		AddPopup(
-			"SeriesPlugin:\n" + _("%d timer renamed successfully") % (loop_counter),
-			MessageBox.TYPE_ERROR,
-			int(config.plugins.seriesplugin.timer_popups_timeout.value),
-			'SP_PopUp_ID_Finished'
-		)
-	elif loop_data and config.plugins.seriesplugin.timer_popups.value:
-		AddPopup(
-			"SeriesPlugin:\n" + _("SP has been finished with errors:\n") +"\n" +"\n".join(loop_data),
-			MessageBox.TYPE_ERROR,
-			int(config.plugins.seriesplugin.timer_popups_timeout.value),
-			'SP_PopUp_ID_Finished'
-		)
-	loop_data = []
-	loop_counter = 0
+	if config.plugins.seriesplugin.enabled.value:
+		from SeriesPluginBare import bareShowResult
+		bareShowResult()
+
 
 # Call asynchronous
 def renameTimer(timer, name, begin, end, *args, **kwargs):
@@ -327,6 +290,31 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 		except Exception as e:
 			splog(_("SeriesPlugin label exception ") + str(e))
+
+def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
+	result = None
+	if config.plugins.seriesplugin.enabled.value:
+		splog("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
+		try:
+			spt = SeriesPluginTimer(timer, name, begin, end, True)
+			result = spt.getSeasonAndEpisode(timer, name, begin, end)
+		except Exception as e:
+			splog(_("SeriesPlugin label exception ") + str(e))
+	return result
+
+def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
+	if config.plugins.seriesplugin.enabled.value:
+		splog("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
+		from SeriesPluginBare import bareGetSeasonEpisode
+		try:
+			result = bareGetSeasonEpisode(service_ref, name, begin, end, description, path)
+			if result and len(result) == 3:
+				return (result[0],result[1],result[2])
+			else:
+				return str(result)
+		except Exception as e:
+			splog( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
+			return str(e)
 
 
 #######################################################
