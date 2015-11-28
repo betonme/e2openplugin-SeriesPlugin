@@ -29,6 +29,10 @@ from Logger import splog
 # Do we have to cleanup it
 cache = {}
 
+def clearCache():
+	global cache
+	cache = {}
+
 
 class Cacher(object):
 	def __init__(self):

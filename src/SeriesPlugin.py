@@ -112,9 +112,8 @@ def resetInstance():
 		instance.stop()
 		instance = None
 	
-	from Cacher import cache
-	global cache
-	cache = {}
+	from Cacher import clearCache
+	clearCache()
 
 
 def refactorTitle(org, data):
