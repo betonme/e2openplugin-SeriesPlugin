@@ -8,7 +8,7 @@ from Tools.Notifications import AddPopup
 
 # Plugin internal
 from SeriesPluginTimer import SeriesPluginTimer
-#from Logger import splog
+from Logger import splog, getLog, startLog
 
 
 loop_data = []
@@ -18,6 +18,8 @@ loop_counter = 0
 def bareGetSeasonEpisode(service_ref, name, begin, end, description, path):
 	result = None
 	if config.plugins.seriesplugin.enabled.value:
+		
+		startLog()
 		
 		from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
 		seriesPlugin = getInstance()
@@ -32,8 +34,7 @@ def bareGetSeasonEpisode(service_ref, name, begin, end, description, path):
 			name = str(refactorTitle(name, data))
 			description = str(refactorDescription(description, data))
 			path = refactorDirectory(path, data)
-			#return (name, description, path, getLog())
-			return (name, description, path, "")
+			return (name, description, path, getLog())
 		elif data:
 			global loop_data
 			loop_data.append( str(data) )

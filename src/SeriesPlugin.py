@@ -249,7 +249,6 @@ class SeriesPluginWorker(Thread):
 			# NOTE: we have to check this here and not using the while to prevent the parser to be started on shutdown
 			if not self.__running: break
 			
-			
 			splog('SP: Worker is processing')
 			
 			item = self.__queue.pop()
