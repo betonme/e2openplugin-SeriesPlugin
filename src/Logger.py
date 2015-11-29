@@ -25,8 +25,6 @@ import os, sys, traceback
 
 from Components.config import config
 
-from Screens.MessageBox import MessageBox
-
 localLog = False
 log = ""
 logger = None
@@ -76,8 +74,9 @@ def getLog():
 def splog(*args):
 	strargs = " ".join( [ str(arg) for arg in args ] )
 	
-	global log
-	log += "&#13;&#10;" + strargs
+	global log, localLog
+	if localLog:
+		log += "&#13;&#10;" + strargs
 	
 	global logger
 	if logger:
@@ -85,3 +84,5 @@ def splog(*args):
 	
 	elif config.plugins.seriesplugin.debug_prints.value:
 		print strargs
+
+initLog()
