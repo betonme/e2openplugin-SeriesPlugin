@@ -147,7 +147,7 @@ class Fernsehserien(IdentifierBase):
 			return msg
 		
 		
-		logInfo("Fernsehserien getEpisode, name, begin, end=None, service", name, begin, end, service)
+		logInfo("FS: getEpisode, name, begin, end=None, service", name, begin, end, service)
 		
 		self.begin = begin
 		#self.date = str(begin.month) + "." + str(begin.day) + "."
@@ -172,7 +172,7 @@ class Fernsehserien(IdentifierBase):
 			self.direction = True
 		else:
 			self.direction = False
-		logDebug("FS: Fernsehserien getEpisode direction", self.direction)
+		logDebug("FS: getEpisode direction", self.direction)
 		
 		
 		while name:	
@@ -186,7 +186,7 @@ class Fernsehserien(IdentifierBase):
 					
 					# Handle encodings
 					self.series = str_to_utf8(idname)
-					logInfo("Possible matched series:", self.series)
+					logInfo("FS: Possible matched series:", self.series)
 					
 					if self.direction:
 						# The future starts now
@@ -502,7 +502,7 @@ class Fernsehserien(IdentifierBase):
 						# delta is an absolute value so we can just do a smaller than check
 						if delta <= self.max_time_drift:
 							
-							logInfo("Possible match witch channel: ", tds[COL_CHANNEL])
+							logInfo("FS: Possible match witch channel: ", tds[COL_CHANNEL])
 							if self.compareChannels(self.service, tds[COL_CHANNEL]):
 								
 								if delta < ydelta:
@@ -529,7 +529,7 @@ class Fernsehserien(IdentifierBase):
 							
 							if delta <= 600:
 								# Compare channels?
-								logInfo("Max time trift exceeded", delta)
+								logInfo("FS: Max time trift exceeded", delta)
 					
 					if yepisode:
 						return ( yepisode )
@@ -558,7 +558,7 @@ class Fernsehserien(IdentifierBase):
 							return self.getNextPage(id, page-1)
 
 		else:
-			logInfo("No data returned")
+			logInfo("FS: No data returned")
 		
 		# Nothing found
 		return
