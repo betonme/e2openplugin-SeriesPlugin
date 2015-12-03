@@ -54,12 +54,14 @@ try:
 except:
 	DEVICE = ''
 
+REQUEST_PARAMETER = "?device=" + DEVICE + "&version=SP" + VERSION
+
 WHERE_EPGMENU     = 'WHERE_EPGMENU'
 WHERE_CHANNELMENU = 'WHERE_CHANNELMENU'
 
 
 def buildURL(url):
-	return PROXY + "?device=" + DEVICE + "&version=" + VERSION + "&url=" + url
+	return PROXY + REQUEST_PARAMETER + "&url=" + url
 
 
 #######################################################

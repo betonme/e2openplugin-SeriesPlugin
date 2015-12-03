@@ -33,7 +33,8 @@ class SerienServer(IdentifierBase):
 		
 		# Check dependencies
 		if xmlrpclib is not None:
-			self.server = xmlrpclib.ServerProxy(SERIEN_SERVER_URL, verbose=False)
+			from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
+			self.server = xmlrpclib.ServerProxy(SERIEN_SERVER_URL + REQUEST_PARAMETER, verbose=False)
 
 	@classmethod
 	def knowsElapsed(cls):
