@@ -236,7 +236,7 @@ def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **
 		from SeriesPluginBare import bareGetSeasonEpisode
 		try:
 			result = bareGetSeasonEpisode(service_ref, name, begin, end, description, path)
-			if result and len(result) == 3:
+			if result and len(result) == 4:
 				return (result[0],result[1],result[2])
 			else:
 				return str(result)
