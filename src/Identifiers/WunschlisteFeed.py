@@ -146,6 +146,9 @@ class WunschlisteFeed(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
+	def getName():
+		return "Wunschliste"
+
 	def getEpisode(self, name, begin, end=None, service=None):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
