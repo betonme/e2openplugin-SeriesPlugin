@@ -21,6 +21,8 @@ from Plugins.Extensions.SeriesPlugin import _
 # Constants
 SERIEN_SERVER_URL = 'http://serienrecorder.lima-city.de/cache.php'
 
+CompiledRegexpReplaceChars = re.compile("[^a-zA-Z0-9-\*]")
+
 try:
 	import xmlrpclib
 except ImportError as ie:
@@ -48,7 +50,7 @@ class SerienServer(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getName():
+	def getName(self):
 		return "Wunschliste"
 
 	def getEpisode(self, name, begin, end=None, service=None):
@@ -88,7 +90,7 @@ class SerienServer(IdentifierBase):
 		logInfo("SerienServer getEpisode, name, begin, end=None, service", name, begin, end, service)
 		
 		# Prepare parameters
-		name = re.sub("[^a-zA-Z0-9-*]", " ", name.lower())
+		name = CompiledRegexpReplaceChars.sub("_", name.lower())
 		webChannels = self.lookupChannelByReference(service)
 		unixtime = str(int(mktime(begin.timetuple())))
 		max_time_drift = self.max_time_drift

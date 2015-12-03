@@ -146,7 +146,7 @@ class WunschlisteFeed(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getName():
+	def getName(self):
 		return "Wunschliste"
 
 	def getEpisode(self, name, begin, end=None, service=None):
