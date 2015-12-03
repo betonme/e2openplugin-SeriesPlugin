@@ -70,7 +70,11 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase):
 		
 		self.search_depth += 1
 		if( self.search_depth < config.plugins.seriesplugin.search_depths.value ):
-			alt = " ".join(name.split(" ")[:-1])
+			
+			if self.search_depth == 1:
+				alt = " ".join(name.split("-")[:-1]).strip()
+			else:
+				alt = " ".join(name.split(" ")[:-1])
 			
 			# Avoid searchs with: The, Der, Die, Das...
 			if len(alt) > 3:
