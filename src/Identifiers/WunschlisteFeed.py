@@ -2,17 +2,16 @@
 # by betonme @2012
 
 # Imports
+import re
+
 from Components.config import config
 
 from Tools.BoundFunction import boundFunction
 
 from urllib import urlencode
 
-from HTMLParser import HTMLParser
-
 from datetime import datetime
 
-import re
 from sys import maxint
 
 # Internal
@@ -20,11 +19,15 @@ from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
 from Plugins.Extensions.SeriesPlugin import _
 
-from iso8601 import parse_date
+try:
+	from HTMLParser import HTMLParser
+except ImportError as ie:
+	HTMLParser = None
 
-#import codecs
-#utf8_encoder = codecs.getencoder("utf-8")
-
+try:
+	from iso8601 import parse_date
+except ImportError as ie:
+	parse_date = None
 
 # Constants
 SERIESLISTURL     = "http://www.wunschliste.de/ajax/search_dropdown.pl?"
@@ -147,22 +150,41 @@ class WunschlisteFeed(IdentifierBase):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
 		
+		
+		# Check dependencies
+		if HTMLParser is None:
+			msg = _("Error install")  + " HTMLParser"
+			logInfo(msg)
+			return msg
+		if parse_date is None:
+			msg = _("Error install")  + " parse_date"
+			logInfo(msg)
+			return msg
+		
+		
+		# Check preconditions
+		if not name:
+			msg =_("Skip: No show name specified")
+			logInfo(msg)
+			return msg
+		if not begin:
+			msg = _("Skip: No begin timestamp specified")
+			logInfo(msg)
+			return msg
+		if not service:
+			msg = _("Skip: No service specified")
+			logInfo(msg)
+			return msg
+		
+		
+		logInfo("WunschlisteFeed getEpisode, name, begin, end=None, service", name, begin, end, service)
+		
 		self.begin = begin
 		self.end = end
 		self.service = service
 		
 		self.knownids = []
 		self.returnvalue = None
-		
-		# Check preconditions
-		if not name:
-			logInfo(_("Skip Wunschliste: No show name specified"))
-			return _("Skip Wunschliste: No show name specified")
-		if not begin:
-			logInfo(_("Skip Wunschliste: No begin timestamp specified"))
-			return _("Skip Wunschliste: No begin timestamp specified")
-		
-		logInfo("WunschlisteFeed getEpisode, name, begin, end=None, service", name, begin, end, service)
 		
 		while name:	
 			ids = self.getSeries(name)
@@ -252,8 +274,9 @@ class WunschlisteFeed(IdentifierBase):
 						#Py2.6
 						delta = abs(self.begin - xbegin)
 						delta = delta.seconds + delta.days * 24 * 3600
-						#Py2.7 delta = abs(self.begin - xbegin).total_seconds()
-						logDebug(self.begin, xbegin, delta, self.max_time_drift)
+						#Py2.7
+						#delta = abs(self.begin - xbegin).total_seconds()
+						logDebug("WLF:", self.begin, '-', xbegin, '-', delta, '-', self.max_time_drift)
 						
 						if delta <= self.max_time_drift:
 							result = CompiledRegexpAtomChannel.search(xtitle)
@@ -310,8 +333,19 @@ class WunschlisteFeed(IdentifierBase):
 								else:
 									self.returnvalue = _("Check the channel name")
 								
-						elif yepisode:
-							break
+						else:
+							if yepisode:
+								return ( yepisode )
+							
+							if delta <= 600:
+								# Compare channels?
+								logInfo("Max time trift exceeded", delta)
 			
 			if yepisode:
 				return ( yepisode )
+
+		else:
+			logInfo("No data returned")
+		
+		# Nothing found
+		return
