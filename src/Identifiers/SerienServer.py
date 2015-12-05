@@ -90,7 +90,7 @@ class SerienServer(IdentifierBase):
 		logInfo("SerienServer getEpisode, name, begin, end=None, service", name, begin, end, service)
 		
 		# Prepare parameters
-		name = CompiledRegexpReplaceChars.sub("_", name.lower())
+		name = CompiledRegexpReplaceChars.sub(" ", name.lower())
 		webChannels = self.lookupChannelByReference(service)
 		unixtime = str(int(mktime(begin.timetuple())))
 		max_time_drift = self.max_time_drift
