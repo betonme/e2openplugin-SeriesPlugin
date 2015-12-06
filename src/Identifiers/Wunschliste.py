@@ -43,7 +43,7 @@ EPISODEIDURLPRINT = "http://www.wunschliste.de/epg_print.pl?"
 # Gute Zeiten, schlechte Zeiten: Folgen 4985 - 4988 (21.84) - Sa 05.05., 11.00:00 Uhr / RTL
 #CompiledRegexpPrintTitle = re.compile( '(\(.*\) )?(.+)')
 
-CompiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)')
+CompiledRegexpEpisode = re.compile( '((\d+)[\.x])?(\d+)' )
 
 
 def str_to_utf8(s):

@@ -72,7 +72,10 @@ class IdentifierBase(ModuleBase, Cacher, ChannelsBase):
 		if( self.search_depth < config.plugins.seriesplugin.search_depths.value ):
 			
 			if self.search_depth == 1:
-				alt = " ".join(name.split("-")[:-1]).strip()
+				if name.find("-") != -1:
+					alt = " ".join(name.split("-")[:-1]).strip()
+				else:
+					alt = " ".join(name.split(" ")[:-1])
 			else:
 				alt = " ".join(name.split(" ")[:-1])
 			
