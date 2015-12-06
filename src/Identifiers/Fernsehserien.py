@@ -55,7 +55,7 @@ COL_EPISODE = 3
 COL_DATETIME = 4
 COL_SIZE = 5
 
-CompiledRegexpNonASCII = re.compile('\xe2\x80.')
+CompiledRegexpNonASCII = re.compile('\xe2\x80')
 
 
 def str_to_utf8(s):
@@ -288,7 +288,7 @@ class Fernsehserien(IdentifierBase):
 		# On some pages the date is listed without the year
 		div = soup.find('div', 'gray-bar-header nicht-nochmal')
 		if div and div.string:
-			year_of_page = div.string[6:11].strip()
+			year_of_page = int( div.string[6:11].strip() )
 			logDebug( "FS: year by div", year_of_page)
 		else:
 			year_of_page = self.year
@@ -341,17 +341,17 @@ class Fernsehserien(IdentifierBase):
 									# 01.01.2015 - 01
 									if prev_month == 12 and act_month == 1:
 										# Next year
-										year = year_of_page + 1
+										year = str(year_of_page + 1)
 									
 									# 01.01.2015 - 01
 									# 31.12.2014 - 12
 									elif prev_month == 1 and act_month == 12:
 										# Next year
-										year = year_of_page + 1
+										year = str(year_of_page + 1)
 									
 									else:
 										# Default to same year
-										year = year_of_page
+										year = str(year_of_page)
 									
 									prev_month = act_month
 									
