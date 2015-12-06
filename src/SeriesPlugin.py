@@ -52,7 +52,7 @@ SERIESPLUGIN_PATH  = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/S
 instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]+')
-CompiledRegexpReplaceChars = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+CompiledRegexpReplaceChars = None
 CompiledRegexpReplaceDirChars = re.compile('[^/\w\-_\. ]')
 
 def dump(obj):
@@ -99,7 +99,11 @@ def getInstance():
 			sys.exc_clear()
 		
 		global CompiledRegexpReplaceChars
-		CompiledRegexpReplaceChars = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+		try:
+			CompiledRegexpReplaceChars = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+		except:
+			logInfo( "SP: Config option 'Replace Chars' is no valid regular expression" )
+			CompiledRegexpReplaceChars = re.compile("[:\!/\\,\(\)'\?]")
 		
 		instance = SeriesPlugin()
 		
