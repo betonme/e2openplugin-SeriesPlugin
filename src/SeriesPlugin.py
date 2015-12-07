@@ -29,7 +29,7 @@ from Screens.MessageBox import MessageBox
 
 # Plugin internal
 from IdentifierBase import IdentifierBase
-from Logger import logDebug, initLog
+from Logger import logDebug, initLog, logInfo
 from Channels import ChannelsBase
 from ThreadQueue import ThreadQueue
 from threading import Thread, currentThread, _get_ident
