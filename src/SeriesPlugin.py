@@ -100,7 +100,8 @@ def getInstance():
 		
 		global CompiledRegexpReplaceChars
 		try:
-			CompiledRegexpReplaceChars = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
+			if config.plugins.seriesplugin.replace_chars.value:
+				CompiledRegexpReplaceChars = re.compile('['+config.plugins.seriesplugin.replace_chars.value.replace("\\", "\\\\\\\\")+']')
 		except:
 			logInfo( "SP: Config option 'Replace Chars' is no valid regular expression" )
 			CompiledRegexpReplaceChars = re.compile("[:\!/\\,\(\)'\?]")
@@ -126,7 +127,7 @@ def resetInstance():
 
 
 def refactorTitle(org_, data):
-	if config.plugins.seriesplugin.replace_chars.value:
+	if CompiledRegexpReplaceChars:
 		org = CompiledRegexpReplaceChars.sub('', org_)
 		logDebug("SP: refactor title org", org_, org)
 	else:
@@ -144,7 +145,7 @@ def refactorTitle(org_, data):
 		return org
 
 def refactorDescription(org_, data):
-	if config.plugins.seriesplugin.replace_chars.value:
+	if CompiledRegexpReplaceChars:
 		org = CompiledRegexpReplaceChars.sub('', org_)
 		logDebug("SP: refactor desc", org_, org)
 	else:
@@ -161,12 +162,7 @@ def refactorDescription(org_, data):
 	else:
 		return org
 
-def refactorDirectory(org_, data):
-	if config.plugins.seriesplugin.replace_chars.value:
-		org = CompiledRegexpReplaceChars.sub('', org_)
-		logDebug("SP: refactor dir", org_, org)
-	else:
-		org = org_
+def refactorDirectory(org, data):
 	if data:
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_directory.value and not config.plugins.seriesplugin.pattern_directory.value == "Off" and not config.plugins.seriesplugin.pattern_directory.value == "Disabled":
@@ -188,7 +184,7 @@ def normalizeResult(result):
 		episode = int(CompiledRegexpNonDecimal.sub('', episode))
 		title_ = title_.strip()
 		series_ = series_.strip()
-		if config.plugins.seriesplugin.replace_chars.value:
+		if CompiledRegexpReplaceChars:
 			title = CompiledRegexpReplaceChars.sub('', title_)
 			logDebug("SP: normalize title", title_, title)
 			
