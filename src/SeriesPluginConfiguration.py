@@ -43,7 +43,7 @@ from SeriesPlugin import resetInstance, getInstance
 from SeriesPluginIndependent import startIndependent, stopIndependent
 from FilePatterns import readFilePatterns
 from DirectoryPatterns import readDirectoryPatterns
-from Logger import logDebug
+from Logger import logDebug, logInfo
 from ShowLogScreen import ShowLogScreen
 from Channels import getTVBouquets
 from ChannelEditor import ChannelEditor

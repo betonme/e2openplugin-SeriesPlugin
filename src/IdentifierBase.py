@@ -31,7 +31,7 @@ from Tools.BoundFunction import boundFunction
 from ModuleBase import ModuleBase
 from Cacher import Cacher
 from Channels import ChannelsBase
-from Logger import logDebug
+from Logger import logDebug, logInfo
 
 
 class MyException(Exception):

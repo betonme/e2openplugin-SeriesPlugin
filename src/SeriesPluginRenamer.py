@@ -38,7 +38,7 @@ from ServiceReference import ServiceReference
 
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
-from Logger import logDebug
+from Logger import logDebug, logInfo
 
 CompiledRegexpGlobEscape = re.compile('([\[\]\?*])')  # "[\\1]"
 
