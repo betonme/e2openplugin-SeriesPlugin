@@ -341,13 +341,15 @@ class Fernsehserien(IdentifierBase):
 									# 01.01.2015 - 01
 									if prev_month == 12 and act_month == 1:
 										# Next year
-										year = str(year_of_page + 1)
+										year_of_page += 1
+										year = str(year_of_page)
 									
 									# 01.01.2015 - 01
 									# 31.12.2014 - 12
 									elif prev_month == 1 and act_month == 12:
-										# Next year
-										year = str(year_of_page + 1)
+										# Previous year
+										year_of_page -= 1
+										year = str(year_of_page)
 									
 									else:
 										# Default to same year
