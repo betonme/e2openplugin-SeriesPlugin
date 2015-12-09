@@ -278,7 +278,7 @@ class SeriesPluginInfoScreen(Screen):
 			if self.session and os.path.exists(path):
 				self.loadPixmap("logo", path )
 		try:
-			logDebug("SPI: getEpisode:", name, begin, end, ref)
+			logDebug("SPI: getEpisode:", self.name, begin, end, ref)
 			identifier = self.seriesPlugin.getEpisode(
 					self.episodeCallback, 
 					self.name, begin, end, ref, today=today, elapsed=elapsed
