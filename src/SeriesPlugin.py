@@ -112,12 +112,6 @@ def getInstance():
 	
 	return instance
 
-def stopWorker():
-	global instance
-	if instance is not None:
-		logDebug("SP: SERIESPLUGIN STOP WORKER")
-		instance.stop()
-
 def resetInstance():
 	if config.plugins.seriesplugin.lookup_counter.isChanged():
 		config.plugins.seriesplugin.lookup_counter.save()
