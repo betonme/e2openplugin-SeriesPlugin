@@ -275,8 +275,6 @@ def Plugins(**kwargs):
 	
 	if config.plugins.seriesplugin.enabled.value:
 		
-		overwriteAutoTimer()
-		
 		descriptors.append( PluginDescriptor(
 													where = PluginDescriptor.WHERE_SESSIONSTART,
 													needsRestart = False,
@@ -478,57 +476,3 @@ def removeSeriesPlugin(menu, title):
 				if p.name == title:
 					plugins.plugins[ menu ].remove(p)
 					break
-
-
-#######################################################
-# Overwrite AutoTimer support functions
-
-try:
-	from Plugins.Extensions.AutoTimer.AutoTimer import AutoTimer
-	#from Plugins.Extensions.AutoTimer.plugin import autotimer as AutoTimer
-except:
-	AutoTimer = None
-
-ATmodifyTimer = None
-
-
-def overwriteAutoTimer():
-	try:
-		global ATmodifyTimer
-		if AutoTimer:
-			if ATmodifyTimer is None:
-				# Backup original function
-				ATmodifyTimer = AutoTimer.modifyTimer
-				# Overwrite function
-				AutoTimer.modifyTimer = SPmodifyTimer
-	except:
-		logDebug("SeriesPlugin found old AutoTimer")
-
-
-def recoverAutoTimer():
-	try:
-		global ATmodifyTimer
-		if AutoTimer:
-			if ATmodifyTimer:
-				AutoTimer.modifyTimer = ATmodifyTimer
-				ATmodifyTimer = None
-	except:
-		logDebug("SeriesPlugin found old AutoTimer")
-
-
-#######################################################
-# Customized support functions
-
-from difflib import SequenceMatcher
-from ServiceReference import ServiceReference
-
-def SPmodifyTimer(self, timer, name, shortdesc, begin, end, serviceref, eit=None):
-	# Never overwrite existing names, You will lose Your series informations
-	#timer.name = name
-	# Only overwrite non existing descriptions
-	#timer.description = timer.description or shortdesc
-	timer.begin = int(begin)
-	timer.end = int(end)
-	timer.service_ref = ServiceReference(serviceref)
-	if eit:
-		timer.eit = eit
