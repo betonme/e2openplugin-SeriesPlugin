@@ -92,6 +92,7 @@ def test(**kwargs):
 		#from SeriesPluginBare import bareGetSeasonEpisode
 		#bareGetSeasonEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One", 1448751000, 1448754000, "Description", "/media/hdd/movie", False, False, True)
 		#bareGetSeasonEpisode("1:0:19:8150:14B:270F:FFFF0000:0:0:0:", "Dragons Auf zu neuen Ufern TEST_TO_BE_REMOVED", 1449390300, 1449393300, "Description", "/media/hdd/movie", False, False, True)
+		pass
 		
 	except Exception as e:
 		logDebug(_("SeriesPlugin test exception ") + str(e))
