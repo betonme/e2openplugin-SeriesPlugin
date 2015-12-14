@@ -437,7 +437,8 @@ class SeriesPlugin(Modules, ChannelsBase):
 
 	def stop(self):
 		logDebug("SP: Main: stop")
-		self.thread.stop()
+		if self.thread:
+			self.thread.stop()
 		# NOTE: while we don't need to join the thread, we should do so in case it's currently parsing
 		#self.thread.join()
 		
