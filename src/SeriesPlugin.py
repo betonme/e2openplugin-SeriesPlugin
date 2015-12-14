@@ -186,8 +186,8 @@ def normalizeResult(result):
 	if result and len(result) == 4:
 		logDebug("SP: Worker: result callback")
 		season, episode, title_, series_ = result
-		season = int(CompiledRegexpNonDecimal.sub('', season))
-		episode = int(CompiledRegexpNonDecimal.sub('', episode))
+		season = int(CompiledRegexpNonDecimal.sub('', str(season)))
+		episode = int(CompiledRegexpNonDecimal.sub('', str(episode)))
 		title_ = title_.strip()
 		series_ = series_.strip()
 		if CompiledRegexpReplaceChars:
