@@ -344,7 +344,8 @@ class SeriesPlugin(Modules, ChannelsBase):
 				import NavigationInstance
 				if NavigationInstance.instance.RecordTimer.isRecording():
 					logDebug("SP: Main: Skip check during running records")
-					callback( "Skip check during running records (Can be disabled)" )
+					if callable(callback):
+						callback( "Skip check during running records (Can be disabled)" )
 					return
 			except:
 				pass
@@ -376,10 +377,12 @@ class SeriesPlugin(Modules, ChannelsBase):
 			identifier = None
 		
 		if not identifier:
-			callback( "Error: No identifier available" )
+			if callable(callback):
+				callback( "Error: No identifier available" )
 		
 		elif identifier.channelsEmpty():
-			callback( "Error: Open setup and channel editor" )
+			if callable(callback):
+				callback( "Error: Open setup and channel editor" )
 		
 		else:
 			# Reset title search depth on every new request
