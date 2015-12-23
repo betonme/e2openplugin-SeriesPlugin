@@ -101,6 +101,11 @@ def str_to_utf8(s):
 			logDebug("WLF: str_to_utf8 except encode ISO-8859-1 ignore: s: ", repr(s))
 	return s
 
+def series_to_utf8(s):
+	logDebug("WLP: series_to_utf8: s: ", repr(s))
+	s = s.encode('utf-8')
+	logDebug("WLP: series_to_utf8 encode: s: ", repr(s))
+	return s
 
 class WLAtomParser(HTMLParser):
 	def __init__(self):
@@ -199,7 +204,7 @@ class WunschlisteFeed(IdentifierBase):
 					id, idname = idserie
 					
 					# Handle encodings
-					self.series = str_to_utf8(idname)
+					self.series = series_to_utf8(idname)
 					logInfo("WLF: Possible matched series:", self.series)
 					
 					result = self.getNextPage( id )
