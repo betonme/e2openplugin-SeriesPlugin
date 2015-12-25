@@ -294,7 +294,9 @@ class ChannelsBase(ChannelsFile):
 					version = root.get("version", "1")
 					if version.startswith("1"):
 						logDebug("loadXML channels - Skip old file")
-					else:
+					elif version.startswith("2") or version.startswith("3") or version.startswith("4"):
+						logDebug("Channel XML 4")
+						ChannelsBase.channels_changed = True
 						if root:
 							for element in root.findall("Channel"):
 								name = element.get("name", "")
@@ -304,11 +306,25 @@ class ChannelsBase(ChannelsFile):
 									for alternative in element.findall("Alternative"):
 										alternatives.append( alternative.text )
 									channels[reference] = (name, list(set(alternatives)))
-									logDebug("SP loadXML parse", reference, channels[reference] )
+									logDebug("Channel", reference, channels[reference] )
+					else:
+						# XMLTV compatible channels file
+						logDebug("Channel XML 5")
+						if root:
+							for element in root.findall("channel"):
+								alternatives = []
+								id = element.get("id", "")
+								alternatives.append( id )
+								name = element.get("name", "")
+								reference = element.text
+								#Test customization but XML conform
+								for web in element.findall("web"):
+									alternatives.append( web.text )
+								channels[reference] = (name, list(set(alternatives)))
+								logDebug("Channel", reference, channels[reference] )
 					return channels
 				
 				channels = parse( root )
-				#logDebug("loadXML channels", channels)
 				logDebug("SP loadXML channels", len(channels))
 			else:
 				channels = {}
@@ -329,23 +345,30 @@ class ChannelsBase(ChannelsFile):
 				#logDebug("saveXML channels", channels)
 				logDebug("SP saveXML channels", len(channels))
 				
+				# XMLTV compatible channels file
+				#TEST Do we need to write the xml header node
+				
 				# Build Header
 				from plugin import NAME, VERSION
-				root = Element(NAME)
+				root = Element("channels")
 				root.set('version', VERSION)
+				root.set('created_by', NAME)
 				root.append(Comment(_("Don't edit this manually unless you really know what you are doing")))
 				
 				# Build Body
 				def build(root, channels):
 					if channels:
 						for reference, namealternatives in channels.iteritems():
-							name, alternatives = namealternatives
-							# Add channel
-							element = SubElement( root, "Channel", name = stringToXML(name), reference = stringToXML(reference) )
-							# Add alternatives
+							name, alternatives = namealternatives[:]
 							if alternatives:
-								for name in alternatives:
-									SubElement( element, "Alternative" ).text = stringToXML(name)
+								# Add channel
+								web = alternatives[0]
+								element = SubElement( root, "channel", name = stringToXML(name), id = stringToXML(web) )
+								element.text = stringToXML(reference)
+								del alternatives[0]
+								if alternatives:
+									for web in alternatives:
+										SubElement( element, "web" ).text = stringToXML(web)
 					return root
 				
 				root = build( root, channels )
