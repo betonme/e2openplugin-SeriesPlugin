@@ -20,7 +20,6 @@
 import os
 import re
 
-
 # Config
 from Components.config import config
 
@@ -31,7 +30,7 @@ from Screens.MessageBox import MessageBox
 from Tools.BoundFunction import boundFunction
 
 # XML
-from xml.etree.cElementTree import ElementTree, tostring, parse, Element, SubElement, Comment
+from xml.etree.cElementTree import ElementTree, parse, Element, SubElement, Comment
 from Tools.XMLTools import stringToXML
 
 # Plugin internal
@@ -156,11 +155,11 @@ class ChannelsFile(object):
 			# No changes in configuration, won't read again
 			return ChannelsFile.cache
 		
-		logDebug("SP readXML channels")
+		logDebug("readXML channels")
 		
 		# Parse XML
 		try:
-			etree = parse(path).getroot()
+			etree = parse(path)
 		except Exception as e:
 			logDebug("Exception in readXML: " + str(e))
 			etree = None
@@ -173,6 +172,28 @@ class ChannelsFile(object):
 
 	def writeXML(self, etree):
 		path = config.plugins.seriesplugin.channel_file.value
+		
+		if path == '/etc/enigma2/seriesplugin_channels.xml':
+			logDebug("writeXML: Found old path")
+			cleanup = False
+			
+			# Check if xmltvimport exists
+			if os.path.exists("/etc/epgimport"):
+				logDebug("writeXML: Found epgimport")
+				path = config.plugins.seriesplugin.channel_file.value = "/etc/epgimport/wunschliste.channels.xml"
+				cleanup = True
+			
+			# Check if xmltvimport exists
+			elif os.path.exists("/etc/xmltvimport"):
+				logDebug("writeXML: Found xmltvimport")
+				path = config.plugins.seriesplugin.channel_file.value = "/etc/xmltvimport/wunschliste.channels.xml"
+				cleanup = True
+			
+			if cleanup:
+				try:
+					os.remove('/etc/enigma2/seriesplugin_channels.xml')
+				except OSError:
+					pass
 		
 		def indent(elem, level=0):
 			i = "\n" + level*"  "
@@ -189,21 +210,11 @@ class ChannelsFile(object):
 				if level and (not elem.tail or not elem.tail.strip()):
 					elem.tail = i
 		
-		indent(etree)
-		data = tostring(etree, 'utf-8')
+		indent(etree.getroot())
 		
-		logDebug("SP writeXML channels")
+		etree.write(path, encoding='utf-8', xml_declaration=True) 
 		
-		f = None
-		try:
-			f = open(path, 'w')
-			if data:
-				f.writelines(data)
-		except Exception as e:
-			logDebug("Exception in writeXML: " + str(e))
-		finally:
-			if f is not None:
-				f.close()
+		logDebug("writeXML channels")
 		
 		# Save time and cache file content
 		self.mtime = os.path.getmtime( path )
@@ -284,8 +295,8 @@ class ChannelsBase(ChannelsFile):
 	def loadXML(self):
 		try:
 			# Read xml config file
-			root = self.readXML()
-			if root:
+			etree = self.readXML()
+			if etree:
 				channels = {}
 				
 				# Parse Config
@@ -324,7 +335,7 @@ class ChannelsBase(ChannelsFile):
 								logDebug("Channel", reference, channels[reference] )
 					return channels
 				
-				channels = parse( root )
+				channels = parse( etree.getroot() )
 				logDebug("SP loadXML channels", len(channels))
 			else:
 				channels = {}
@@ -341,7 +352,7 @@ class ChannelsBase(ChannelsFile):
 				channels = ChannelsBase.channels
 				
 				# Generate List in RAM
-				root = None
+				etree = None
 				#logDebug("saveXML channels", channels)
 				logDebug("SP saveXML channels", len(channels))
 				
@@ -371,8 +382,8 @@ class ChannelsBase(ChannelsFile):
 										SubElement( element, "web" ).text = stringToXML(web)
 					return root
 				
-				root = build( root, channels )
+				etree = ElementTree( build( root, channels ) )
 				
-				self.writeXML( root )
+				self.writeXML( etree )
 		except Exception as e:
 			logDebug("Exception in writeXML: " + str(e))
