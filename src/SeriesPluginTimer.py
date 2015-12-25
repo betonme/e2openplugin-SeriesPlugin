@@ -17,6 +17,8 @@
 #
 #######################################################################
 
+import os
+
 # for localized messages
 from . import _
 
@@ -168,9 +170,17 @@ class SeriesPluginTimer(object):
 			
 			if not timer.dirname:
 				logDebug("SPT: SeriesPluginTimer: No dirname")
-				timer.dirname  = str(refactorDirectory(config.usage.default_path.value, data))
+				directory  = str(refactorDirectory(config.usage.default_path.value, data))
 			else:
-				timer.dirname  = str(refactorDirectory(timer.dirname, data))
+				directory  = str(refactorDirectory(timer.dirname, data))
+			
+			if not os.path.exists(directory):
+				try:
+					os.makedirs(directory)
+				except:
+					logDebug("SPT: makedirs error", directory)
+			
+			timer.dirname = directory
 			
 			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 			

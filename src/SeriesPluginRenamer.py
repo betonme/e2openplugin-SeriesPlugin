@@ -164,6 +164,12 @@ def renameFile(servicepath, name, data, tidy=False):
 	dst = os.path.join(path, name)
 	logDebug("SPR: servicepathDst", dst)
 
+	if not os.path.exists(path):
+		try:
+			os.makedirs(path)
+		except:
+			logDebug("SPT: makedirs error", path)
+	
 	#Py3 for f in glob( escape(src) + "*" ):
 	glob_src = CompiledRegexpGlobEscape.sub("[\\1]", src)
 	logDebug("SPR: glob_src      ", glob_src)
@@ -171,10 +177,6 @@ def renameFile(servicepath, name, data, tidy=False):
 		logDebug("SPR: servicepathRnm", f)
 		to = f.replace(src, dst)
 		logDebug("SPR: servicepathTo ", to)
-		
-		
-		#TODO Check and create directory
-		
 		
 		if not os.path.exists(to):
 			try:
