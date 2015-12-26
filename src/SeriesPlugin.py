@@ -173,8 +173,8 @@ def refactorDirectory(org, data):
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_directory.value and not config.plugins.seriesplugin.pattern_directory.value == "Off" and not config.plugins.seriesplugin.pattern_directory.value == "Disabled":
 			cust_ = config.plugins.seriesplugin.pattern_directory.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			cust_ = cust_.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
-			cust = CompiledRegexpReplaceDirChars.sub('_', cust_)
+			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"')
+			cust = CompiledRegexpReplaceDirChars.sub('_', cust_) + '/'
 			logDebug("SP: refactor dir", org, cust_, cust)
 			return cust
 		else:
@@ -292,13 +292,14 @@ class SeriesPluginWorker(Thread):
 		self.__running = False
 
 
-class SeriesPlugin(Modules, ChannelsBase):
+class SeriesPlugin(Modules, ChannelsBase, XMLTVBase):
 
 	def __init__(self):
 		logDebug("SP: Main: Init")
 		self.thread = SeriesPluginWorker(self.gotResult)
 		Modules.__init__(self)
 		ChannelsBase.__init__(self)
+		XMLTVBase.__init__(self)
 		
 		self.serviceHandler = eServiceCenter.getInstance()
 		

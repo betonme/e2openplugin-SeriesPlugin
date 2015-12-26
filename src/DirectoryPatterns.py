@@ -33,7 +33,7 @@ from Logger import logDebug, logInfo
 scheme_fallback = [
 		("Off", "Disabled"),
 		
-		("{org:s}\{series:s}\S{season:02d}",  "Series\Season S01E01")
+		("{org:s}/{series:s}/S{season:02d}", "Original/Series/Season S01")
 	]
 
 def readDirectoryPatterns():

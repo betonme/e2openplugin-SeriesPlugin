@@ -31,7 +31,7 @@ config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/e
 config.plugins.seriesplugin.pattern_title             = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
 config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{season:02d}E{episode:02d} {title:s} {org:s}", fixed_size = False)
 #config.plugins.seriesplugin.pattern_record            = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
-config.plugins.seriesplugin.pattern_file_directories  = ConfigText(default = "/etc/enigma2/seriesplugin_patterns_directories.json", fixed_size = False)
+config.plugins.seriesplugin.pattern_file_directories  = ConfigText(default = "/etc/enigma2/seriesplugin_pattern_directories.json", fixed_size = False)
 config.plugins.seriesplugin.pattern_directory         = ConfigText(default = "Disabled", fixed_size = False)
 
 config.plugins.seriesplugin.default_season            = ConfigSelectionNumber(0, 1, 1, default = 1)
