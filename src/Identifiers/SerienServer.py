@@ -92,6 +92,11 @@ class SerienServer(IdentifierBase):
 		# Prepare parameters
 		name = CompiledRegexpReplaceChars.sub(" ", name.lower())
 		webChannels = self.lookupChannelByReference(service)
+		if not webChannels:
+			msg = _("Check the channel name")
+			logInfo(msg)
+			return msg
+		
 		unixtime = str(int(mktime(begin.timetuple())))
 		max_time_drift = self.max_time_drift
 		
