@@ -37,7 +37,7 @@ except:
 from difflib import SequenceMatcher
 
 #Internal
-from Channels import ChannelsBase, buildSTBchannellist, unifyChannel, getTVBouquets
+from Channels import ChannelsBase, buildSTBchannellist, unifyChannel, getTVBouquets, lookupChannelByReference
 from Logger import logDebug, logInfo
 
 
@@ -161,7 +161,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			for servicename,serviceref,uservicename in self.stbChlist:
 				#logDebug("SPC: servicename", servicename, uservicename)
 				
-				webSender = self.lookupChannelByReference(serviceref)
+				webSender = lookupChannelByReference(serviceref)
 				if webSender is not False:
 					self.stbToWebChlist.append((servicename, ' / '.join(webSender), serviceref, "1"))
 					
@@ -183,7 +183,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			for servicename,serviceref,uservicename in self.stbChlist:
 				#logDebug("SPC: servicename", servicename, uservicename)
 				
-				webSender = self.lookupChannelByReference(serviceref)
+				webSender = lookupChannelByReference(serviceref)
 				if webSender is not False:
 					self.stbToWebChlist.append((servicename, ' / '.join(webSender), serviceref, "1"))
 					

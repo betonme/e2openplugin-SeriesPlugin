@@ -30,18 +30,16 @@ from Tools.BoundFunction import boundFunction
 # Internal
 from ModuleBase import ModuleBase
 from Cacher import Cacher
-from Channels import ChannelsBase
 from Logger import logDebug, logInfo
 
 
 class MyException(Exception):
     pass
 
-class IdentifierBase(ModuleBase, Cacher, ChannelsBase):
+class IdentifierBase(ModuleBase, Cacher):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)
-		ChannelsBase.__init__(self)
 		
 		socket.setdefaulttimeout( float(config.plugins.seriesplugin.socket_timeout.value) )
 		

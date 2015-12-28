@@ -31,6 +31,7 @@ from Screens.MessageBox import MessageBox
 from IdentifierBase import IdentifierBase
 from Logger import logDebug, initLog, logInfo
 from Channels import ChannelsBase
+from XMLTVBase import XMLTVBase
 from ThreadQueue import ThreadQueue
 from threading import Thread, currentThread, _get_ident
 #from enigma import ePythonMessagePump
@@ -173,8 +174,8 @@ def refactorDirectory(org, data):
 		season, episode, title, series = data
 		if config.plugins.seriesplugin.pattern_directory.value and not config.plugins.seriesplugin.pattern_directory.value == "Off" and not config.plugins.seriesplugin.pattern_directory.value == "Disabled":
 			cust_ = config.plugins.seriesplugin.pattern_directory.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
-			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"')
-			cust = CompiledRegexpReplaceDirChars.sub('_', cust_) + '/'
+			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("  ", " ").replace("//", "/")
+			cust = CompiledRegexpReplaceDirChars.sub('_', cust_)
 			logDebug("SP: refactor dir", org, cust_, cust)
 			return cust
 		else:
@@ -292,14 +293,16 @@ class SeriesPluginWorker(Thread):
 		self.__running = False
 
 
-class SeriesPlugin(Modules, ChannelsBase, XMLTVBase):
+class SeriesPlugin(Modules, ChannelsBase):
 
 	def __init__(self):
 		logDebug("SP: Main: Init")
 		self.thread = SeriesPluginWorker(self.gotResult)
 		Modules.__init__(self)
 		ChannelsBase.__init__(self)
-		XMLTVBase.__init__(self)
+		
+		# Because of the same XMLFile base class we intantiate a new object
+		self.xmltv = XMLTVBase()
 		
 		self.serviceHandler = eServiceCenter.getInstance()
 		
@@ -382,7 +385,7 @@ class SeriesPlugin(Modules, ChannelsBase, XMLTVBase):
 			if callable(callback):
 				callback( "Error: No identifier available" )
 		
-		elif identifier.channelsEmpty():
+		elif self.channelsEmpty():
 			if callable(callback):
 				callback( "Error: Open setup and channel editor" )
 		
@@ -449,3 +452,4 @@ class SeriesPlugin(Modules, ChannelsBase, XMLTVBase):
 		
 		self.thread = None
 		self.saveXML()
+		self.xmltv.writeXMLTVConfig()

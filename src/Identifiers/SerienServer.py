@@ -16,6 +16,7 @@ from datetime import datetime
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
+from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
 from Plugins.Extensions.SeriesPlugin import _
 
 # Constants
@@ -91,7 +92,7 @@ class SerienServer(IdentifierBase):
 		
 		# Prepare parameters
 		name = CompiledRegexpReplaceChars.sub(" ", name.lower())
-		webChannels = self.lookupChannelByReference(service)
+		webChannels = lookupChannelByReference(service)
 		if not webChannels:
 			msg = _("Check the channel name")
 			logInfo(msg)
@@ -102,7 +103,7 @@ class SerienServer(IdentifierBase):
 		
 		# Lookup
 		for webChannel in webChannels:
-			logInfo("SerienServer getSeasonEpisode():", name, webChannel, unixtime)
+			logDebug("SerienServer getSeasonEpisode(): [\"%s\",\"%s\",\"%s\",%s]" % (name, webChannel, unixtime, max_time_drift))
 			
 			result = self.server.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
 			logDebug("SerienServer getSeasonEpisode result:", result)

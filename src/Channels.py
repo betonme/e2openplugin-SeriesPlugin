@@ -35,6 +35,7 @@ from Tools.XMLTools import stringToXML
 
 # Plugin internal
 from . import _
+from XMLFile import XMLFile
 from Logger import logDebug, logInfo
 
 try:
@@ -131,105 +132,59 @@ def getChannelByRef(stb_chlist,serviceref):
 		if channelref == serviceref:
 			return channelname
 
-	
+def compareChannels(ref, remote):
+	logDebug("compareChannels", ref, remote)
+	remote = remote.lower()
+	if ref in ChannelsBase.channels:
+		( name, alternatives ) = ChannelsBase.channels[ref]
+		for altname in alternatives:
+			if altname.lower() in remote or remote in altname.lower():
+				return True
+		
+	return False
 
-class ChannelsFile(object):
-
-	cache = ""
-	mtime = -1
-	
-	def __init__(self):
-		pass
-
-	def readXML(self):
-		path = config.plugins.seriesplugin.channel_file.value
+def lookupChannelByReference(ref):
+	if ref in ChannelsBase.channels:
+		( name, alternatives ) = ChannelsBase.channels[ref]
+		altnames = []
+		for altname in alternatives:
+			if altname:
+				logDebug("lookupChannelByReference", ref, altname)
+				altnames.append(altname)
+		return altnames
 		
-		# Abort if no config found
-		if not os.path.exists(path):
-			logDebug("No configuration file present")
-			return None
-		
-		# Parse if mtime differs from whats saved
-		mtime = os.path.getmtime(path)
-		if mtime == ChannelsFile.mtime:
-			# No changes in configuration, won't read again
-			return ChannelsFile.cache
-		
-		logDebug("readXML channels")
-		
-		# Parse XML
-		try:
-			etree = parse(path)
-		except Exception as e:
-			logDebug("Exception in readXML: " + str(e))
-			etree = None
-			mtime = -1
-		
-		# Save time and cache file content
-		ChannelsFile.mtime = mtime
-		ChannelsFile.cache = etree
-		return ChannelsFile.cache
-
-	def writeXML(self, etree):
-		path = config.plugins.seriesplugin.channel_file.value
-		
-		if path == '/etc/enigma2/seriesplugin_channels.xml':
-			logDebug("writeXML: Found old path")
-			cleanup = False
-			
-			# Check if xmltvimport exists
-			if os.path.exists("/etc/epgimport"):
-				logDebug("writeXML: Found epgimport")
-				path = config.plugins.seriesplugin.channel_file.value = "/etc/epgimport/wunschliste.channels.xml"
-				cleanup = True
-			
-			# Check if xmltvimport exists
-			elif os.path.exists("/etc/xmltvimport"):
-				logDebug("writeXML: Found xmltvimport")
-				path = config.plugins.seriesplugin.channel_file.value = "/etc/xmltvimport/wunschliste.channels.xml"
-				cleanup = True
-			
-			if cleanup:
-				try:
-					os.remove('/etc/enigma2/seriesplugin_channels.xml')
-				except OSError:
-					pass
-		
-		def indent(elem, level=0):
-			i = "\n" + level*"  "
-			if len(elem):
-				if not elem.text or not elem.text.strip():
-					elem.text = i + "  "
-				if not elem.tail or not elem.tail.strip():
-					elem.tail = i
-				for elem in elem:
-					indent(elem, level+1)
-				if not elem.tail or not elem.tail.strip():
-					elem.tail = i
-			else:
-				if level and (not elem.tail or not elem.tail.strip()):
-					elem.tail = i
-		
-		indent(etree.getroot())
-		
-		etree.write(path, encoding='utf-8', xml_declaration=True) 
-		
-		logDebug("writeXML channels")
-		
-		# Save time and cache file content
-		self.mtime = os.path.getmtime( path )
-		self.cache = etree
+	return False
 
 
-class ChannelsBase(ChannelsFile):
+class ChannelsBase(XMLFile):
 
 	channels = {}  # channels[reference] = ( name, [ name1, name2, ... ] )
 	channels_changed = False
 	
 	def __init__(self):
-		ChannelsFile.__init__(self)
-		if not ChannelsBase.channels:
-			self.resetChannels()
+		
+		path = config.plugins.seriesplugin.channel_file.value
+		XMLFile.__init__(self, path)
+		
+		self.__cleanup = False
+		if path == '/etc/enigma2/seriesplugin_channels.xml':
+			logDebug("Write XML: Found old path")
+			
+			# Check if xmltvimport exists
+			if os.path.exists("/etc/epgimport"):
+				logDebug("writeXML: Found epgimport")
+				path = config.plugins.seriesplugin.channel_file.value = "/etc/epgimport/wunschliste.channels.xml"
+				self.__cleanup = True
+				self.setPath(path)
+			
+			# Check if xmltvimport exists
+			elif os.path.exists("/etc/xmltvimport"):
+				logDebug("writeXML: Found xmltvimport")
+				path = config.plugins.seriesplugin.channel_file.value = "/etc/xmltvimport/wunschliste.channels.xml"
+				self.__cleanup = True
+				self.setPath(path)
+		
+		self.resetChannels()
 	
 	def channelsEmpty(self):
 		return not ChannelsBase.channels
@@ -239,32 +194,6 @@ class ChannelsBase(ChannelsFile):
 		ChannelsBase.channels_changed = False
 		
 		self.loadXML()
-	
-	#
-	# Channel handling
-	#
-	def compareChannels(self, ref, remote):
-		logDebug("SP compareChannels", ref, remote)
-		remote = remote.lower()
-		if ref in ChannelsBase.channels:
-			( name, alternatives ) = ChannelsBase.channels[ref]
-			for altname in alternatives:
-				if altname.lower() in remote or remote in altname.lower():
-					return True
-			
-		return False
-		
-	def lookupChannelByReference(self, ref):
-		if ref in ChannelsBase.channels:
-			( name, alternatives ) = ChannelsBase.channels[ref]
-			altnames = []
-			for altname in alternatives:
-				if altname:
-					logDebug("SP lookupChannelByReference", ref, altname)
-					altnames.append(altname)
-			return altnames
-			
-		return False
 	
 	def addChannel(self, ref, name, remote):
 		logDebug("SP addChannel name remote", name, remote)
@@ -306,7 +235,7 @@ class ChannelsBase(ChannelsFile):
 					if version.startswith("1"):
 						logDebug("loadXML channels - Skip old file")
 					elif version.startswith("2") or version.startswith("3") or version.startswith("4"):
-						logDebug("Channel XML 4")
+						logDebug("Channel XML Version 4")
 						ChannelsBase.channels_changed = True
 						if root:
 							for element in root.findall("Channel"):
@@ -320,7 +249,7 @@ class ChannelsBase(ChannelsFile):
 									logDebug("Channel", reference, channels[reference] )
 					else:
 						# XMLTV compatible channels file
-						logDebug("Channel XML 5")
+						logDebug("Channel XML Version 5")
 						if root:
 							for element in root.findall("channel"):
 								alternatives = []
@@ -336,7 +265,7 @@ class ChannelsBase(ChannelsFile):
 					return channels
 				
 				channels = parse( etree.getroot() )
-				logDebug("SP loadXML channels", len(channels))
+				logDebug("Channel XML load", len(channels))
 			else:
 				channels = {}
 			ChannelsBase.channels = channels
@@ -385,5 +314,12 @@ class ChannelsBase(ChannelsFile):
 				etree = ElementTree( build( root, channels ) )
 				
 				self.writeXML( etree )
+				
+				if self.__cleanup:
+					try:
+						os.remove('/etc/enigma2/seriesplugin_channels.xml')
+					except OSError:
+						pass
+			
 		except Exception as e:
 			logDebug("Exception in writeXML: " + str(e))

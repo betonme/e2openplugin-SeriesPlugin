@@ -18,6 +18,7 @@ from sys import maxint
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
+from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin import _
 
 try:
@@ -246,7 +247,7 @@ class Wunschliste(IdentifierBase):
 					if delta <= self.max_time_drift:
 						
 						logInfo("WLP: Possible match witch channel: ", xchannel)
-						if self.compareChannels(self.service, xchannel):
+						if compareChannels(self.service, xchannel):
 						
 							if delta < ydelta:
 								

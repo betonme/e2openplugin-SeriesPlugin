@@ -17,6 +17,7 @@ from sys import maxint
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
+from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin import _
 
 try:
@@ -292,7 +293,7 @@ class WunschlisteFeed(IdentifierBase):
 								
 								xchannel = result.group(1)
 								logInfo("WLF: Possible match witch channel: ", xchannel)
-								if self.compareChannels(self.service, xchannel):
+								if compareChannels(self.service, xchannel):
 									
 									if delta < ydelta:
 										# Slice string to remove channel

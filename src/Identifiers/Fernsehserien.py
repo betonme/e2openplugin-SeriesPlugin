@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 # Internal
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
+from Plugins.Extensions.SeriesPlugin.Channels import compareChannels
 from Plugins.Extensions.SeriesPlugin import _
 
 try:
@@ -514,7 +515,7 @@ class Fernsehserien(IdentifierBase):
 						if delta <= self.max_time_drift:
 							
 							logInfo("FS: Possible match witch channel: ", tds[COL_CHANNEL])
-							if self.compareChannels(self.service, tds[COL_CHANNEL]):
+							if compareChannels(self.service, tds[COL_CHANNEL]):
 								
 								if delta < ydelta:
 									

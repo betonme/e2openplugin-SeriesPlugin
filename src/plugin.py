@@ -79,6 +79,7 @@ def test(session=None):
 		#bareGetSeasonEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One?", 1448923500, 1448926500, "Description", "/media/hdd/movie", False, False, True)
 		#bareGetSeasonEpisode("1:0:19:814D:14B:270F:FFFF0000:0:0:0:", "Bones", 1451416200, 1451416200, "Description", "/media/hdd/movie", False, True, False)
 		#sp = bareGetSeasonEpisode("1:0:19:2B66:437:66:FFFF0000:0:0:0:", "Bares für Rares", 1451311500, 1451311500, "Description", "/media/hdd/movie", False, True, False)
+		#sp = bareGetSeasonEpisode("1:0:19:7980:1C3:270F:FFFF0000:0:0:0:", "Offroad Survivors", 1451492100, 1451492100, "Description", "/media/hdd/movie", False, True, False)
 		#from Tools.Notifications import AddPopup
 		#AddPopup( sp[0], MessageBox.TYPE_INFO, 0, 'SP_PopUp_ID_Test' )
 		
