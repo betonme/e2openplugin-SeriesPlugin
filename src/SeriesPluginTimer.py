@@ -163,24 +163,14 @@ class SeriesPluginTimer(object):
 			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = str(refactorDescription(timer.description, data))
 			
-			#try: timer.Filename
-			#except: timer.calculateFilename()
-			if not hasattr(timer, 'Filename'):
-				timer.calculateFilename()
-			
 			if not timer.dirname:
 				logDebug("SPT: SeriesPluginTimer: No dirname")
 				directory  = str(refactorDirectory(config.usage.default_path.value, data))
 			else:
 				directory  = str(refactorDirectory(timer.dirname, data))
 			
-			if not os.path.exists(directory):
-				try:
-					os.makedirs(directory)
-				except:
-					logDebug("SPT: makedirs error", directory)
-			
 			timer.dirname = directory
+			timer.calculateFilename()
 			
 			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 			
