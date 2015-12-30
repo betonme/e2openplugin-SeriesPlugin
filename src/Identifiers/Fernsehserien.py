@@ -387,12 +387,22 @@ class Fernsehserien(IdentifierBase):
 									continue
 							
 							elif idx == TDS_CHANNEL:
-								spans = tdnode.find_all('span')
-								#logDebug( "FS: tdnode:", str(td), str(spans))
-								if spans:
-									for span in spans:
-										tds[COL_CHANNEL] = span.get('title', '').strip()
+								title = ""
+								abbrs = tdnode.find_all('abbr')
+								#logDebug( "FS: tdnode:", str(td), str(abbrs))
+								if abbrs:
+									for abbr in abbrs:
+										title = abbr.get('title', '').strip()
 										break
+								if not title:
+									spans = tdnode.find_all('span')
+									#logDebug( "FS: tdnode:", str(td), str(spans))
+									if spans:
+										for span in spans:
+											title = span.get('title', '').strip()
+											break
+								if title:
+									tds[COL_CHANNEL] = title
 								else:
 									tds[COL_CHANNEL] = td
 							
