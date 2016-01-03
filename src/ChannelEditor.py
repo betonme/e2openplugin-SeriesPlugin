@@ -39,7 +39,7 @@ from difflib import SequenceMatcher
 #Internal
 from Channels import ChannelsBase, buildSTBchannellist, unifyChannel, getTVBouquets, lookupChannelByReference
 from Logger import logDebug, logInfo
-
+from WebChannels import WebChannels
 
 # Constants
 PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Images/" )
@@ -51,7 +51,7 @@ colorYellow = 0xbab329
 colorWhite  = 0xffffff
 
 
-class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
+class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	
 	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/skinChannelEditor.xml" )
 	skin = open(skinfile).read()
@@ -60,6 +60,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 		Screen.__init__(self, session)
 		HelpableScreen.__init__(self)
 		ChannelsBase.__init__(self)
+		WebChannels.__init__(self)
 		
 		self.session = session
 		
@@ -145,8 +146,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase):
 			self.stbChlist = buildSTBchannellist(self.bouquet)
 		
 		if not self.webChlist:
-			from WebChannels import WebChannels
-			WebChannels(self.setWebChannels).request()
+			self.setWebChannels(self.getWebChannels())
 		else:
 			self.showChannels()
 

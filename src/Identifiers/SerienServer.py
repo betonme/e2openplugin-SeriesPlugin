@@ -3,12 +3,11 @@
 
 # Imports
 import re
+import xmlrpclib
 
 from Components.config import config
 
 from Tools.BoundFunction import boundFunction
-
-from urllib import urlencode
 
 from time import time, mktime
 from datetime import datetime
@@ -19,25 +18,15 @@ from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
 from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
 from Plugins.Extensions.SeriesPlugin import _
 
-# Constants
-SERIEN_SERVER_URL = 'http://176.9.54.54/serienserver/cache/cache.php'
-
 CompiledRegexpReplaceChars = re.compile("[^a-zA-Z0-9-\*]")
-
-try:
-	import xmlrpclib
-except ImportError as ie:
-	xmlrpclib = None
 
 
 class SerienServer(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
 		
-		# Check dependencies
-		if xmlrpclib is not None:
-			from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
-			self.server = xmlrpclib.ServerProxy(SERIEN_SERVER_URL + REQUEST_PARAMETER, verbose=False)
+		from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
+		self.server = xmlrpclib.ServerProxy(config.plugins.seriesplugin.serienserver_url.value + REQUEST_PARAMETER, verbose=False)
 	
 	@classmethod
 	def knowsElapsed(cls):
@@ -57,13 +46,6 @@ class SerienServer(IdentifierBase):
 	def getEpisode(self, name, begin, end=None, service=None):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None
-		
-		
-		# Check dependencies
-		if xmlrpclib is None:
-			msg = _("Error install")  + " python-xmlrpclib"
-			logInfo(msg)
-			return msg
 		
 		
 		# Check preconditions
