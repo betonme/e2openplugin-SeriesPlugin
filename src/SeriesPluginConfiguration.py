@@ -105,9 +105,21 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		identifiers_elapsed = [k for k,v in identifiers.items() if v.knowsElapsed()]
 		identifiers_today   = [k for k,v in identifiers.items() if v.knowsToday()]
 		identifiers_future  = [k for k,v in identifiers.items() if v.knowsFuture()]
-		self.cfg_identifier_elapsed = NoSave( ConfigSelection(choices = identifiers_elapsed, default = config.plugins.seriesplugin.identifier_elapsed.value or identifiers_elapsed[0]) )
-		self.cfg_identifier_today   = NoSave( ConfigSelection(choices = identifiers_today,   default = config.plugins.seriesplugin.identifier_today.value   or identifiers_today[0]) )
-		self.cfg_identifier_future  = NoSave( ConfigSelection(choices = identifiers_future,  default = config.plugins.seriesplugin.identifier_future.value  or identifiers_future[0]) )
+		if config.plugins.seriesplugin.identifier_elapsed.value in identifiers_elapsed:
+			self.cfg_identifier_elapsed = NoSave( ConfigSelection(choices = identifiers_elapsed, default = config.plugins.seriesplugin.identifier_elapsed.value) )
+		else:
+			self.cfg_identifier_elapsed = NoSave( ConfigSelection(choices = identifiers_elapsed, default = identifiers_elapsed[0]) )
+			self.changesMade = True
+		if config.plugins.seriesplugin.identifier_today.value in identifiers_today:
+			self.cfg_identifier_today   = NoSave( ConfigSelection(choices = identifiers_today,   default = config.plugins.seriesplugin.identifier_today.value) )
+		else:
+			self.cfg_identifier_today   = NoSave( ConfigSelection(choices = identifiers_today,   default = identifiers_today[0]) )
+			self.changesMade = True
+		if config.plugins.seriesplugin.identifier_future.value in identifiers_future:
+			self.cfg_identifier_future  = NoSave( ConfigSelection(choices = identifiers_future,  default = config.plugins.seriesplugin.identifier_future.value) )
+		else:
+			self.cfg_identifier_future  = NoSave( ConfigSelection(choices = identifiers_future,  default = identifiers_future[0]) )
+			self.changesMade = True
 		
 		# Load patterns
 		patterns_file = readFilePatterns()
@@ -157,11 +169,11 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Check timer list from extension menu")       , config.plugins.seriesplugin.check_timer_list ) )
 			
 			#if len( config.plugins.seriesplugin.identifier_elapsed.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for elapsed events")       , self.cfg_identifier_elapsed ) )
+			#self.list.append( getConfigListEntry(  _("Select identifier for elapsed events")       , self.cfg_identifier_elapsed ) )
 			#if len( config.plugins.seriesplugin.identifier_today.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for today events")         , self.cfg_identifier_today ) )
+			#self.list.append( getConfigListEntry(  _("Select identifier for today events")         , self.cfg_identifier_today ) )
 			#if len( config.plugins.seriesplugin.identifier_future.choices ) > 1:
-			self.list.append( getConfigListEntry(  _("Select identifier for future events")        , self.cfg_identifier_future ) )
+			#self.list.append( getConfigListEntry(  _("Select identifier for future events")        , self.cfg_identifier_future ) )
 				
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
