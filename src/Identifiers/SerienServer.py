@@ -40,8 +40,11 @@ class SerienServer(IdentifierBase):
 	def knowsFuture(cls):
 		return True
 
-	def getName(self):
-		return "Wunschliste"
+	def getName(self, future=True):
+		if future:
+			return "Wunschliste"
+		else:
+			return "Fernsehserien"
 
 	def getEpisode(self, name, begin, end=None, service=None):
 		# On Success: Return a single season, episode, title tuple

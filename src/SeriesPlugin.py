@@ -409,7 +409,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 				
 				self.thread.add( ThreadItem(identifier, callback, name, begin, end, serviceref) )
 				
-				return identifier.getName()
+				return identifier.getName(not elapsed)
 				
 			else:
 				
