@@ -174,20 +174,17 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			#self.list.append( getConfigListEntry(  _("Select identifier for today events")         , self.cfg_identifier_today ) )
 			#if len( config.plugins.seriesplugin.identifier_future.choices ) > 1:
 			#self.list.append( getConfigListEntry(  _("Select identifier for future events")        , self.cfg_identifier_future ) )
-				
-			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
+			
 			self.list.append( getConfigListEntry(  _("Record title episode pattern")               , self.cfg_pattern_title ) )
 			self.list.append( getConfigListEntry(  _("Record description episode pattern")         , self.cfg_pattern_description ) )
 			
-			self.list.append( getConfigListEntry(  _("Directory pattern file")                     , config.plugins.seriesplugin.pattern_file_directories ) )
+			self.list.append( getConfigListEntry(  "E2: "+_("Composition of the recording filenames") , config.recording.filename_composition ) )
 			self.list.append( getConfigListEntry(  _("Record directory pattern")                   , self.cfg_pattern_directory ) )
 			
 			self.list.append( getConfigListEntry(  _("Default season")                             , config.plugins.seriesplugin.default_season ) )
 			self.list.append( getConfigListEntry(  _("Default episode")                            , config.plugins.seriesplugin.default_episode ) )
 			
 			self.list.append( getConfigListEntry(  _("Replace special characters in title")        , config.plugins.seriesplugin.replace_chars ) )
-			
-			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 			
 			self.list.append( getConfigListEntry(  _("Main bouquet for channel editor")            , self.cfg_bouquet_main ) )
 			
@@ -219,31 +216,39 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			if (-1 < config.plugins.seriesplugin.timer_popups.value) or (-1 < config.plugins.seriesplugin.timer_popups_success.value):
 				self.list.append( getConfigListEntry(  _("Timeout for Timer Popup")                , config.plugins.seriesplugin.timer_popups_timeout ) )
 			
-			self.list.append( getConfigListEntry(  _("Use local caching")                          , config.plugins.seriesplugin.caching ) )
-			if config.plugins.seriesplugin.caching.value:
-				self.list.append( getConfigListEntry(  _("Cache expires after x hours")            , config.plugins.seriesplugin.caching_expiration ) )
+			#self.list.append( getConfigListEntry(  _("Use local caching")                         , config.plugins.seriesplugin.caching ) )
+			#if config.plugins.seriesplugin.caching.value:
+			#	self.list.append( getConfigListEntry(  _("Cache expires after x hours")            , config.plugins.seriesplugin.caching_expiration ) )
 			
-			self.list.append( getConfigListEntry(  _("Socket timeout")                             , config.plugins.seriesplugin.socket_timeout ) )
-			
-			self.list.append( getConfigListEntry(  _("E2: Composition of the recording filenames") , config.recording.filename_composition ) )
+			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
+			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
+			self.list.append( getConfigListEntry(  _("Directory pattern file")                     , config.plugins.seriesplugin.pattern_file_directories ) )
 			
 			try:
-				self.list.append( getConfigListEntry(  _("AT: Poll automatically")                 , config.plugins.autotimer.autopoll ) )
-				self.list.append( getConfigListEntry(  _("AT: Startup delay (in min)")             , config.plugins.autotimer.delay ) )
-				self.list.append( getConfigListEntry(  _("AT: Poll Interval (in h)")               , config.plugins.autotimer.interval ) )
-				self.list.append( getConfigListEntry(  _("AT: Timeout (in min)")                   , config.plugins.autotimer.timeout ) )
+				self.list.append( getConfigListEntry( "AT: "+_("Poll automatically")                 , config.plugins.autotimer.autopoll ) )
+				self.list.append( getConfigListEntry( "AT: "+_("Startup delay (in min)")             , config.plugins.autotimer.delay ) )
+				self.list.append( getConfigListEntry( "AT: "+_("Poll Interval (in h)")               , config.plugins.autotimer.interval ) )
+				self.list.append( getConfigListEntry( "AT: "+_("Timeout (in min)")                   , config.plugins.autotimer.timeout ) )
 			except:
 				pass
 			
-			self.list.append( getConfigListEntry(  _("Debug: Print debug messages (Shell)")        , config.plugins.seriesplugin.debug_prints ) )
-			self.list.append( getConfigListEntry(  _("Debug: Write Log")                           , config.plugins.seriesplugin.write_log ) )
+			self.list.append( getConfigListEntry(  _("Debug: Print debug messages (Shell)")          , config.plugins.seriesplugin.debug_prints ) )
+			self.list.append( getConfigListEntry(  _("Debug: Write Log")                             , config.plugins.seriesplugin.write_log ) )
 			if config.plugins.seriesplugin.write_log.value:
-				self.list.append( getConfigListEntry(  _("Debug: Log file path")                   , config.plugins.seriesplugin.log_file ) )
-				self.list.append( getConfigListEntry(  _("Debug: Forum user name")                 , config.plugins.seriesplugin.log_reply_user ) )
-				self.list.append( getConfigListEntry(  _("Debug: User mail address")               , config.plugins.seriesplugin.log_reply_mail ) )
+				self.list.append( getConfigListEntry(  _("Debug: Log file path")                     , config.plugins.seriesplugin.log_file ) )
+				#self.list.append( getConfigListEntry(  _("Debug: Forum user name")                  , config.plugins.seriesplugin.log_reply_user ) )
+				#self.list.append( getConfigListEntry(  _("Debug: User mail address")                , config.plugins.seriesplugin.log_reply_mail ) )
 			
 			try:
-				self.list.append( getConfigListEntry(  _("E2: Enable recording debug (Timer log)") , config.recording.debug ) )
+				self.list.append( getConfigListEntry( "AT: "+_("Send debug messages to shell")       , config.plugins.autotimer.log_shell ) )
+				self.list.append( getConfigListEntry( "AT: "+ _("Write debug messages into file")    , config.plugins.autotimer.log_write ) )
+				if config.plugins.autotimer.log_write.value:
+					self.list.append( getConfigListEntry( "AT: "+_("Location and name of log file")  , config.plugins.autotimer.log_file ) )
+			except:
+				pass
+			
+			try:
+				self.list.append( getConfigListEntry( "E2: "+_("Enable recording debug (Timer log)") , config.recording.debug ) )
 			except:
 				pass
 
