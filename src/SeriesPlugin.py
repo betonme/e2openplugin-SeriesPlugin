@@ -176,7 +176,7 @@ def refactorDirectory(org, data):
 		if config.plugins.seriesplugin.pattern_directory.value and not config.plugins.seriesplugin.pattern_directory.value == "Off" and not config.plugins.seriesplugin.pattern_directory.value == "Disabled":
 			cust_ = config.plugins.seriesplugin.pattern_directory.value.strip().format( **{'org': org, 'season': season, 'episode': episode, 'title': title, 'series': series} )
 			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("  ", " ").replace("//", "/")
-			dir = CompiledRegexpReplaceDirChars.sub('_', cust_)
+			dir = CompiledRegexpReplaceDirChars.sub(' ', cust_)
 			logDebug("SP: refactor dir", org, cust_, dir)
 	if not os.path.exists(dir):
 		try:
