@@ -178,11 +178,11 @@ def refactorDirectory(org, data):
 			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("  ", " ").replace("//", "/")
 			dir = CompiledRegexpReplaceDirChars.sub(' ', cust_)
 			logDebug("SP: refactor dir", org, cust_, dir)
-	if not os.path.exists(dir):
-		try:
-			os.makedirs(dir)
-		except:
-			logDebug("makedirs error", dir)
+		if not os.path.exists(dir):
+			try:
+				os.makedirs(dir)
+			except:
+				logDebug("makedirs error", dir)
 	return dir
 
 def normalizeResult(result):
