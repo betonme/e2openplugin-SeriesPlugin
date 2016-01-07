@@ -220,6 +220,8 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			#if config.plugins.seriesplugin.caching.value:
 			#	self.list.append( getConfigListEntry(  _("Cache expires after x hours")            , config.plugins.seriesplugin.caching_expiration ) )
 			
+			self.list.append( getConfigListEntry(  _("Socket timeout")                             , config.plugins.seriesplugin.socket_timeout ) )
+			
 			self.list.append( getConfigListEntry(  _("Alternative channel names file")             , config.plugins.seriesplugin.channel_file ) )
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
 			self.list.append( getConfigListEntry(  _("Directory pattern file")                     , config.plugins.seriesplugin.pattern_file_directories ) )

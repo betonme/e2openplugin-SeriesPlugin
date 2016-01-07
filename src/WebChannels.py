@@ -6,13 +6,14 @@ import xmlrpclib
 from Components.config import config
 
 # Internal
-from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
+from Logger import logDebug, logInfo
+from TimeoutServerProxy import TimeoutServerProxy
+
 
 class WebChannels(object):
 	def __init__(self):
 		
-		from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
-		self.server = xmlrpclib.ServerProxy(config.plugins.seriesplugin.serienserver_url.value + REQUEST_PARAMETER, verbose=False)
+		self.server = TimeoutServerProxy()
 
 	def getWebChannels(self):
 		

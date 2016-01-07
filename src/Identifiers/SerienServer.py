@@ -3,7 +3,6 @@
 
 # Imports
 import re
-import xmlrpclib
 
 from Components.config import config
 
@@ -13,10 +12,11 @@ from time import time, mktime
 from datetime import datetime
 
 # Internal
+from Plugins.Extensions.SeriesPlugin import _
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
 from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
-from Plugins.Extensions.SeriesPlugin import _
+from Plugins.Extensions.SeriesPlugin.TimeoutServerProxy import TimeoutServerProxy
 
 CompiledRegexpReplaceChars = re.compile("[^a-zA-Z0-9-\*]")
 
@@ -25,8 +25,7 @@ class SerienServer(IdentifierBase):
 	def __init__(self):
 		IdentifierBase.__init__(self)
 		
-		from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
-		self.server = xmlrpclib.ServerProxy(config.plugins.seriesplugin.serienserver_url.value + REQUEST_PARAMETER, verbose=False)
+		self.server = TimeoutServerProxy()
 	
 	@classmethod
 	def knowsElapsed(cls):
