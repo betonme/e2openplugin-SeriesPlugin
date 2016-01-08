@@ -96,7 +96,4 @@ class SerienServer(IdentifierBase):
 				return ( result['season'], result['episode'], result['title'], result['series'] )
 
 		else:
-			if unixtime < time():
-				return ( _("Please try Fernsehserien.de") )
-			else:
-				return ( _("No matching series found") )
+			return ( _("No match found") )

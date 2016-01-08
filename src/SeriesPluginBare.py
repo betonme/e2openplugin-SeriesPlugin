@@ -19,7 +19,7 @@ loop_counter = 0
 
 
 def bareGetSeasonEpisode(service_ref, name, begin, end, description, path, future=True, today=False, elapsed=False):
-	result = None
+	result = _("SeriesPlugin is deactivated")
 	if config.plugins.seriesplugin.enabled.value:
 		
 		startLog()
