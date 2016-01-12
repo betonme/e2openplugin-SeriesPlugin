@@ -250,7 +250,7 @@ def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 		logDebug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
 		try:
 			spt = SeriesPluginTimer(timer, name, begin, end, True)
-			result = spt.getSeasonAndEpisode(timer, name, begin, end, True, False, False)
+			result = spt.getSeasonAndEpisode(timer, name, begin, end)
 		except Exception as e:
 			logDebug(_("SeriesPlugin label exception ") + str(e))
 	return result
