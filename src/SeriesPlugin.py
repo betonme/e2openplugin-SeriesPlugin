@@ -28,7 +28,6 @@ from Tools.Notifications import AddPopup
 from Screens.MessageBox import MessageBox
 
 # Plugin internal
-from IdentifierBase import IdentifierBase
 from Logger import logDebug, initLog, logInfo
 from Channels import ChannelsBase
 from XMLTVBase import XMLTVBase

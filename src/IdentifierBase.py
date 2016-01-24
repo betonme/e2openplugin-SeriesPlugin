@@ -31,7 +31,7 @@ from Logger import logDebug, logInfo
 class MyException(Exception):
     pass
 
-class IdentifierBase(ModuleBase, Cacher):
+class IdentifierBase2(ModuleBase, Cacher):
 	def __init__(self):
 		ModuleBase.__init__(self)
 		Cacher.__init__(self)

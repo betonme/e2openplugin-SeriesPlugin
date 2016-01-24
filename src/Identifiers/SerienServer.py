@@ -13,7 +13,7 @@ from datetime import datetime
 
 # Internal
 from Plugins.Extensions.SeriesPlugin import _
-from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase
+from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase2
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
 from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
 from Plugins.Extensions.SeriesPlugin.TimeoutServerProxy import TimeoutServerProxy
@@ -21,9 +21,9 @@ from Plugins.Extensions.SeriesPlugin.TimeoutServerProxy import TimeoutServerProx
 CompiledRegexpReplaceChars = re.compile("[^a-zA-Z0-9-\*]")
 
 
-class SerienServer(IdentifierBase):
+class SerienServer(IdentifierBase2):
 	def __init__(self):
-		IdentifierBase.__init__(self)
+		IdentifierBase2.__init__(self)
 		
 		self.server = TimeoutServerProxy()
 	
