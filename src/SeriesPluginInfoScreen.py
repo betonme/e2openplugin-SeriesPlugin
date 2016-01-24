@@ -73,6 +73,8 @@ class SeriesPluginInfoScreen(Screen):
 	dwidth = desktopSize.width()
 	if dwidth == 1920:
 		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenHD.xml" )
+	elif dwidth == 1280:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenXD.xml" )
 	else:
 		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenSD.xml" )
 	
