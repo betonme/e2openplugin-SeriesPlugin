@@ -48,11 +48,15 @@ class XMLFile(object):
 	def readXML(self):
 		
 		path = self.__path
-		logDebug("Read XML from " + path)
+		logDebug("Read XML from " + str(path))
+		
+		if not path:
+			logDebug("No configuration file given")
+			return None
 		
 		# Abort if no config found
 		if not os.path.exists(path):
-			logDebug("No configuration file present")
+			logDebug("Configuration file does not exist")
 			return None
 		
 		# Parse if mtime differs from whats saved
