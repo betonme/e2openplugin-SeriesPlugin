@@ -80,7 +80,7 @@ class SeriesPluginInfoScreen(Screen):
 	else:
 		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenSD.xml" )
 	
-	loadSkin(skinFile, "")
+	skin = open(skinFile).read()
 	
 	def __init__(self, session, service=None, event=None):
 		if session:
