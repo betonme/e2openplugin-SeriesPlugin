@@ -52,6 +52,8 @@ from Screens.TimerEdit import TimerSanityConflict
 from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS
 
+from skin import loadSkin
+from enigma import getDesktop
 
 # Plugin internal
 from SeriesPlugin import getInstance
@@ -68,8 +70,13 @@ instance = None
 # Info screen
 class SeriesPluginInfoScreen(Screen):
 	
-	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/skin.xml" )
-	skin = open(skinfile).read()
+	dwidth = desktopSize.width()
+	if dwidth == 1920:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenHD.xml" )
+	else:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenSD.xml" )
+	
+	loadSkin(skinFile, "")
 	
 	def __init__(self, session, service=None, event=None):
 		if session:

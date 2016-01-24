@@ -64,7 +64,7 @@ def checkList(cfg):
 # Configuration screen
 class SeriesPluginConfiguration(ConfigListScreen, Screen):
 	
-	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/skinSetup.xml" )
+	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/Setup.xml" )
 	skin = open(skinfile).read()
 	
 	def __init__(self, session):

@@ -53,7 +53,7 @@ colorWhite  = 0xffffff
 
 class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	
-	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/skinChannelEditor.xml" )
+	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/ChannelEditor.xml" )
 	skin = open(skinfile).read()
 	
 	def __init__(self, session):
