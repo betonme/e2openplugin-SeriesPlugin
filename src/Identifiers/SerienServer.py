@@ -18,8 +18,6 @@ from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
 from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
 from Plugins.Extensions.SeriesPlugin.TimeoutServerProxy import TimeoutServerProxy
 
-CompiledRegexpReplaceChars = re.compile("[^a-zA-Z0-9-\*]")
-
 
 class SerienServer(IdentifierBase2):
 	def __init__(self):
@@ -75,7 +73,6 @@ class SerienServer(IdentifierBase2):
 		logInfo("SerienServer getEpisode, name, begin, end=None, service", name, begin, end, service)
 		
 		# Prepare parameters
-		name = CompiledRegexpReplaceChars.sub(" ", name.lower())
 		webChannels = lookupChannelByReference(service)
 		if not webChannels:
 			msg = _("Check the channel name")
