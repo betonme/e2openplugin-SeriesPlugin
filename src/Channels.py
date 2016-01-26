@@ -35,7 +35,7 @@ from Tools.XMLTools import stringToXML
 
 # Plugin internal
 from . import _
-from XMLFile import XMLFile
+from XMLFile import XMLFile, indent
 from Logger import logDebug, logInfo
 
 try:
@@ -166,24 +166,6 @@ class ChannelsBase(XMLFile):
 		path = config.plugins.seriesplugin.channel_file.value
 		XMLFile.__init__(self, path)
 		
-		self.__cleanup = False
-		if path == '/etc/enigma2/seriesplugin_channels.xml':
-			logDebug("Write XML: Found old path")
-			
-			# Check if xmltvimport exists
-			if os.path.exists("/etc/epgimport"):
-				logDebug("writeXML: Found epgimport")
-				path = config.plugins.seriesplugin.channel_file.value = "/etc/epgimport/wunschliste.channels.xml"
-				self.__cleanup = True
-				self.setPath(path)
-			
-			# Check if xmltvimport exists
-			elif os.path.exists("/etc/xmltvimport"):
-				logDebug("writeXML: Found xmltvimport")
-				path = config.plugins.seriesplugin.channel_file.value = "/etc/xmltvimport/wunschliste.channels.xml"
-				self.__cleanup = True
-				self.setPath(path)
-		
 		self.resetChannels()
 	
 	def channelsEmpty(self):
@@ -313,13 +295,25 @@ class ChannelsBase(XMLFile):
 				
 				etree = ElementTree( build( root, channels ) )
 				
+				indent(etree.getroot())
+				
 				self.writeXML( etree )
 				
-				if self.__cleanup:
+				if config.plugins.seriesplugin.epgimport.value:
+					logDebug("Write: xml channels for epgimport")
 					try:
-						os.remove('/etc/enigma2/seriesplugin_channels.xml')
-					except OSError:
-						pass
+						path = "/etc/epgimport/wunschliste.channels.xml"
+						etree.write(path, encoding='utf-8', xml_declaration=True) 
+					except Exception as e:
+						logDebug("Exception in write XML: " + str(e))
+				
+				if config.plugins.seriesplugin.xmltvimport.value:
+					logDebug("Write: xml channels for xmltvimport")
+					try:
+						path = "/etc/xmltvimport/wunschliste.channels.xml"
+						etree.write(path, encoding='utf-8', xml_declaration=True) 
+					except Exception as e:
+						logDebug("Exception in write XML: " + str(e))
 			
 		except Exception as e:
 			logDebug("Exception in writeXML: " + str(e))

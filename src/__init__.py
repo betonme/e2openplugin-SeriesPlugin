@@ -13,6 +13,9 @@ config.plugins.seriesplugin = ConfigSubsection()
 
 config.plugins.seriesplugin.enabled                   = ConfigOnOff(default = False)
 
+config.plugins.seriesplugin.epgimport                 = ConfigYesNo(default = False)
+config.plugins.seriesplugin.xmltvimport               = ConfigYesNo(default = False)
+
 config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
 config.plugins.seriesplugin.menu_epg                  = ConfigYesNo(default = False)
@@ -85,6 +88,7 @@ config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0
 
 config.plugins.seriesplugin.proxy_url                 = ConfigText(default = 'http://www.serienserver.de/proxy/proxy.php', fixed_size = False)
 config.plugins.seriesplugin.serienserver_url          = ConfigText(default = 'http://www.serienserver.de/cache/cache.php', fixed_size = False)
+config.plugins.seriesplugin.xmltv_url                 = ConfigText(default = 'http://www.serienserver.de/xmltv/wunschliste.xml', fixed_size = False)
 
 
 def localeInit():

@@ -32,6 +32,21 @@ from Tools.XMLTools import stringToXML
 from . import _
 from Logger import logDebug, logInfo
 
+def indent(elem, level=0):
+	i = "\n" + level*"  "
+	if len(elem):
+		if not elem.text or not elem.text.strip():
+			elem.text = i + "  "
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+		for elem in elem:
+			indent(elem, level+1)
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+	else:
+		if level and (not elem.tail or not elem.tail.strip()):
+			elem.tail = i
+
 
 class XMLFile(object):
 	def __init__(self, path):
@@ -82,23 +97,6 @@ class XMLFile(object):
 		
 		path = self.__path
 		logDebug("Write XML to " + path)
-		
-		def indent(elem, level=0):
-			i = "\n" + level*"  "
-			if len(elem):
-				if not elem.text or not elem.text.strip():
-					elem.text = i + "  "
-				if not elem.tail or not elem.tail.strip():
-					elem.tail = i
-				for elem in elem:
-					indent(elem, level+1)
-				if not elem.tail or not elem.tail.strip():
-					elem.tail = i
-			else:
-				if level and (not elem.tail or not elem.tail.strip()):
-					elem.tail = i
-		
-		indent(etree.getroot())
 		
 		try:
 			etree.write(path, encoding='utf-8', xml_declaration=True) 

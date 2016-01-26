@@ -160,6 +160,23 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		self.list.append( getConfigListEntry(  _("Enable SeriesPlugin")                            , config.plugins.seriesplugin.enabled ) )
 		
 		if config.plugins.seriesplugin.enabled.value:
+			
+			# Check if xmltvimport exists
+			if os.path.exists("/etc/epgimport"):
+				logDebug("Config: Found epgimport")
+#				self.list.append( getConfigListEntry(  _("Enable support for EPGImport")           , config.plugins.seriesplugin.epgimport ) )
+			elif config.plugins.seriesplugin.epgimport.value:
+				self.changesMade = True
+				config.plugins.seriesplugin.epgimport.value = False
+			
+			# Check if xmltvimport exists
+			if os.path.exists("/etc/xmltvimport"):
+				logDebug("Config: Found xmltvimport")
+#				self.list.append( getConfigListEntry(  _("Enable support for XMLTVImport")         , config.plugins.seriesplugin.xmltvimport ) )
+			elif config.plugins.seriesplugin.xmltvimport.value:
+				self.changesMade = True
+				config.plugins.seriesplugin.xmltvimport.value = False
+			
 			self.list.append( getConfigListEntry(  _("Show in info menu")                          , config.plugins.seriesplugin.menu_info ) )
 			self.list.append( getConfigListEntry(  _("Show in extensions menu")                    , config.plugins.seriesplugin.menu_extensions ) )
 			self.list.append( getConfigListEntry(  _("Show in epg menu")                           , config.plugins.seriesplugin.menu_epg ) )
