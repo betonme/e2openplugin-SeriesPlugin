@@ -36,7 +36,7 @@ class XMLTVBase(object):
 		elif os.path.exists("/etc/xmltvimport"):
 			logDebug("readXMLTV: Found xmltvimport")
 			path = "/etc/xmltvimport/wunschliste.sources.xml"
-			self.xmltvimport =  = XMLFile(path)
+			self.xmltvimport = XMLFile(path)
 		
 		self.readXMLTVConfig()
 
@@ -63,7 +63,7 @@ class XMLTVBase(object):
 		if self.epgimport is None and self.xmltvimport is None:
 			return
 		
-		if config.plugins.seriesplugin.epgimport.value = False and config.plugins.seriesplugin.xmltvimport.value: = False:
+		if config.plugins.seriesplugin.epgimport.value == False and config.plugins.seriesplugin.xmltvimport.value == False:
 			return
 		
 		# Build Header
