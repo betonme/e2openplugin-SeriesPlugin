@@ -65,6 +65,13 @@ PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPl
 
 instance = None
 
+def getChannel(eservicereference):
+	if isinstance(eservicereference, eServiceReference):
+		servicereference = ServiceReference(eservicereference)
+		if servicereference:
+			return servicereference.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+	return ""
+
 
 #######################################################
 # Info screen
@@ -214,17 +221,8 @@ class SeriesPluginInfoScreen(Screen):
 		
 		# Fallbacks
 		if ref is None:
-			#ref = self.session and self.session.nav.getCurrentService()
-			#ref = eServiceReference(ref.info().getInfoString(iServiceInformation.sServiceref))
-			#ref = eServiceReference(str(ref))
-
-			#service = self.session.nav.getCurrentService()
-			#info = service and service.info()
-			#event = info and info.getEvent(0)
-			
-			sref = self.session and self.session.nav.getCurrentlyPlayingServiceReference().toString()
-			ref = eServiceReference(sref)
-			channel = ServiceReference(str(ref)).getServiceName() or ""
+			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
+			channel = getChannel(ref)
 			
 			logDebug("SPI: Fallback ref", ref, str(ref), channel)
 		
