@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __init__ import _
 
+import sys, os, base64, re, time, shutil, datetime, codecs, urllib2
+
 from Components.ActionMap import ActionMap, HelpableActionMap
 from Components.MenuList import MenuList
 from Components.Button import Button
@@ -16,18 +18,10 @@ from Tools.Notifications import AddPopup
 
 from enigma import eListboxPythonMultiContent, eListbox, gFont, getDesktop, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, loadPNG, RT_WRAP, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_VALIGN_BOTTOM
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS
-import sys, os, base64, re, time, shutil, datetime, codecs, urllib2
 from twisted.web import client, error as weberror
 from twisted.internet import reactor, defer
 from urllib import urlencode
-from skin import parseColor
-
-# Check if is UHD
-DESKTOP_WIDTH = getDesktop(0).size().width()
-if DESKTOP_WIDTH > 1920:
-	skinFactor = 2.0
-else:
-	skinFactor = 1
+from skin import parseColor, parseFont, parseSize
 
 try:
 	from skin import TemplatedListFonts
@@ -43,6 +37,8 @@ from WebChannels import WebChannels
 
 # Constants
 PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Images/" )
+
+DESKTOP_WIDTH = getDesktop(0).size().width()
 
 colorRed    = 0xf23d21
 colorGreen  = 0x389416
@@ -116,6 +112,12 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		self['list'] = self.chooseMenuList
 		self['list'].show()
 
+		self.itemHeight = 30
+		self.iconSize = 16
+		self.colWidthStb = 300
+		self.colWidthWeb = 250
+		self.margin = 5
+
 		self.stbChlist = []
 		self.webChlist = []
 		self.stbToWebChlist = []
@@ -124,6 +126,28 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		
 		self.onLayoutFinish.append(self.readChannels)
 		self.onShown.append(self.showMessage)
+
+	def applySkin(self):
+		# This is a very bad way to get the skin attributes
+		# This function is called for every skin element, we should parse the attributes depending on the element name
+		attribs = [ ] 
+		if self.skinAttributes is not None:
+			for (attrib, value) in self.skinAttributes:
+				if attrib == "itemHeight":
+					self.itemHeight = int(value)
+					self.chooseMenuList.l.setItemHeight(self.itemHeight)
+				elif attrib == "iconSize":
+					self.iconSize = int(value)
+				elif attrib == "colWidthStb":
+					self.colWidthStb = int(value)
+				elif attrib == "colWidthWeb":
+					self.colWidthWeb = int(value)
+				elif attrib == "margin":
+					self.margin = int(value)
+				else:
+					attribs.append((attrib, value))
+		self.skinAttributes = attribs
+		return Screen.applySkin(self)
 
 	def showMessage(self):
 		if self.showMessage in self.onShown:
@@ -228,21 +252,20 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		else:
 			imageStatus = path = os.path.join(PIXMAP_PATH, "plus.png")
 		
-		global TemplatedListFonts
-		if TemplatedListFonts is not None:
-			l = [entry,
-				(eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, 10, 8, 16 * skinFactor, 16 * skinFactor, loadPNG(imageStatus)),
-				(eListboxPythonMultiContent.TYPE_TEXT, 35 * skinFactor, 0, 400 * skinFactor, 30 * skinFactor, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender),
-				(eListboxPythonMultiContent.TYPE_TEXT, 450 * skinFactor, 0, 450 * skinFactor, 30 * skinFactor, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender),
-				(eListboxPythonMultiContent.TYPE_TEXT, 900 * skinFactor, 0, 300 * skinFactor, 30 * skinFactor, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow)
-				]
-		else:
-			l = [entry,
-				(eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, 10, 8, 16, 16, loadPNG(imageStatus)),
-				(eListboxPythonMultiContent.TYPE_TEXT, 35, 3, 300, 26, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender),
-				(eListboxPythonMultiContent.TYPE_TEXT, 350, 3, 250, 26, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender),
-				(eListboxPythonMultiContent.TYPE_TEXT, 600, 3, 250, 26, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow)
-				]
+		l = [entry,]
+		
+		pos = 10
+		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, 8, self.iconSize,     self.iconSize ,  loadPNG(imageStatus)) )
+		
+		pos += self.iconSize + self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthStb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
+		
+		pos += self.colWidthStb + self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthWeb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
+		
+		pos += self.colWidthWeb + self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, DESKTOP_WIDTH-pos, self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
+		
 		return l
 
 	def getIndexOfWebSender(self, webSender):
