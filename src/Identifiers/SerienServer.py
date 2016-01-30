@@ -79,15 +79,19 @@ class SerienServer(IdentifierBase2):
 			logInfo(msg)
 			return msg
 		
-		unixtime = str(int(mktime(begin.timetuple())))
+		unixtime = str(begin)
 		max_time_drift = self.max_time_drift
 		
 		# Lookup
 		for webChannel in webChannels:
 			logDebug("SerienServer getSeasonEpisode(): [\"%s\",\"%s\",\"%s\",%s]" % (name, webChannel, unixtime, max_time_drift))
 			
-			result = self.server.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
-			logDebug("SerienServer getSeasonEpisode result:", result)
+			result = None
+			try:
+				result = self.server.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
+				logDebug("SerienServer getSeasonEpisode result:", result)
+			except Exception as e:
+				logInfo("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
 			
 			if result:
 				return ( result['season'], result['episode'], result['title'], result['series'] )
