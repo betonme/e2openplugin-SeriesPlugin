@@ -16,6 +16,6 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 		
 		timeout = config.plugins.seriesplugin.socket_timeout.value		# socket._GLOBAL_DEFAULT_TIMEOUT or None
 		
-		xmlrpclib.ServerProxy.__init__(self, uri, verbose=False, *args, **kwargs)
+		xmlrpclib.ServerProxy.__init__(self, uri, verbose=True, *args, **kwargs)
 		
 		socket.setdefaulttimeout( float(timeout) ) 
