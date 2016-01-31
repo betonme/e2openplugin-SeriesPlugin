@@ -295,7 +295,7 @@ class SeriesPluginInfoScreen(Screen):
 			logDebug("SPI: getEpisode:", self.name, begin, end, ref)
 			identifier = self.seriesPlugin.getEpisode(
 					self.episodeCallback, 
-					self.name, begin, end, ref, today=today, elapsed=elapsed
+					self.name, begin, end, ref, future=future, today=today, elapsed=elapsed
 				)
 		except Exception as e:
 			logDebug("SPI: exception:", str(e))
