@@ -105,10 +105,8 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		if TemplatedListFonts is not None:
 			tlf = TemplatedListFonts()
 			self.chooseMenuList.l.setFont(0, gFont(tlf.face(tlf.MEDIUM), tlf.size(tlf.MEDIUM)))
-			self.chooseMenuList.l.setItemHeight(int(30*skinFactor))
 		else:
 			self.chooseMenuList.l.setFont(0, gFont('Regular', 20 ))
-			self.chooseMenuList.l.setItemHeight(25)
 		self['list'] = self.chooseMenuList
 		self['list'].show()
 
