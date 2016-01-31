@@ -168,7 +168,8 @@ class SeriesPluginInfoScreen(Screen):
 		begin, end, duration = 0, 0, 0
 		ext, channel = "", ""
 		
-		today = True #OR future
+		future = True
+		today = False #OR future
 		elapsed = False
 		
 		service = self.service
@@ -196,6 +197,7 @@ class SeriesPluginInfoScreen(Screen):
 				#ref = service
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
+				future = False
 				today = False
 				elapsed = True
 				logDebug("SPI: eServiceReference movie", str(ref))
@@ -237,6 +239,7 @@ class SeriesPluginInfoScreen(Screen):
 				logDebug("SPI: No valid selection", str(ref))
 				return
 			# Get information from epg
+			future = False
 			today = True
 			elapsed = False
 			logDebug("SPI: Fallback event", self.event)
@@ -282,7 +285,7 @@ class SeriesPluginInfoScreen(Screen):
 		if self.session:
 			self.updateScreen(self.name, _("Retrieving Season, Episode and Title..."), self.short, ext, begin, duration, channel)
 		
-		identifier = self.seriesPlugin.getIdentifier(False, today, elapsed)
+		identifier = self.seriesPlugin.getIdentifier(future, today, elapsed)
 		if identifier:
 			path = os.path.join(PIXMAP_PATH, identifier+".png")
 			

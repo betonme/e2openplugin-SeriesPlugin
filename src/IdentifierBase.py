@@ -109,6 +109,10 @@ class IdentifierBase2(ModuleBase, Cacher):
 
 	################################################
 	# To be implemented by subclass
+	def getLogo(self, future=True):
+		# Return the name of the logo without extension .png
+		pass
+
 	def getEpisode(self, name, begin, end, service):
 		# On Success: Return a single season, episode, title tuple
 		# On Failure: Return a empty list or String or None

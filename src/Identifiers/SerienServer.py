@@ -37,7 +37,7 @@ class SerienServer(IdentifierBase2):
 	def knowsFuture(cls):
 		return True
 
-	def getName(self, future=True):
+	def getLogo(self, future=True):
 		if future:
 			return "Wunschliste"
 		else:
