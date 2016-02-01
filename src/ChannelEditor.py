@@ -16,7 +16,7 @@ from Screens.ChoiceBox import ChoiceBox
 from Screens.MessageBox import MessageBox
 from Tools.Notifications import AddPopup
 
-from enigma import eListboxPythonMultiContent, eListbox, gFont, getDesktop, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, loadPNG, RT_WRAP, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_VALIGN_BOTTOM
+from enigma import eListboxPythonMultiContent, eListbox, gFont, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, loadPNG, RT_WRAP, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_VALIGN_BOTTOM
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS
 from twisted.web import client, error as weberror
 from twisted.internet import reactor, defer
@@ -38,13 +38,86 @@ from WebChannels import WebChannels
 # Constants
 PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Images/" )
 
-DESKTOP_WIDTH = getDesktop(0).size().width()
-
 colorRed    = 0xf23d21
 colorGreen  = 0x389416
 colorBlue   = 0x0064c7
 colorYellow = 0xbab329
 colorWhite  = 0xffffff
+
+
+class MatchList(MenuList): 
+	"""Defines a simple Component to show Timer name""" 
+
+	def __init__(self): 
+		MenuList.__init__(self, [], enableWrapAround=True, content=eListboxPythonMultiContent) 
+
+		self.itemHeight = 30
+		self.iconSize = 16
+		self.colWidthStb = 300
+		self.colWidthWeb = 250
+		self.margin = 5
+		
+		self.l.setBuildFunc(self.buildListboxEntry) 
+		
+		global TemplatedListFonts
+		if TemplatedListFonts is not None:
+			tlf = TemplatedListFonts()
+			self.l.setFont(0, gFont(tlf.face(tlf.MEDIUM), tlf.size(tlf.MEDIUM)))
+		else:
+			self.l.setFont(0, gFont('Regular', 20 ))
+
+	def applySkin(self, desktop, parent): 
+		# This is a very bad way to get the skin attributes
+		# This function is called for every skin element, we should parse the attributes depending on the element name
+		attribs = [ ] 
+		if self.skinAttributes is not None:
+			for (attrib, value) in self.skinAttributes:
+				if attrib == "itemHeight":
+					self.itemHeight = int(value)
+					self.l.setItemHeight(self.itemHeight)
+				elif attrib == "iconSize":
+					self.iconSize = int(value)
+				elif attrib == "colWidthStb":
+					self.colWidthStb = int(value)
+				elif attrib == "colWidthWeb":
+					self.colWidthWeb = int(value)
+				elif attrib == "margin":
+					self.margin = int(value)
+				else:
+					attribs.append((attrib, value))
+		self.skinAttributes = attribs
+		return MenuList.applySkin(self, desktop, parent) 
+
+	def getCurrent(self): 
+ 		cur = self.l.getCurrentSelection() 
+ 		return cur and cur[0]
+
+	def buildListboxEntry(self, entry):
+		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet )
+		
+		size = self.l.getItemSize() 
+		
+		(stbSender, webSender, serviceref, status) = entry
+		if int(status) == 0:		
+			imageStatus = path = os.path.join(PIXMAP_PATH, "minus.png")
+		else:
+			imageStatus = path = os.path.join(PIXMAP_PATH, "plus.png")
+		
+		l = [entry,]
+		
+		pos = self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, 8, self.iconSize,     self.iconSize ,  loadPNG(imageStatus)) )
+		
+		pos += self.iconSize + self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthStb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
+		
+		pos += self.colWidthStb + self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthWeb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
+		
+		pos += self.colWidthWeb + self.margin
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, size.width()-pos, self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
+		
+		return l
 
 
 class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
@@ -98,23 +171,10 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 
 		self["helpActions"] = ActionMap(["HelpActions",], {
 			"displayHelp"      : self.showHelp
-		}, 0)
+		}, 0
 
-		self.chooseMenuList = MenuList([], enableWrapAround=True, content=eListboxPythonMultiContent)
-		global TemplatedListFonts
-		if TemplatedListFonts is not None:
-			tlf = TemplatedListFonts()
-			self.chooseMenuList.l.setFont(0, gFont(tlf.face(tlf.MEDIUM), tlf.size(tlf.MEDIUM)))
-		else:
-			self.chooseMenuList.l.setFont(0, gFont('Regular', 20 ))
-		self['list'] = self.chooseMenuList
+		self['list'] = MatchList()
 		self['list'].show()
-
-		self.itemHeight = 30
-		self.iconSize = 16
-		self.colWidthStb = 300
-		self.colWidthWeb = 250
-		self.margin = 5
 
 		self.stbChlist = []
 		self.webChlist = []
@@ -124,28 +184,6 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		
 		self.onLayoutFinish.append(self.readChannels)
 		self.onShown.append(self.showMessage)
-
-	def applySkin(self):
-		# This is a very bad way to get the skin attributes
-		# This function is called for every skin element, we should parse the attributes depending on the element name
-		attribs = [ ] 
-		if self.skinAttributes is not None:
-			for (attrib, value) in self.skinAttributes:
-				if attrib == "itemHeight":
-					self.itemHeight = int(value)
-					self.chooseMenuList.l.setItemHeight(self.itemHeight)
-				elif attrib == "iconSize":
-					self.iconSize = int(value)
-				elif attrib == "colWidthStb":
-					self.colWidthStb = int(value)
-				elif attrib == "colWidthWeb":
-					self.colWidthWeb = int(value)
-				elif attrib == "margin":
-					self.margin = int(value)
-				else:
-					attribs.append((attrib, value))
-		self.skinAttributes = attribs
-		return Screen.applySkin(self)
 
 	def showMessage(self):
 		if self.showMessage in self.onShown:
@@ -191,7 +229,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 					self.stbToWebChlist.append((servicename, "", serviceref, "0"))
 		
 		if len(self.stbToWebChlist) != 0:
-			self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
+			self['list'].setList( self.stbToWebChlist )
 		else:
 			logDebug("SPC: Error creating webChlist..")
 			self.setTitle(_("Error check log file"))
@@ -236,35 +274,10 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 						self.stbToWebChlist.append((servicename, "", serviceref, "0"))
 						
 		if len(self.stbToWebChlist) != 0:
-			self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
+			self['list'].setList( self.stbToWebChlist )
 		else:
 			logDebug("SPC: Error creating webChlist..")
 			self.setTitle(_("Error check log file"))
-		
-	def buildList(self, entry):
-		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet )
-		
-		(stbSender, webSender, serviceref, status) = entry
-		if int(status) == 0:		
-			imageStatus = path = os.path.join(PIXMAP_PATH, "minus.png")
-		else:
-			imageStatus = path = os.path.join(PIXMAP_PATH, "plus.png")
-		
-		l = [entry,]
-		
-		pos = 10
-		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, 8, self.iconSize,     self.iconSize ,  loadPNG(imageStatus)) )
-		
-		pos += self.iconSize + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthStb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
-		
-		pos += self.colWidthStb + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthWeb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
-		
-		pos += self.colWidthWeb + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, DESKTOP_WIDTH-pos, self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
-		
-		return l
 
 	def getIndexOfWebSender(self, webSender):
 		for pos,webCh in enumerate(self.webChlist):
@@ -279,7 +292,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			return
 		else:
 			idx = 0
-			(servicename, webSender, serviceref, state) = self['list'].getCurrent()[0]
+			(servicename, webSender, serviceref, state) = self['list'].getCurrent()
 			idx = 0
 			if webSender:
 				idx = self.getIndexOfWebSender(self.webChlist)
@@ -305,7 +318,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 				self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' added.") % {'servicename': servicename, 'remote':remote } )
 				self.addChannel(serviceref, servicename, remote)
 				self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
-				self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
+				self['list'].setList( self.stbToWebChlist )
 		elif servicename and serviceref and remote and webSender:
 			logDebug("SPC: add or replace", servicename, serviceref, remote, webSender)
 			self.session.openWithCallback( boundFunction(self.addOrReplace, servicename, serviceref, webSender, remote), MessageBox,_("Add channel (Yes) or replace it (No)"), MessageBox.TYPE_YESNO, default = False)
@@ -328,7 +341,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			self.replaceChannel(serviceref, servicename, remote)
 			self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
 			
-		self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
+		self['list'].setList( self.stbToWebChlist )
 
 	def keyRemove(self):
 		check = self['list'].getCurrent()
@@ -336,7 +349,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			logDebug("SPC: keyRemove list empty")
 			return
 		else:
-			(servicename, webSender, serviceref, state) = self['list'].getCurrent()[0]
+			(servicename, webSender, serviceref, state) = self['list'].getCurrent()
 			logDebug("SPC: keyRemove", servicename, webSender, serviceref, state)
 			if serviceref:
 				#TODO handle multiple links/alternatives - show a choicebox
@@ -352,7 +365,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 				self.setTitle(_("Channel '- %s -' removed.") % servicename)
 				self.removeChannel(serviceref)
 				self.stbToWebChlist[idx] = (servicename, "", serviceref, "0")
-				self.chooseMenuList.setList(map(self.buildList, self.stbToWebChlist))
+				self['list'].setList( self.stbToWebChlist )
 
 	def keyResetChannelMapping(self):
 		self.session.openWithCallback(self.channelReset, MessageBox, _("Reset channel list?"), MessageBox.TYPE_YESNO)
