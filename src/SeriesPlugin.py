@@ -416,7 +416,12 @@ class SeriesPlugin(Modules, ChannelsBase):
 				
 				config.plugins.seriesplugin.lookup_counter.value += 1
 				
-				return normalizeResult(result)
+				data = normalizeResult(result)
+				
+				if callable(callback):
+					callback(data)
+				
+				return data
 
 	def gotResult(self, msg):
 		logDebug(" Main: Thread: gotResult:", msg)
