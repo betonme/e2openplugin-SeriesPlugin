@@ -374,7 +374,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		elif future:
 			identifier = self.identifier_future
 		else:
-			identifier = None
+			identifier = self.modules and self.instantiateModule( self.modules.itervalues().next() )
 		
 		if not identifier:
 			if callable(callback):
