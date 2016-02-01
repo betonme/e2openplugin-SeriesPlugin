@@ -93,7 +93,6 @@ class MatchList(MenuList):
  		return cur and cur[0]
 
 	def buildListboxEntry(self, stbSender, webSender, serviceref, status):
-		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet )
 		
 		size = self.l.getItemSize() 
 		
@@ -187,7 +186,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	def showMessage(self):
 		if self.showMessage in self.onShown:
 			self.onShown.remove(self.showMessage)
-			self.session.open( MessageBox, _("You have to match SD and HD channels separately!"), MessageBox.TYPE_INFO )
+			self.session.open( MessageBox, _("If You are using SD and HD channels in parallel, You have to match both channels separately!"), MessageBox.TYPE_INFO )
 
 	def readChannels(self, bouquet=None):
 		self.stbToWebChlist = []
@@ -199,23 +198,26 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			self.bouquet = bouquet
 			self.stbChlist = []
 		
-		self.setTitle(_("Load channels for bouquet") + " " + self.bouquet)
-		
 		if not self.stbChlist:
-			self.stbChlist = buildSTBchannellist(self.bouquet)
+			self.loadStbChannels()
 		
 		if not self.webChlist:
-			self.setWebChannels(self.getWebChannels())
-		else:
-			self.showChannels()
-
-	def setWebChannels(self, data):
-		#data.sort()
+			self.loadWebChannels()
+		
+		self.showChannels()
+	
+	def loadStbChannels(self):
+		self.setTitle(_("Load STB channels for bouquet") + " " + self.bouquet)
+		self.stbChlist = buildSTBchannellist(self.bouquet)
+	
+	def loadWebChannels(self):
+		self.setTitle(_("Load Web channels for bouquet") + " " + self.bouquet)
+		data = self.getWebChannels()
 		temp = [ (x,unifyChannel(x)) for x in data]
 		self.webChlist = sorted(temp, key=lambda tup: tup[0])
-		self.showChannels()
 
 	def showChannels(self):
+		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet )
 		if len(self.stbChlist) != 0:
 			for servicename,serviceref,uservicename in self.stbChlist:
 				#logDebug("SPC: servicename", servicename, uservicename)
