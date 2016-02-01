@@ -37,7 +37,7 @@ class SerienServer(IdentifierBase2):
 	def knowsFuture(cls):
 		return True
 
-	def getLogo(self, future=True, today=False, elapsed=False)
+	def getLogo(self, future=True, today=False, elapsed=False):
 		if future:
 			return "Wunschliste"
 		elif today:
