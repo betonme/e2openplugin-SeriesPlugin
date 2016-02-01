@@ -31,7 +31,6 @@ from time import localtime
 #from ServiceReference import ServiceReference
 
 # Plugin internal
-from SeriesPlugin import getInstance, refactorTitle, refactorDescription
 from SeriesPluginTimer import SeriesPluginTimer
 from Logger import logDebug, logInfo
 
