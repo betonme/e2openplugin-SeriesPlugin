@@ -330,11 +330,11 @@ class SeriesPlugin(Modules, ChannelsBase):
 	# Identifier functions
 	def getLogo(self, future=False, today=False, elapsed=False):
 		if elapsed:
-			return self.identifier_elapsed and self.identifier_elapsed.getLogo(future)
+			return self.identifier_elapsed and self.identifier_elapsed.getLogo(future, today, elapsed)
 		elif today:
-			return self.identifier_today and self.identifier_today.getLogo(future)
+			return self.identifier_today and self.identifier_today.getLogo(future, today, elapsed)
 		elif future:
-			return self.identifier_future and self.identifier_future.getLogo(future)
+			return self.identifier_future and self.identifier_future.getLogo(future, today, elapsed)
 		else:
 			return None
 	

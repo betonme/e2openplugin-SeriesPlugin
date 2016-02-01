@@ -109,7 +109,7 @@ class IdentifierBase2(ModuleBase, Cacher):
 
 	################################################
 	# To be implemented by subclass
-	def getLogo(self, future=True):
+	def getLogo(self, future=True, today=False, elapsed=False)
 		# Return the name of the logo without extension .png
 		pass
 
