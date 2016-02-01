@@ -171,7 +171,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 
 		self["helpActions"] = ActionMap(["HelpActions",], {
 			"displayHelp"      : self.showHelp
-		}, 0
+		}, 0)
 
 		self['list'] = MatchList()
 		self['list'].show()
