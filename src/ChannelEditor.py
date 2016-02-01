@@ -92,18 +92,17 @@ class MatchList(MenuList):
  		cur = self.l.getCurrentSelection() 
  		return cur and cur[0]
 
-	def buildListboxEntry(self, entry):
+	def buildListboxEntry(self, stbSender, webSender, serviceref, status):
 		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet )
 		
 		size = self.l.getItemSize() 
 		
-		(stbSender, webSender, serviceref, status) = entry
 		if int(status) == 0:		
 			imageStatus = path = os.path.join(PIXMAP_PATH, "minus.png")
 		else:
 			imageStatus = path = os.path.join(PIXMAP_PATH, "plus.png")
 		
-		l = [entry,]
+		l = [(stbSender, webSender, serviceref, status),]
 		
 		pos = self.margin
 		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, 8, self.iconSize,     self.iconSize ,  loadPNG(imageStatus)) )

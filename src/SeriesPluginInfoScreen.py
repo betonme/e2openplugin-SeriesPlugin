@@ -169,7 +169,7 @@ class SeriesPluginInfoScreen(Screen):
 		ext, channel = "", ""
 		
 		future = True
-		today = False #OR future
+		today = False
 		elapsed = False
 		
 		service = self.service
