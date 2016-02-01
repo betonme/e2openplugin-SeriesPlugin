@@ -193,8 +193,6 @@ class SeriesPluginInfoScreen(Screen):
 					sref = ServiceReference(ref)
 					ref = sref.ref
 					channel = sref.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
-				#ref = eServiceReference(str(service))
-				#ref = service
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
 				future = False
@@ -203,11 +201,13 @@ class SeriesPluginInfoScreen(Screen):
 				logDebug("SPI: eServiceReference movie", str(ref))
 			else:
 				# Service is channel reference
-				#ref = eServiceReference(str(service))
 				ref = service
-				#channel = ServiceReference(ref).getServiceName() or ""
 				channel = ServiceReference(str(service)).getServiceName() or ""
-				#ref = eServiceReference(service.toString())#
+				if not channel:
+					try:
+						channel = ServiceReference(service.toString()).getServiceName() or ""
+					except:
+						pass
 				# Get information from event
 				logDebug("SPI: eServiceReference channel", str(ref))
 		
