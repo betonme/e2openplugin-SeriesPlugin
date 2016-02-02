@@ -19,7 +19,7 @@ class WebChannels(object):
 		
 		logDebug("SerienServer getWebChannels()")
 		
-		result = self.server.sp.cache.getWebChannels()
+		result = self.server.getWebChannels()
 		logDebug("SerienServer getWebChannels result:", result)
 		
 		return result

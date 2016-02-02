@@ -88,12 +88,8 @@ class SerienServer(IdentifierBase2):
 		for webChannel in webChannels:
 			logDebug("SerienServer getSeasonEpisode(): [\"%s\",\"%s\",\"%s\",%s]" % (name, webChannel, unixtime, max_time_drift))
 			
-			result = None
-			try:
-				result = self.server.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
-				logDebug("SerienServer getSeasonEpisode result:", result)
-			except Exception as e:
-				logInfo("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
+			result = self.server.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
+			logDebug("SerienServer getSeasonEpisode result:", result)
 			
 			if result:
 				return ( result['season'], result['episode'], result['title'], result['series'] )
