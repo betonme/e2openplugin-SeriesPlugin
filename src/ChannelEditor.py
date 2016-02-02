@@ -88,10 +88,6 @@ class MatchList(MenuList):
 		self.skinAttributes = attribs
 		return MenuList.applySkin(self, desktop, parent) 
 
-	def getCurrent(self): 
- 		cur = self.l.getCurrentSelection() 
- 		return cur and cur[0]
-
 	def buildListboxEntry(self, stbSender, webSender, serviceref, status):
 		
 		size = self.l.getItemSize() 
@@ -293,7 +289,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			return
 		else:
 			idx = 0
-			(servicename, webSender, serviceref, state) = self['list'].getCurrent()
+			servicename, webSender, serviceref, state = check
 			idx = 0
 			if webSender:
 				idx = self.getIndexOfWebSender(self.webChlist)
@@ -350,7 +346,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			logDebug("SPC: keyRemove list empty")
 			return
 		else:
-			(servicename, webSender, serviceref, state) = self['list'].getCurrent()
+			servicename, webSender, serviceref, state = check
 			logDebug("SPC: keyRemove", servicename, webSender, serviceref, state)
 			if serviceref:
 				#TODO handle multiple links/alternatives - show a choicebox
@@ -415,10 +411,3 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 
 	def keyCancel(self):
 		self.close(False)
-
-	def hideHelpWindow(self):
-		current = self["config"].getCurrent()
-		if current and hasattr(current[1], "help_window"):
-			help_window = current[1].help_window
-			if help_window:
-				help_window.hide()
