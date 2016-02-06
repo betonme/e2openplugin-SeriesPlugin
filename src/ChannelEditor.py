@@ -17,7 +17,7 @@ from Screens.MessageBox import MessageBox
 from Tools.Notifications import AddPopup
 
 from enigma import eListboxPythonMultiContent, eListbox, gFont, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, loadPNG, RT_WRAP, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_VALIGN_BOTTOM
-from Tools.Directories import resolveFilename, SCOPE_PLUGINS
+from Tools.Directories import resolveFilename, SCOPE_PLUGINS, SCOPE_CURRENT_PLUGIN
 from twisted.web import client, error as weberror
 from twisted.internet import reactor, defer
 from urllib import urlencode
@@ -36,7 +36,7 @@ from Logger import logDebug, logInfo
 from WebChannels import WebChannels
 
 # Constants
-PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Images/" )
+PIXMAP_PATH = resolveFilename(SCOPE_CURRENT_PLUGIN, "Extensions/SeriesPlugin/Images/" )
 
 colorRed    = 0xf23d21
 colorGreen  = 0x389416
@@ -51,7 +51,10 @@ class MatchList(MenuList):
 	def __init__(self): 
 		MenuList.__init__(self, [], enableWrapAround=True, content=eListboxPythonMultiContent) 
 
+		self.listFont = None
 		self.itemHeight = 30
+		self.iconPosX = 16
+		self.iconPosY = 16
 		self.iconSize = 16
 		self.colWidthStb = 300
 		self.colWidthWeb = 250
@@ -72,9 +75,16 @@ class MatchList(MenuList):
 		attribs = [ ] 
 		if self.skinAttributes is not None:
 			for (attrib, value) in self.skinAttributes:
-				if attrib == "itemHeight":
+				if attrib == "font":
+					self.listFont = parseFont(value, ((1,1),(1,1)))
+					self.l.setFont(0, self.listFont)
+				elif attrib == "itemHeight":
 					self.itemHeight = int(value)
 					self.l.setItemHeight(self.itemHeight)
+				elif attrib == "iconPosX":
+					self.iconPosX = int(value)
+				elif attrib == "iconPosY":
+					self.iconPosY = int(value)
 				elif attrib == "iconSize":
 					self.iconSize = int(value)
 				elif attrib == "colWidthStb":
@@ -99,17 +109,17 @@ class MatchList(MenuList):
 		
 		l = [(stbSender, webSender, serviceref, status),]
 		
-		pos = self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, 8, self.iconSize,     self.iconSize ,  loadPNG(imageStatus)) )
+		pos = self.margin + self.iconPosX
+		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, self.iconPosY, self.iconSize,     self.iconSize,  loadPNG(imageStatus)) )
 		
 		pos += self.iconSize + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthStb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             self.colWidthStb,  self.itemHeight, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
 		
 		pos += self.colWidthStb + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, self.colWidthWeb,  self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             self.colWidthWeb,  self.itemHeight, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
 		
 		pos += self.colWidthWeb + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0, size.width()-pos, self.itemHeight, 0,          RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             size.width()-pos, self.itemHeight,  0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
 		
 		return l
 
