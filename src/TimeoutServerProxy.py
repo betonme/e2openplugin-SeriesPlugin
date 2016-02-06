@@ -43,5 +43,5 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 		except Exception as e:
 			logInfo("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
 			self.skip.append(name)
-			result = _str(e)
+			result = str(e)
 		return result
