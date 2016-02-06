@@ -4,8 +4,6 @@
 # Imports
 import re
 
-from __init__ import _
-
 from Components.config import config
 
 from Tools.BoundFunction import boundFunction
@@ -14,7 +12,7 @@ from time import time, mktime
 from datetime import datetime
 
 # Internal
-from Plugins.Extensions.SeriesPlugin import _
+from Plugins.Extensions.SeriesPlugin.__init__ import _
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase2
 from Plugins.Extensions.SeriesPlugin.Logger import logDebug, logInfo
 from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
