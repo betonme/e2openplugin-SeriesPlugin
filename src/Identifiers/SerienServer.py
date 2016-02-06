@@ -4,6 +4,8 @@
 # Imports
 import re
 
+from __init__ import _
+
 from Components.config import config
 
 from Tools.BoundFunction import boundFunction
