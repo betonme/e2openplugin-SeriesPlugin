@@ -307,22 +307,21 @@ class SeriesPluginInfoScreen(Screen):
 		
 		logDebug("SPI: episodeCallback", data)
 		#logDebug(data)
-		if data and len(data) == 4:
+		if data and isinstance(data, dict) and len(data) == 6:
 			# Episode data available
-			season, episode, title, series = self.data = data
+			self.data = data
 		
 			if season == 0 and episode == 0:
-				custom = _("{title:s}").format( 
-							**{'season': season, 'episode': episode, 'title': title} )
+				custom = _("{title:s}").format( **data )
+				
 			elif season == 0:
-				custom = _("Episode: {episode:d}\n{title:s}").format( 
-							**{'season': season, 'episode': episode, 'title': title} )
+				custom = _("Episode: {episode:d}\n{title:s}").format( **data )
+				
 			elif episode == 0:
-				custom = _("Season: {season:d}\n{title:s}").format( 
-							**{'season': season, 'episode': episode, 'title': title} )
+				custom = _("Season: {season:d}\n{title:s}").format( **data )
+				
 			else:
-				custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( 
-							**{'season': season, 'episode': episode, 'title': title} )
+				custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( **data )
 			
 			try:
 				self.setColorButtons()

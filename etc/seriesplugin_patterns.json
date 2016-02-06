@@ -56,7 +56,12 @@
 		["{series:s} - S{season:02d}E{episode:02d} - {title:s}" , "Series - S01E01 - Title"],
 
 		["{org:s}_S{season:02d}EP{episode:02d}"           , "Org_S01EP01"],
-		["{org:s}_S{season:02d}EP{episode:02d_}"           , "Org_S01EP01_"]
+		["{org:s}_S{season:02d}EP{episode:02d_}"          , "Org_S01EP01_"],
+		
+		["{series:s} S{rawseason:s} E{rawepisode:s} {title:s}" , "Series SRaw ERaw Title"],
+		["{series:s} S{rawseason:s}E{rawepisode:s} {title:s}"  , "Series SRawERaw Title"],
+		["{series:s} S{rawseason:s} E{rawepisode:s} {title:s}" , "Series Raw Raw Title"],
+		["{series:s} S{rawseason:s} E{rawepisode:s} {title:s}" , "Series RawRaw Title"]
 
 	]
 ]

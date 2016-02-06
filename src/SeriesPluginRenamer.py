@@ -288,7 +288,7 @@ class SeriesPluginRenamer(object):
 		
 		result = None
 		
-		if data and len(data) == 4:
+		if data and isinstance(data, dict) and len(data) == 6:
 			result = rename(servicepath, name, short, data)
 		
 		

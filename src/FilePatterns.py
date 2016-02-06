@@ -44,6 +44,12 @@ scheme_fallback = [
 		("{title:s} {series:s}"                              , "Title Series"),
 		("S{season:02d}E{episode:02d} {title:s} {series:s}"  , "S01E01 Title Series"),
 		("{title:s} S{season:02d}E{episode:02d} {series:s}"  , "Title S01E01 Series"),
+		
+		("{series:s} S{rawseason:s} E{rawepisode:s} {title:s}", "Series SRaw ERaw Title"),
+		("{series:s} {rawseason:s} {rawepisode:s} {title:s}"  , "Series Raw Raw Title"),
+		("{series:s} S{rawseason:s}E{rawepisode:s} {title:s}" , "Series SRawERaw Title"),
+		("{series:s} {rawseason:s}{rawepisode:s} {title:s}"   , "Series RawRaw Title")
+		
 	]
 
 def readFilePatterns():

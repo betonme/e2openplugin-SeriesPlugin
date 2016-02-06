@@ -35,7 +35,7 @@ def bareGetSeasonEpisode(service_ref, name, begin, end, description, path, futur
 		global loop_counter
 		loop_counter += 1
 		
-		if data and len(data) == 4:
+		if data and isinstance(data, dict) and len(data) == 6:
 			name = str(refactorTitle(name, data))
 			description = str(refactorDescription(description, data))
 			path = refactorDirectory(path, data)

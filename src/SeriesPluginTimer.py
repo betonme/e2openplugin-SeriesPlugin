@@ -155,23 +155,16 @@ class SeriesPluginTimer(object):
 		logDebug("SPT: timerCallback", data)
 		logDebug(data)
 		
-		if data and len(data) == 4 and timer:
+		if data and isinstance(data, dict) and len(data) == 6 and timer:
 			
 			# Episode data available, refactor name and description
-			#from SeriesPluginRenamer import newLegacyEncode
 			timer.name = str(refactorTitle(timer.name, data))
-			#timer.name = newLegacyEncode(refactorTitle(timer.name, data))
 			timer.description = str(refactorDescription(timer.description, data))
 			
-			if not timer.dirname:
-				logDebug("SPT: SeriesPluginTimer: No dirname")
-				directory  = str(refactorDirectory(config.usage.default_path.value, data))
-			else:
-				directory  = str(refactorDirectory(timer.dirname, data))
-			
-			timer.dirname = directory
+			timer.dirname = str(refactorDirectory(timer.dirname or config.usage.default_path.value, data))
 			timer.calculateFilename()
 			
+			logDebug("SPT: Success: Changed name:", timer.name)
 			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 			
 			timer.tags.append(TAG)
