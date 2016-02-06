@@ -311,13 +311,13 @@ class SeriesPluginInfoScreen(Screen):
 			# Episode data available
 			self.data = data
 		
-			if season == 0 and episode == 0:
+			if data['season'] == 0 and data['episode'] == 0:
 				custom = _("{title:s}").format( **data )
 				
-			elif season == 0:
+			elif data['season'] == 0:
 				custom = _("Episode: {episode:d}\n{title:s}").format( **data )
 				
-			elif episode == 0:
+			elif data['episode'] == 0:
 				custom = _("Season: {season:d}\n{title:s}").format( **data )
 				
 			else:
