@@ -93,8 +93,10 @@ class SerienServer(IdentifierBase2):
 			result = self.server.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
 			logDebug("SerienServer getSeasonEpisode result:", result)
 			
-			if result:
+			if result and isinstance(result, dict) and len(result) >= 4:
 				return ( result['season'], result['episode'], result['title'], result['series'] )
+			else:
+				return result
 
 		else:
 			return ( _("No match found") )
