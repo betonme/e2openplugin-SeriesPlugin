@@ -140,6 +140,7 @@ def refactorTitle(org_, data):
 		org = org_
 	if data:
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off" and not config.plugins.seriesplugin.pattern_title.value == "Disabled":
+			data["org"] = org
 			cust_ = config.plugins.seriesplugin.pattern_title.value.strip().format( **data )
 			cust = cust_.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
 			logDebug(" refactor title", cust_, cust)
@@ -157,6 +158,7 @@ def refactorDescription(org_, data):
 		org = org_
 	if data:
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off" and not config.plugins.seriesplugin.pattern_description.value == "Disabled":
+			data["org"] = org
 			cust_ = config.plugins.seriesplugin.pattern_description.value.strip().format( **data )
 			cust = cust_.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
 			logDebug(" refactor desc", cust_, cust)
@@ -170,6 +172,7 @@ def refactorDirectory(org, data):
 	dir = org
 	if data:
 		if config.plugins.seriesplugin.pattern_directory.value and not config.plugins.seriesplugin.pattern_directory.value == "Off" and not config.plugins.seriesplugin.pattern_directory.value == "Disabled":
+			data["org"] = org
 			cust_ = config.plugins.seriesplugin.pattern_directory.value.strip().format( **data )
 			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("  ", " ").replace("//", "/")
 			dir = CompiledRegexpReplaceDirChars.sub(' ', cust_)
