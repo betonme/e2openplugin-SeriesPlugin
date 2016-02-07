@@ -5,10 +5,15 @@ import xmlrpclib
 import httplib
 import socket
 
+from time import time
+
 from Components.config import config
 
 # Internal
 from Logger import logDebug, logInfo
+
+skip_expiration = 5.0 * 60 	# in seconds
+reduced_timeout = 3.0		# in seconds
 
 
 class TimeoutServerProxy(xmlrpclib.ServerProxy):
@@ -17,13 +22,12 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 		from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
 		uri = config.plugins.seriesplugin.serienserver_url.value + REQUEST_PARAMETER
 		
-		timeout = config.plugins.seriesplugin.socket_timeout.value
-		
 		xmlrpclib.ServerProxy.__init__(self, uri, verbose=True, *args, **kwargs)
 		
+		timeout = config.plugins.seriesplugin.socket_timeout.value
 		socket.setdefaulttimeout( float(timeout) )
 		
-		self.skip = []
+		self.skip = {}
 
 	def getWebChannels(self):
 		result = None
@@ -35,13 +39,25 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 
 	def getSeasonEpisode( self, name, webChannel, unixtime, max_time_drift ):
 		result = None
-		if name in self.skip:
-			return result
+		
+		skipped = self.skip.get(name, None)
+		if skipped:
+			if ( time() - skipped ) < skip_expiration:
+				#return _("Skipped")
+				socket.setdefaulttimeout( reduced_timeout )
+			else:
+				del self.skip[name]
+		
 		try:
 			result = self.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
 			logDebug("SerienServer getSeasonEpisode result:", result)
 		except Exception as e:
 			logInfo("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
-			self.skip.append(name)
+			self.skip[name] = time()
 			result = str(e)
+		
+		if skipped:
+			timeout = config.plugins.seriesplugin.socket_timeout.value
+			socket.setdefaulttimeout( float(timeout) )
+		
 		return result
