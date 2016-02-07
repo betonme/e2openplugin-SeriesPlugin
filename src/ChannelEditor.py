@@ -53,8 +53,8 @@ class MatchList(MenuList):
 
 		self.listFont = None
 		self.itemHeight = 30
-		self.iconPosX = 16
-		self.iconPosY = 16
+		self.iconPosX = 8
+		self.iconPosY = 8
 		self.iconSize = 16
 		self.colWidthStb = 300
 		self.colWidthWeb = 250
