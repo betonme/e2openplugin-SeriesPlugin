@@ -185,7 +185,7 @@ def refactorDirectory(org, data):
 	return dir
 
 def normalizeResult(result):
-	if result and isinstance(result, dict) and len(result) == 4:
+	if result and isinstance(result, dict):
 		logDebug(" Worker: result callback")
 		title_   = result['title'].strip()
 		series_  = result['series'].strip()

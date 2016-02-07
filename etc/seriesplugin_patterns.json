@@ -64,7 +64,10 @@
 		["{series:s} {rawseason:s}{rawepisode:s} {title:s}"    , "Series RawRaw Title"],
 		
 		["{series:s} S{season:02d} E{rawepisode:s} {title:s}" , "Series S01 ERaw Title"],
-		["{series:s} S{season:02d}E{rawepisode:s} {title:s}"  , "Series S01ERaw Title"]
+		["{series:s} S{season:02d}E{rawepisode:s} {title:s}"  , "Series S01ERaw Title"],
+		
+		["{channel:s} {series:s} S{season:02d} E{rawepisode:s} {title:s}" , "Channel Series S01 ERaw Title"],
+		["{service:s} {series:s} S{season:02d}E{rawepisode:s} {title:s}"  , "Service Series S01ERaw Title"]
 
 	]
 ]

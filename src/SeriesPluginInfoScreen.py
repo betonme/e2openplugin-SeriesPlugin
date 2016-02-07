@@ -307,7 +307,7 @@ class SeriesPluginInfoScreen(Screen):
 		
 		logDebug("SPI: episodeCallback", data)
 		#logDebug(data)
-		if data and isinstance(data, dict) and len(data) == 6:
+		if data and isinstance(data, dict):
 			# Episode data available
 			self.data = data
 		
