@@ -20,7 +20,7 @@
 		["{org:s}/{series:s} Season {season:02d}/"        , "Original/Series Season 01/"],
 		["{org:s}/{series:s} Season {rawseason:s}/"       , "Original/Series Season Raw/"],
 		
-		["{org:s}/{service:s}/{series:s} Season {rawseason:s}/"       , "Original/Series Season Raw/"],
-		["{org:s}/{channel:s}/{series:s} Season {rawseason:s}/"       , "Original/Series Season Raw/"]
+		["{org:s}/{service:s}/{series:s} Season {rawseason:s}/" , "Original/Service/Series Season Raw/"],
+		["{org:s}/{channel:s}/{series:s} Season {rawseason:s}/" , "Original/Channel/Series Season Raw/"]
 	]
 ]
