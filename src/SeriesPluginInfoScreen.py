@@ -311,17 +311,17 @@ class SeriesPluginInfoScreen(Screen):
 			# Episode data available
 			self.data = data
 		
-			if data['season'] == 0 and data['episode'] == 0:
+			if data['rawseason'] == "" and data['rawepisode'] == "":
 				custom = _("{title:s}").format( **data )
 				
-			elif data['season'] == 0:
-				custom = _("Episode: {episode:d}\n{title:s}").format( **data )
+			elif data['rawseason'] == "":
+				custom = _("Episode: {rawepisode:s}\n{title:s}").format( **data )
 				
-			elif data['episode'] == 0:
-				custom = _("Season: {season:d}\n{title:s}").format( **data )
+			elif data['rawepisode'] == "":
+				custom = _("Season: {rawseason:s}\n{title:s}").format( **data )
 				
 			else:
-				custom = _("Season: {season:d}  Episode: {episode:d}\n{title:s}").format( **data )
+				custom = _("Season: {rawseason:s}  Episode: {rawepisode:s}\n{title:s}").format( **data )
 			
 			try:
 				self.setColorButtons()
