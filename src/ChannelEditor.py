@@ -219,7 +219,11 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	def loadWebChannels(self):
 		self.setTitle(_("Load Web channels for bouquet") + " " + self.bouquet)
 		data = self.getWebChannels()
-		temp = [ (x,unifyChannel(x)) for x in data]
+		if data:
+			temp = [ (x,unifyChannel(x)) for x in data]
+		else:
+			self.setTitle(_("Problem during loading Webchannels"))
+			temp = []
 		self.webChlist = sorted(temp, key=lambda tup: tup[0])
 
 	def showChannels(self):
