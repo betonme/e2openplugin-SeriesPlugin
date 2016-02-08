@@ -404,7 +404,7 @@ class SeriesPluginInfoScreen(Screen):
 				if self.path and os.path.exists(self.path):
 					# Record file exists
 					self["key_red"].setText(_("Rename"))
-					self.redButtonFunction = self.rename
+					self.redButtonFunction = self.keyRename
 				elif self.event and self.event.getEventId():
 					# Event exists
 					#if (not self.service.flags & eServiceReference.isGroup) and self.service.getPath() and self.service.getPath()[0] == '/'
@@ -412,7 +412,7 @@ class SeriesPluginInfoScreen(Screen):
 					#	if timer.eit == eventid and timer.service_ref.ref.toString() == refstr:
 					#		cb_func = lambda ret : not ret or self.removeTimer(timer)
 					self["key_red"].setText(_("Record"))
-					self.redButtonFunction = self.record
+					self.redButtonFunction = self.keyRecord
 				else:
 					self["key_red"].setText("")
 					self.redButtonFunction = None
@@ -434,8 +434,8 @@ class SeriesPluginInfoScreen(Screen):
 		if self.service and self.data:
 			pass
 
-	def rename(self):
-		logDebug("SPI: rename")
+	def keyRename(self):
+		logDebug("SPI: keyRename")
 		ref = self.eservice
 		if ref and self.data:
 			path = ref.getPath()
@@ -449,8 +449,8 @@ class SeriesPluginInfoScreen(Screen):
 					self.session.open( MessageBox, _("Renaming failed"), MessageBox.TYPE_INFO )
 
 	# Adapted from EventView
-	def record(self):
-		logDebug("SPI: record")
+	def keyRecord(self):
+		logDebug("SPI: keyRecord")
 		if self.event and self.service:
 			event = self.event
 			ref = self.service
