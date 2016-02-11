@@ -75,9 +75,10 @@ def runIndependent():
 					continue
 			
 			#Maybe later add a series whitelist xml
-			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
+			result = SeriesPluginTimer(timer, timer.name, timer.begin, timer.end, True)
 			
-			timer.serieslookupdone = True
+			if result:
+				timer.serieslookupdone = True
 	
 	except Exception as e:
 		logDebug("SeriesPluginIndependent: run exception " + str(e))

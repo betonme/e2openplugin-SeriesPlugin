@@ -54,7 +54,7 @@ class SeriesPluginTimer(object):
 			# We do not want to execute the blocking code here
 			return
 		
-		self.getSeasonAndEpisode(timer, name, begin, end, block)
+		return self.getSeasonAndEpisode(timer, name, begin, end, block)
 
 	def getSeasonAndEpisode(self, timer, name, begin, end, block=True):
 		
