@@ -68,17 +68,25 @@ def runIndependent():
 				logDebug("SeriesPluginIndependent: Skip repeating timer", timer.name)
 				continue
 			
+			if hasattr(timer, 'series_lookup_success') and timer.series_lookup_success:
+				logDebug("SeriesPluginIndependent: Skip renamed timer", timer.name)
+				continue
+			
 			if not config.plugins.seriesplugin.independent_retry.value:
-				logDebug("SeriesPluginIndependent: timer retry is disabled")
-				if hasattr(timer, 'serieslookupdone') and timer.serieslookupdone:
+				logDebug("SeriesPluginIndependent: independent retry is disabled")
+				if hasattr(timer, 'series_lookup_done') and timer.series_lookup_done:
 					logDebug("SeriesPluginIndependent: Skip timer retry", timer.name)
 					continue
 			
 			#Maybe later add a series whitelist xml
 			result = SeriesPluginTimer(timer, timer.name, timer.begin, timer.end, True)
 			
+			# Always set lookupdone
+			timer.series_lookup_done = True
+			
 			if result:
-				timer.serieslookupdone = True
+				# Set lookup success
+				timer.series_lookup_success = True
 	
 	except Exception as e:
 		logDebug("SeriesPluginIndependent: run exception " + str(e))
