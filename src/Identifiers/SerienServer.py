@@ -6,7 +6,8 @@ import re
 
 from Components.config import config
 
-from Tools.BoundFunction import boundFunction
+from Screens.MessageBox import MessageBox
+from Tools.Notifications import AddPopup
 
 from time import time, mktime
 from datetime import datetime
@@ -60,7 +61,7 @@ class SerienServer(IdentifierBase2):
 			logInfo(msg)
 			return msg
 		if not service:
-			msg = _("Skip: No service specified")
+			msg = _("Skip: No service / channel specified")
 			logInfo(msg)
 			return msg
 		
@@ -75,8 +76,14 @@ class SerienServer(IdentifierBase2):
 		# Prepare parameters
 		webChannels = lookupChannelByReference(service)
 		if not webChannels:
-			msg = _("Check the channel name")
+			msg = _("No matching channel found.") + "\n\n" + _("Please open the Channel Editor and add the channel manually.")
 			logInfo(msg)
+			AddPopup(
+				msg,
+				MessageBox.TYPE_ERROR,
+				-1,
+				'SP_PopUp_ID_Error'
+			)
 			return msg
 		
 		unixtime = str(begin)

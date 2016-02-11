@@ -70,6 +70,7 @@ def getInstance():
 		from plugin import VERSION
 		
 		logDebug(" SERIESPLUGIN NEW INSTANCE " + VERSION)
+		logDebug( " ", strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
 		
 		try:
 			from Tools.HardwareInfo import HardwareInfo
@@ -106,10 +107,48 @@ def getInstance():
 			logInfo( " Config option 'Replace Chars' is no valid regular expression" )
 			CompiledRegexpReplaceChars = re.compile("[:\!/\\,\(\)'\?]")
 		
-		instance = SeriesPlugin()
+		# Check autotimer
+		try:
+			from Plugins.Extensions.AutoTimer.plugin import autotimer
+			deprecated = False
+			try:
+				from Plugins.Extensions.AutoTimer.plugin import AUTOTIMER_VERSION
+				if int(AUTOTIMER_VERSION[0]) < 4:
+					deprecated = True
+			except ImportError:
+				AUTOTIMER_VERSION = "deprecated"
+				deprecated = True
+			logDebug( " AutoTimer: " + AUTOTIMER_VERSION )
+			if deprecated:
+				AddPopup(
+					_("Your autotimer is deprecated")  + "\n" +_("Please update it"),
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Error_'+dependency
+				)
+		except ImportError:
+			logDebug( " AutoTimer: Not found" )
 		
-		logDebug( " ", strftime("%a, %d %b %Y %H:%M:%S", localtime()) )
-	
+		# Check dependencies
+		start = True
+		from imp import find_module
+		dependencies = ["difflib", "json", "re", "xml", "xmlrpclib"]
+		for dependency in dependencies:
+			try:
+				find_module(dependency)
+			except ImportError:
+				start = False
+				msg = _("Error missing dependency")  + "\n" + "python-"+dependency + "\n\n" +_("Please install missing python paket manually")
+				logInfo(msg)
+				AddPopup(
+					msg,
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Error_'+dependency
+				)
+		if start:
+			instance = SeriesPlugin()
+		
 	return instance
 
 def stopWorker():

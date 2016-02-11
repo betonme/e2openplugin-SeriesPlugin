@@ -2,7 +2,6 @@
 # by http://stackoverflow.com/questions/372365/set-timeout-for-xmlrpclib-serverproxy
 
 import xmlrpclib
-import httplib
 import socket
 
 from time import time

@@ -17,14 +17,17 @@
 #
 #######################################################################
 
+import os
+import json
+
 # for localized messages
 from . import _
 
 # Config
 from Components.config import *
 
-import os
-import json
+from Tools.Notifications import AddPopup
+from Screens.MessageBox import MessageBox
 
 # Plugin internal
 from Logger import logDebug, logInfo
@@ -47,14 +50,20 @@ def readDirectoryPatterns():
 	patterns = None
 	
 	if os.path.exists(path):
-		logDebug("[SeriesPlugin] Found pattern file")
+		logDebug("Found directory pattern file")
 		f = None
 		try:
 			f = open(path, 'rb')
 			header, patterns = json.load(f)
 			patterns = [tuple(p) for p in patterns]
 		except Exception as e:
-			logDebug("[SeriesPlugin] Exception in readDirectoryPatterns: " + str(e))
+			logDebug("Exception in readDirectoryPatterns: " + str(e))
+			AddPopup(
+					_("Your pattern file is corrupt")  + "\n" + path + "\n\n" + str(e),
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Error_DirectoryPatterns'
+				)
 		finally:
 			if f is not None:
 				f.close()

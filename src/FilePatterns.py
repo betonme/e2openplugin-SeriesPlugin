@@ -17,14 +17,17 @@
 #
 #######################################################################
 
+import os
+import json
+
 # for localized messages
 from . import _
 
 # Config
 from Components.config import *
 
-import os
-import json
+from Tools.Notifications import AddPopup
+from Screens.MessageBox import MessageBox
 
 # Plugin internal
 from Logger import logDebug, logInfo
@@ -49,7 +52,6 @@ scheme_fallback = [
 		("{series:s} {rawseason:s} {rawepisode:s} {title:s}"  , "Series Raw Raw Title"),
 		("{series:s} S{rawseason:s}E{rawepisode:s} {title:s}" , "Series SRawERaw Title"),
 		("{series:s} {rawseason:s}{rawepisode:s} {title:s}"   , "Series RawRaw Title")
-		
 	]
 
 def readFilePatterns():
@@ -58,14 +60,20 @@ def readFilePatterns():
 	patterns = None
 	
 	if os.path.exists(path):
-		logDebug("[SeriesPlugin] Found pattern file")
+		logDebug("Found title pattern file")
 		f = None
 		try:
 			f = open(path, 'rb')
 			header, patterns = json.load(f)
 			patterns = [tuple(p) for p in patterns]
 		except Exception as e:
-			logDebug("[SeriesPlugin] Exception in readFilePatterns: " + str(e))
+			logDebug("Exception in readFilePatterns: " + str(e))
+			AddPopup(
+					_("Your pattern file is corrupt")  + "\n" + path + "\n\n" + str(e),
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Error_FilePatterns'
+				)
 		finally:
 			if f is not None:
 				f.close()
