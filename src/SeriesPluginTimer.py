@@ -155,7 +155,7 @@ class SeriesPluginTimer(object):
 		logDebug("SPT: timerCallback", data)
 		logDebug(data)
 		
-		if data and isinstance(data, dict) and len(data) == 6 and timer:
+		if data and isinstance(data, dict) and timer:
 			
 			# Episode data available, refactor name and description
 			timer.name = str(refactorTitle(timer.name, data))
