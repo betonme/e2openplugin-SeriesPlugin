@@ -146,10 +146,7 @@ def renameFiles(servicepath, name, data):
 	
 	logDebug("SPR: name     ", name)
 	# Refactor title
-	if config.plugins.seriesplugin.rename_tidy.value:
-		name = refactorTitle(name, data)
-	else:
-		name = refactorTitle(file_name, data)
+	name = refactorTitle(file_name, data)
 	logDebug("SPR: name     ", name)
 	#if config.recording.ascii_filenames.value:
 	#	filename = ASCIItranslit.legacyEncode(filename)

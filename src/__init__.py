@@ -47,7 +47,6 @@ config.plugins.seriesplugin.channel_file              = ConfigText(default = "/e
 config.plugins.seriesplugin.bouquet_main              = ConfigText(default = "", fixed_size = False)
 
 config.plugins.seriesplugin.rename_file               = ConfigYesNo(default = True)
-config.plugins.seriesplugin.rename_tidy               = ConfigYesNo(default = False)
 config.plugins.seriesplugin.rename_legacy             = ConfigYesNo(default = False)
 config.plugins.seriesplugin.rename_existing_files     = ConfigYesNo(default = False)
 config.plugins.seriesplugin.rename_popups             = ConfigYesNo(default = True)
