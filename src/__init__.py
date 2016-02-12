@@ -61,7 +61,6 @@ config.plugins.seriesplugin.skip_pattern_match        = ConfigYesNo(default=True
 
 config.plugins.seriesplugin.autotimer_independent     = ConfigYesNo(default = False)
 config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(5, 24*60, 5, default = 60)
-config.plugins.seriesplugin.independent_retry         = ConfigYesNo(default = False)
 
 config.plugins.seriesplugin.check_timer_list          = ConfigYesNo(default = False)
 
