@@ -124,7 +124,7 @@ def getInstance():
 					_("Your autotimer is deprecated")  + "\n" +_("Please update it"),
 					MessageBox.TYPE_ERROR,
 					-1,
-					'SP_PopUp_ID_Error_'+dependency
+					'SP_PopUp_ID_Error_AT_deprecated'
 				)
 		except ImportError:
 			logDebug( " AutoTimer: Not found" )
