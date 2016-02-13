@@ -279,9 +279,12 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			x()
 		current = self["config"].getCurrent()[1]
 		if (current == config.plugins.seriesplugin.enabled or 
+			current == config.plugins.seriesplugin.rename_file or
+			current == config.plugins.seriesplugin.rename_popups.value or 
+			current == config.plugins.seriesplugin.rename_popups_success.value or
 			current == config.plugins.seriesplugin.autotimer_independent or 
 			current == config.plugins.seriesplugin.write_log or
-			current == config.plugins.seriesplugin.rename_file):
+			current == config.plugins.autotimer.log_write.value):
 			self.changeConfig()
 
 	# Overwrite ConfigListScreen keySave function
