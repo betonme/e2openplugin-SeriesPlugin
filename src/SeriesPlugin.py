@@ -246,6 +246,8 @@ def normalizeResult(result):
 			series = series_
 		result['title']  = title
 		result['series'] = series
+		result['date'] = strftime("%d.%m.%Y", result['begin'])
+		result['time'] = strftime("%H:%M:%S", result['begin'])
 		return result
 	else:
 		logDebug(" Worker: result failed", str(result))

@@ -65,12 +65,6 @@ class SerienServer(IdentifierBase2):
 			logInfo(msg)
 			return msg
 		
-		
-		self.name = name
-		self.begin = begin
-		self.end = end
-		self.service = service
-		
 		logInfo("SerienServer getEpisode, name, begin, end=None, service", name, begin, end, service)
 		
 		# Prepare parameters
@@ -98,6 +92,7 @@ class SerienServer(IdentifierBase2):
 			if result and isinstance(result, dict):
 				result['service'] = service
 				result['channel'] = webChannel
+				result['begin'] = begin
 			
 			logDebug("SerienServer getSeasonEpisode result:", type(result), result)
 			
