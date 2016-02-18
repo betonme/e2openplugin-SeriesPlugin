@@ -65,6 +65,7 @@ config.plugins.seriesplugin.independent_cycle         = ConfigSelectionNumber(5,
 config.plugins.seriesplugin.check_timer_list          = ConfigYesNo(default = False)
 
 config.plugins.seriesplugin.timer_eit_check           = ConfigYesNo(default = True)
+config.plugins.seriesplugin.timer_add_tag             = ConfigYesNo(default = True)
 config.plugins.seriesplugin.timer_popups              = ConfigYesNo(default = True)
 config.plugins.seriesplugin.timer_popups_success      = ConfigYesNo(default = False)
 config.plugins.seriesplugin.timer_popups_timeout      = ConfigSelectionNumber(-1, 20, 1, default = 3)

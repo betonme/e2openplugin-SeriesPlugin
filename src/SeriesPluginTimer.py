@@ -167,7 +167,8 @@ class SeriesPluginTimer(object):
 			logDebug("SPT: Success: Changed name:", timer.name)
 			timer.log(610, "[SeriesPlugin] Success: Changed name: %s." % (timer.name))
 			
-			timer.tags.append(TAG)
+			if config.plugins.seriesplugin.timer_add_tag.value:
+				timer.tags.append(TAG)
 		
 		elif data:
 			timer.log(611, "[SeriesPlugin] Failed: %s." % ( str( data ) ))
