@@ -11,7 +11,7 @@ from Tools.Notifications import AddPopup
 
 # Plugin internal
 from SeriesPluginTimer import SeriesPluginTimer
-from Logger import logDebug, logInfo, getLog, startLog
+from Logger import log
 
 
 loop_data = []
@@ -22,9 +22,9 @@ def bareGetSeasonEpisode(service_ref, name, begin, end, description, path, futur
 	result = _("SeriesPlugin is deactivated")
 	if config.plugins.seriesplugin.enabled.value:
 		
-		startLog()
+		log.start()
 		
-		logInfo("Bare:", service_ref, name, begin, end, description, path, future, today, elapsed)
+		log.info("Bare:", service_ref, name, begin, end, description, path, future, today, elapsed)
 		
 		from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
 		seriesPlugin = getInstance()
@@ -39,13 +39,22 @@ def bareGetSeasonEpisode(service_ref, name, begin, end, description, path, futur
 			name = str(refactorTitle(name, data))
 			description = str(refactorDescription(description, data))
 			path = refactorDirectory(path, data)
-			logInfo("Bare: Success", name, description, path)
-			return (name, description, path, getLog())
-		elif data:
-			global loop_data
-			loop_data.append( str(data) )
+			log.info("Bare: Success", name, description, path)
+			return (name, description, path, log.get())
 		
-		logInfo("Bare: Failed", str(data))
+		elif data and isinstance(data, basestring):
+			global loop_data
+			msg = _("Failed: %s." % ( str( data ) ))
+			log.debug(msg)
+			loop_data.append( name + ": " + msg )
+		
+		else:
+			global loop_data
+			msg = _("No data available")
+			log.debug(msg)
+			loop_data.append( name + ": " + msg )
+		
+		log.info("Bare: Failed", str(data))
 		return str(data)
 	
 	return result

@@ -26,7 +26,6 @@ from Components.config import config
 from enigma import eServiceReference, eServiceCenter
 from ServiceReference import ServiceReference
 
-from Screens.MessageBox import MessageBox
 from Tools.BoundFunction import boundFunction
 
 # XML
@@ -36,7 +35,7 @@ from Tools.XMLTools import stringToXML
 # Plugin internal
 from . import _
 from XMLFile import XMLFile, indent
-from Logger import logDebug, logInfo
+from Logger import log
 
 try:
 	#Python >= 2.7
@@ -103,9 +102,9 @@ def buildSTBchannellist(BouquetName = None):
 	chlist = None
 	chlist = []
 	mask = (eServiceReference.isMarker | eServiceReference.isDirectory)
-	logDebug("SPC: read STB Channellist..")
+	log.debug("SPC: read STB Channellist..")
 	tvbouquets = getTVBouquets()
-	logDebug("SPC: found %s bouquet: %s" % (len(tvbouquets), tvbouquets) )
+	log.debug("SPC: found %s bouquet: %s" % (len(tvbouquets), tvbouquets) )
 
 	if not BouquetName:
 		for bouquet in tvbouquets:
@@ -133,7 +132,7 @@ def getChannelByRef(stb_chlist,serviceref):
 			return channelname
 
 def compareChannels(ref, remote):
-	logDebug("compareChannels", ref, remote)
+	log.debug("compareChannels", ref, remote)
 	remote = remote.lower()
 	if ref in ChannelsBase.channels:
 		( name, alternatives ) = ChannelsBase.channels[ref]
@@ -149,10 +148,10 @@ def lookupChannelByReference(ref):
 		altnames = []
 		for altname in alternatives:
 			if altname:
-				logDebug("lookupChannelByReference", ref, altname)
+				log.debug("lookupChannelByReference", ref, altname)
 				altnames.append(altname)
 		return altnames
-	logDebug("lookupChannelByReference: Failed for", ref)
+	log.debug("lookupChannelByReference: Failed for", ref)
 	return False
 
 
@@ -178,7 +177,7 @@ class ChannelsBase(XMLFile):
 		self.loadXML()
 	
 	def addChannel(self, ref, name, remote):
-		logDebug("SP addChannel name remote", name, remote)
+		log.debug("SP addChannel name remote", name, remote)
 		
 		if ref in ChannelsBase.channels:
 			( name, alternatives ) = ChannelsBase.channels[ref]
@@ -190,7 +189,7 @@ class ChannelsBase(XMLFile):
 		ChannelsBase.channels_changed = True
 	
 	def replaceChannel(self, ref, name, remote):
-		logDebug("SP addChannel name remote", name, remote)
+		log.debug("SP addChannel name remote", name, remote)
 		
 		ChannelsBase.channels[ref] = ( name, [remote] )
 		ChannelsBase.channels_changed = True
@@ -215,9 +214,9 @@ class ChannelsBase(XMLFile):
 					channels = {}
 					version = root.get("version", "1")
 					if version.startswith("1"):
-						logDebug("loadXML channels - Skip old file")
+						log.warning( _("Skipping old channels file") )
 					elif version.startswith("2") or version.startswith("3") or version.startswith("4"):
-						logDebug("Channel XML Version 4")
+						log.debug("Channel XML Version 4")
 						ChannelsBase.channels_changed = True
 						if root:
 							for element in root.findall("Channel"):
@@ -228,10 +227,10 @@ class ChannelsBase(XMLFile):
 									for alternative in element.findall("Alternative"):
 										alternatives.append( alternative.text )
 									channels[reference] = (name, list(set(alternatives)))
-									logDebug("Channel", reference, channels[reference] )
+									log.debug("Channel", reference, channels[reference] )
 					else:
 						# XMLTV compatible channels file
-						logDebug("Channel XML Version 5")
+						log.debug("Channel XML Version 5")
 						if root:
 							for element in root.findall("channel"):
 								alternatives = []
@@ -243,16 +242,16 @@ class ChannelsBase(XMLFile):
 								for web in element.findall("web"):
 									alternatives.append( web.text )
 								channels[reference] = (name, list(set(alternatives)))
-								logDebug("Channel", reference, channels[reference] )
+								log.debug("Channel", reference, channels[reference] )
 					return channels
 				
 				channels = parse( etree.getroot() )
-				logDebug("Channel XML load", len(channels))
+				log.debug("Channel XML load", len(channels))
 			else:
 				channels = {}
 			ChannelsBase.channels = channels
 		except Exception as e:
-			logDebug("Exception in loadXML: " + str(e))
+			log.exception("Exception in loadXML: " + str(e))
 
 	def saveXML(self):
 		try:
@@ -264,8 +263,8 @@ class ChannelsBase(XMLFile):
 				
 				# Generate List in RAM
 				etree = None
-				#logDebug("saveXML channels", channels)
-				logDebug("SP saveXML channels", len(channels))
+				#log.debug("saveXML channels", channels)
+				log.debug("SP saveXML channels", len(channels))
 				
 				# XMLTV compatible channels file
 				#TEST Do we need to write the xml header node
@@ -300,20 +299,20 @@ class ChannelsBase(XMLFile):
 				self.writeXML( etree )
 				
 				if config.plugins.seriesplugin.epgimport.value:
-					logDebug("Write: xml channels for epgimport")
+					log.debug("Write: xml channels for epgimport")
 					try:
 						path = "/etc/epgimport/wunschliste.channels.xml"
 						etree.write(path, encoding='utf-8', xml_declaration=True) 
 					except Exception as e:
-						logDebug("Exception in write XML: " + str(e))
+						log.exception("Exception in write XML: " + str(e))
 				
 				if config.plugins.seriesplugin.xmltvimport.value:
-					logDebug("Write: xml channels for xmltvimport")
+					log.debug("Write: xml channels for xmltvimport")
 					try:
 						path = "/etc/xmltvimport/wunschliste.channels.xml"
 						etree.write(path, encoding='utf-8', xml_declaration=True) 
 					except Exception as e:
-						logDebug("Exception in write XML: " + str(e))
+						log.exception("Exception in write XML: " + str(e))
 			
 		except Exception as e:
-			logDebug("Exception in writeXML: " + str(e))
+			log.exception("Exception in writeXML: " + str(e))

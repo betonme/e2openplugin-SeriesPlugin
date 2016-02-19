@@ -25,84 +25,142 @@ import os, sys, traceback
 
 from Components.config import config
 
-localLog = False
-log = ""
-logger = None
+from Tools.Notifications import AddPopup
+from Screens.MessageBox import MessageBox
 
-def initLog():
-	global logger
-	logger = logger or logging.getLogger("SeriesPlugin")
-	logger.setLevel(logging.WARNING)
-	
-	logger.handlers = [] 
-	
-	if config.plugins.seriesplugin.debug_prints.value:
-		shandler = logging.StreamHandler(sys.stdout)
-		shandler.setLevel(logging.DEBUG)
 
-		sformatter = logging.Formatter('[%(name)s] %(levelname)s - %(message)s')
-		shandler.setFormatter(sformatter)
+log = None
 
-		logger.addHandler(shandler)
-		logger.setLevel(logging.DEBUG)
+
+class Logger(object):
+	def __init__(self):
+		self.local_log = ""
+		self.local_log_enabled = False
 		
-	if config.plugins.seriesplugin.write_log.value:
-		fhandler = logging.FileHandler(config.plugins.seriesplugin.log_file.value)
-		fhandler.setLevel(logging.DEBUG)
-
-		fformatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-		fhandler.setFormatter(fformatter)
-
-		logger.addHandler(fhandler)
-		logger.setLevel(logging.DEBUG)
-
-def shutdownLog():
-	global logger
-	if logger:
-		logger.shutdown()
-
-def startLog():
-	global log, localLog
-	log = ""
-	localLog = True
-
-def getLog():
-	global log, localLog
-	localLog = False
-	return log
-
-def logInfo(*args):
-	strargs = " ".join( [ str(arg) for arg in args ] )
+		self.instance = self.instance or logging.getLogger("SeriesPlugin")
+		self.instance.setLevel(logging.WARNING)
+		
+		self.reinit()
 	
-	global log, localLog
-	if localLog:
-		log += "&#13;&#10;" + strargs
-	
-	global logger
-	if logger:
-		logger.info(strargs)
-	
-	elif config.plugins.seriesplugin.debug_prints.value:
-		print strargs
-	
-	if sys.exc_info()[0]:
-		logger.debug( str(sys.exc_info()[0]) )
-		logger.debug( str(traceback.format_exc()) )
-		sys.exc_clear()
+	def reinit(self):
+		self.instance.handlers = [] 
+		
+		if config.plugins.seriesplugin.debug_prints.value:
+			shandler = logging.StreamHandler(sys.stdout)
+			shandler.setLevel(logging.DEBUG)
 
-def logDebug(*args):
-	strargs = " ".join( [ str(arg) for arg in args ] )
+			sformatter = logging.Formatter('[%(name)s] %(levelname)s - %(message)s')
+			shandler.setFormatter(sformatter)
 
-	global logger
-	if logger:
-		logger.debug(strargs)
-	
-	elif config.plugins.seriesplugin.debug_prints.value:
-		print strargs
-	
-	if sys.exc_info()[0]:
-		logger.debug( str(sys.exc_info()[0]) )
-		logger.debug( str(traceback.format_exc()) )
-		sys.exc_clear()
+			self.instance.addHandler(shandler)
+			self.instance.setLevel(logging.DEBUG)
+			
+		if config.plugins.seriesplugin.write_log.value:
+			fhandler = logging.FileHandler(config.plugins.seriesplugin.log_file.value)
+			fhandler.setLevel(logging.DEBUG)
 
-initLog()
+			fformatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+			fhandler.setFormatter(fformatter)
+
+			self.instance.addHandler(fhandler)
+			self.instance.setLevel(logging.DEBUG)
+
+	def start():
+		# Start a temporary log, which will be removed after reading.
+		# Debug is not included
+		self.local_log = ""
+		self.local_log_enabled = True
+
+	def append(strargs):
+		if self.local_log_enabled:
+			self.local_log += "&#13;&#10;" + strargs
+	
+	def get():
+		self.local_log_enabled = False
+		return self.local_log
+
+	def shutdown():
+		if self.instance:
+			self.instance.shutdown()
+
+	def info(*args):
+		strargs = " ".join( [ str(arg) for arg in args ] )
+		
+		self.append(strargs)
+		
+		if self.instance:
+			self.instance.info(strargs)
+		
+		elif config.plugins.seriesplugin.debug_prints.value:
+			print strargs
+
+	def debug(*args):
+		strargs = " ".join( [ str(arg) for arg in args ] )
+		
+		if self.instance:
+			self.instance.debug(strargs)
+		
+		elif config.plugins.seriesplugin.debug_prints.value:
+			print strargs
+		
+		if sys.exc_info()[0]:
+			self.instance.debug( str(sys.exc_info()[0]) )
+			self.instance.debug( str(traceback.format_exc()) )
+			sys.exc_clear()
+
+	def warning(*args):
+		strargs = " ".join( [ str(arg) for arg in args ] )
+		
+		self.append(strargs)
+		
+		if self.instance:
+			self.instance.warning(strargs)
+		
+		elif config.plugins.seriesplugin.debug_prints.value:
+			print strargs
+		
+		AddPopup(
+					strargs,
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Warning_'+strargs
+				)
+
+	def error(*args):
+		strargs = " ".join( [ str(arg) for arg in args ] )
+		
+		self.append(strargs)
+		
+		if self.instance:
+			self.instance.error(strargs)
+		
+		elif config.plugins.seriesplugin.debug_prints.value:
+			print strargs
+
+		AddPopup(
+					strargs,
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Error_'+strargs
+				)
+		
+	def exception(*args):
+		strargs = " ".join( [ str(arg) for arg in args ] )
+		
+		self.append(strargs)
+		
+		if self.instance:
+			self.instance.exception(strargs)
+		
+		elif config.plugins.seriesplugin.debug_prints.value:
+			print strargs
+		
+		AddPopup(
+					strargs,
+					MessageBox.TYPE_ERROR,
+					-1,
+					'SP_PopUp_ID_Exception_'+strargs
+				)
+
+
+log = Logger()

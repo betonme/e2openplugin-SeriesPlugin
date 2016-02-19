@@ -6,9 +6,6 @@ from . import _
 
 from time import time
 
-# GUI (Screens)
-from Screens.MessageBox import MessageBox
-
 from Components.config import config
 
 # Plugin
@@ -21,7 +18,7 @@ from SeriesPluginInfoScreen import SeriesPluginInfoScreen
 from SeriesPluginRenamer import SeriesPluginRenamer
 from SeriesPluginIndependent import startIndependent, runIndependent
 from SeriesPluginConfiguration import SeriesPluginConfiguration
-from Logger import logDebug, logInfo
+from Logger import log
 
 from spEPGSelection import SPEPGSelectionInit, SPEPGSelectionUndo
 from spChannelContextMenu import SPChannelContextMenuInit, SPChannelContextMenuUndo
@@ -81,6 +78,7 @@ def test(session=None):
 		#sp = bareGetSeasonEpisode("1:0:19:2B66:437:66:FFFF0000:0:0:0:", "Bares für Rares", 1451311500, 1451311500, "Description", "/media/hdd/movie", False, True, False)
 		#sp = bareGetSeasonEpisode("1:0:19:7980:1C3:270F:FFFF0000:0:0:0:", "Offroad Survivors", 1451492100, 1451492100, "Description", "/media/hdd/movie", False, True, False)
 		#from Tools.Notifications import AddPopup
+		#from Screens.MessageBox import MessageBox
 		#AddPopup( sp[0], MessageBox.TYPE_INFO, 0, 'SP_PopUp_ID_Test' )
 		
 		#TEST INFOSCREEN MOVIE
@@ -97,7 +95,7 @@ def test(session=None):
 		pass
 		
 	except Exception as e:
-		logDebug(_("SeriesPlugin test exception ") + str(e))
+		log.exception(_("SeriesPlugin test exception ") + str(e))
 	
 #######################################################
 # Start
@@ -129,7 +127,7 @@ def setup(session, *args, **kwargs):
 	try:
 		session.open(SeriesPluginConfiguration)
 	except Exception as e:
-		logDebug(_("SeriesPlugin setup exception ") + str(e))
+		log.exception(_("SeriesPlugin setup exception ") + str(e))
 
 
 #######################################################
@@ -139,7 +137,7 @@ def info(session, service=None, event=None, *args, **kwargs):
 		try:
 			session.open(SeriesPluginInfoScreen, service, event)
 		except Exception as e:
-			logDebug(_("SeriesPlugin info exception ") + str(e))
+			log.exception(_("SeriesPlugin info exception ") + str(e))
 
 
 #######################################################
@@ -150,7 +148,7 @@ def sp_extension(session, *args, **kwargs):
 			if session:
 				session.open(SeriesPluginInfoScreen)
 		except Exception as e:
-			logDebug(_("SeriesPlugin extension exception ") + str(e))
+			log.exception(_("SeriesPlugin extension exception ") + str(e))
 
 
 #######################################################
@@ -163,7 +161,7 @@ def channel(session, service=None, *args, **kwargs):
 			event = info.getEvent(service)
 			session.open(SeriesPluginInfoScreen, service, event)
 		except Exception as e:
-			logDebug(_("SeriesPlugin extension exception ") + str(e))
+			log.exception(_("SeriesPlugin extension exception ") + str(e))
 
 
 #######################################################
@@ -184,7 +182,7 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 				services = [service]
 			SeriesPluginRenamer(session, services)
 		except Exception as e:
-			logDebug(_("SeriesPlugin renamer exception ") + str(e))
+			log.exception(_("SeriesPlugin renamer exception ") + str(e))
 
 
 #######################################################
@@ -194,7 +192,7 @@ def movielist_info(session, service, *args, **kwargs):
 		try:
 			session.open(SeriesPluginInfoScreen, service)
 		except Exception as e:
-			logDebug(_("SeriesPlugin extension exception ") + str(e))
+			log.exception(_("SeriesPlugin extension exception ") + str(e))
 
 
 #######################################################
@@ -207,7 +205,7 @@ def getSeasonEpisode4(service_ref, name, begin, end, description, path, *args, *
 		try:
 			return bareGetSeasonEpisode(service_ref, name, begin, end, description, path, True, False, False)
 		except Exception as e:
-			logDebug( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
+			log.exception( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
 			return str(e)
 
 def showResult(*args, **kwargs):
@@ -222,42 +220,42 @@ def renameTimer(timer, name, begin, end, *args, **kwargs):
 		try:
 			SeriesPluginTimer(timer, name, begin, end)
 		except Exception as e:
-			logDebug(_("SeriesPlugin label exception ") + str(e))
+			log.exception(_("SeriesPlugin label exception ") + str(e))
 
 
 # For compatibility reasons
 def modifyTimer(timer, name, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
-		logDebug("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
+		log.debug("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
 		try:
 			SeriesPluginTimer(timer, name or timer.name, timer.begin, timer.end)
 		except Exception as e:
-			logDebug(_("SeriesPlugin label exception ") + str(e))
+			log.exception(_("SeriesPlugin label exception ") + str(e))
 
 
 # For compatibility reasons
 def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
-		logDebug("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
+		log.debug("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
 		try:
 			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
 		except Exception as e:
-			logDebug(_("SeriesPlugin label exception ") + str(e))
+			log.exception(_("SeriesPlugin label exception ") + str(e))
 
 def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 	result = None
 	if config.plugins.seriesplugin.enabled.value:
-		logDebug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
+		log.debug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
 		try:
 			spt = SeriesPluginTimer(timer, name, begin, end, True)
 			result = spt.getSeasonAndEpisode(timer, name, begin, end)
 		except Exception as e:
-			logDebug(_("SeriesPlugin label exception ") + str(e))
+			log.exception(_("SeriesPlugin label exception ") + str(e))
 	return result
 
 def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
-		logDebug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
+		log.debug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
 		from SeriesPluginBare import bareGetSeasonEpisode
 		try:
 			result = bareGetSeasonEpisode(service_ref, name, begin, end, description, path)
@@ -266,7 +264,7 @@ def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **
 			else:
 				return str(result)
 		except Exception as e:
-			logDebug( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
+			log.exception( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
 			return str(e)
 
 

@@ -14,7 +14,7 @@ from Tools.XMLTools import stringToXML
 # Plugin internal
 from . import _
 from XMLFile import XMLFile, indent
-from Logger import logDebug, logInfo
+from Logger import log
 
 
 class XMLTVBase(object):
@@ -28,13 +28,13 @@ class XMLTVBase(object):
 		
 		# Check if xmltvimport exists
 		if os.path.exists("/etc/epgimport"):
-			logDebug("readXMLTV: Found epgimport")
+			log.debug("readXMLTV: Found epgimport")
 			path = "/etc/epgimport/wunschliste.sources.xml"
 			self.epgimport = XMLFile(path)
 		
 		# Check if xmltvimport exists
 		elif os.path.exists("/etc/xmltvimport"):
-			logDebug("readXMLTV: Found xmltvimport")
+			log.debug("readXMLTV: Found xmltvimport")
 			path = "/etc/xmltvimport/wunschliste.sources.xml"
 			self.xmltvimport = XMLFile(path)
 		
@@ -46,13 +46,13 @@ class XMLTVBase(object):
 			etree = self.epgimport.readXML()
 			if etree:
 				self.epgimportversion = etree.getroot().get("version", "1")
-				logDebug("readXMLTVConfig: EPGImport Version " + self.epgimportversion)
+				log.debug("readXMLTVConfig: EPGImport Version " + self.epgimportversion)
 		
 		if self.xmltvimport:
 			etree = self.xmltvimport.readXML()
 			if etree:
 				self.xmltvimportversion = etree.getroot().get("version", "1")
-				logDebug("readXMLTVConfig: XMLTVImport Version " + self.xmltvimportversion)
+				log.debug("readXMLTVConfig: XMLTVImport Version " + self.xmltvimportversion)
 		
 	
 	def writeXMLTVConfig(self):
@@ -83,15 +83,15 @@ class XMLTVBase(object):
 		indent(etree.getroot())
 		
 		if config.plugins.seriesplugin.epgimport.value:
-			logDebug("Write: xml channels for epgimport")
+			log.debug("Write: xml channels for epgimport")
 			try:
 				self.epgimport.writeXML( etree )
 			except Exception as e:
-				logDebug("Exception in write XML: " + str(e))
+				log.exception("Exception in write XML: " + str(e))
 		
 		if config.plugins.seriesplugin.xmltvimport.value:
-			logDebug("Write: xml channels for xmltvimport")
+			log.debug("Write: xml channels for xmltvimport")
 			try:
 				self.xmltvimport.writeXML( etree )
 			except Exception as e:
-				logDebug("Exception in write XML: " + str(e))
+				log.exception("Exception in write XML: " + str(e))

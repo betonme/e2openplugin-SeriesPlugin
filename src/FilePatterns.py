@@ -26,11 +26,8 @@ from . import _
 # Config
 from Components.config import *
 
-from Tools.Notifications import AddPopup
-from Screens.MessageBox import MessageBox
-
 # Plugin internal
-from Logger import logDebug, logInfo
+from Logger import log
 
 
 scheme_fallback = [
@@ -126,20 +123,14 @@ def readFilePatterns():
 	patterns = None
 	
 	if os.path.exists(path):
-		logDebug("Found title pattern file")
+		log.debug("Found title pattern file")
 		f = None
 		try:
 			f = open(path, 'rb')
 			header, patterns = json.load(f)
 			patterns = [tuple(p) for p in patterns]
 		except Exception as e:
-			logDebug("Exception in readFilePatterns: " + str(e))
-			AddPopup(
-					_("Your pattern file is corrupt")  + "\n" + path + "\n\n" + str(e),
-					MessageBox.TYPE_ERROR,
-					-1,
-					'SP_PopUp_ID_Error_FilePatterns'
-				)
+			log.exception(_("Your pattern file is corrupt")  + "\n" + path + "\n\n" + str(e))
 		finally:
 			if f is not None:
 				f.close()

@@ -38,7 +38,7 @@ from ServiceReference import ServiceReference
 
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
-from Logger import logDebug, logInfo
+from Logger import log
 
 CompiledRegexpGlobEscape = re.compile('([\[\]\?*])')  # "[\\1]"
 
@@ -67,7 +67,7 @@ def newLegacyEncode(string):
 
 def rename(servicepath, name, short, data):
 	# Episode data available
-	logDebug("SPR: rename:", data)
+	log.debug("rename:", data)
 	result = True
 	
 	#MAYBE Check if it is already renamed?
@@ -75,8 +75,8 @@ def rename(servicepath, name, short, data):
 		# Before renaming change content
 		rewriteMeta(servicepath, name, data)
 	except Exception as e:
-		logDebug("SPR: rewriteMeta:", str(e) )
-		result = "SPR: rewriteMeta:" + str(e)
+		log.exception("rewriteMeta:", str(e) )
+		result = "rewriteMeta:" + str(e)
 	
 	if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off":
 
@@ -85,8 +85,8 @@ def rename(servicepath, name, short, data):
 			try:
 				renameFiles(servicepath, name, data)
 			except Exception as e:
-				logDebug("SPR: renameFiles:", str(e) )
-				result = "SPR: renameFiles:" + str(e)
+				log.exception("renameFiles:", str(e) )
+				result = "renameFiles:" + str(e)
 	
 	return result
 
@@ -125,12 +125,12 @@ def rewriteMeta(servicepath, name, data):
 			title = refactorTitle(oldtitle, data)
 		else:
 			title = oldtitle
-		logDebug("SPR: title",title)
+		log.debug("title",title)
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off":
 			descr = refactorDescription(olddescr, data)
 		else:
 			descr = olddescr
-		logDebug("SPR: descr",descr)
+		log.debug("descr",descr)
 		
 		metafile = open(meta_file, "w")
 		metafile.write("%s%s\n%s\n%s" % (sid, title, descr, rest))
@@ -138,51 +138,51 @@ def rewriteMeta(servicepath, name, data):
 	return True
 
 def renameFiles(servicepath, name, data):
-	logDebug("SPR: servicepath", servicepath)
+	log.debug("servicepath", servicepath)
 	
 	path = os.path.dirname(servicepath)
 	file_name = os.path.basename(os.path.splitext(servicepath)[0])
-	logDebug("SPR: file_name", file_name)
+	log.debug("file_name", file_name)
 	
-	logDebug("SPR: name     ", name)
+	log.debug("name     ", name)
 	# Refactor title
 	name = refactorTitle(file_name, data)
-	logDebug("SPR: name     ", name)
+	log.debug("name     ", name)
 	#if config.recording.ascii_filenames.value:
 	#	filename = ASCIItranslit.legacyEncode(filename)
 	if config.plugins.seriesplugin.rename_legacy.value:
 		name = newLegacyEncode(name)
-		logDebug("SPR: name     ", name)
+		log.debug("name     ", name)
 	
 	src = os.path.join(path, file_name)
-	logDebug("SPR: servicepathSrc", src)
+	log.debug("servicepathSrc", src)
 	
 	path = refactorDirectory(path, data)
 	dst = os.path.join(path, name)
-	logDebug("SPR: servicepathDst", dst)
+	log.debug("servicepathDst", dst)
 	
 	return osrename(src, dst)
 	
 def osrename(src, dst):
 	#Py3 for f in glob( escape(src) + "*" ):
 	glob_src = CompiledRegexpGlobEscape.sub("[\\1]", src)
-	logDebug("SPR: glob_src      ", glob_src)
+	log.debug("glob_src      ", glob_src)
 	for f in glob( glob_src + ".*" ):
-		logDebug("SPR: servicepathRnm", f)
+		log.debug("servicepathRnm", f)
 		to = f.replace(src, dst)
-		logDebug("SPR: servicepathTo ", to)
+		log.debug("servicepathTo ", to)
 		
 		if not os.path.exists(to):
 			try:
 				os.rename(f, to)
 			except:
-				logDebug("SPR: rename error", f, to)
+				log.exception("rename error", f, to)
 		elif config.plugins.seriesplugin.rename_existing_files.value:
-			logDebug("SPR: Destination file already exists", to, " - Append _")
+			log.debug("Destination file already exists", to, " - Append '_'")
 			return osrename( src, dst + "_")
 			break
 		else:
-			logInfo("SPR: Destination file alreadey exists", to, " - Skip rename")
+			log.warning( _("Skipping rename because file already exists") + "\n" + to + "\n\n" + _("Can be configured within the setup")
 	return True
 
 
@@ -191,7 +191,7 @@ def osrename(src, dst):
 class SeriesPluginRenamer(object):
 	def __init__(self, session, services, *args, **kwargs):
 		
-		logInfo("SeriesPluginRenamer: services, service:", str(services))
+		log.info("SeriesPluginRenamer: services, service:", str(services))
 		
 		if services and not isinstance(services, list):
 			services = [services]	
@@ -224,24 +224,24 @@ class SeriesPluginRenamer(object):
 					elif isinstance(service, ServiceReference):
 						service = service.ref
 					else:
-						logDebug("SPR: Wrong instance")
+						log.debug("Wrong instance")
 						continue
 					
 					servicepath = service.getPath()
 					
 					if not os.path.exists( servicepath ):
-						logDebug("SPR: File not exists: " + servicepath)
+						log.debug("File not exists: " + servicepath)
 						continue
 					
 					info = serviceHandler.info(service)
 					if not info:
-						logDebug("SPR: No info available: " + servicepath)
+						log.debug("No info available: " + servicepath)
 						continue
 					
 					name = service.getName() or info.getName(service) or ""
 					if name[-2:] == 'ts':
 						name = name[:-2]
-					#logDebug("SPR: name", name)
+					#log.debug("name", name)
 					
 					short = ""
 					begin = None
@@ -271,7 +271,7 @@ class SeriesPluginRenamer(object):
 					rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
 					#channel = ServiceReference(rec_ref_str).getServiceName()
 					
-					logDebug("SPR: getEpisode:", name, begin, end, rec_ref_str)
+					log.debug("getEpisode:", name, begin, end, rec_ref_str)
 					seriesPlugin.getEpisode(
 							boundFunction(self.renamerCallback, servicepath, name, short),
 							name, begin, end, rec_ref_str, elapsed=True, rename=True
@@ -281,19 +281,25 @@ class SeriesPluginRenamer(object):
 					#self.renamerCallback( servicepath, name, short, result )
 					
 			except Exception as e:
-				logDebug("SPR: Exception:", str(e))
+				log.exception("Exception:", str(e))
 
 	def renamerCallback(self, servicepath, name, short, data=None):
-		logDebug("SPR: renamerCallback", name, data)
+		log.debug("renamerCallback", name, data)
 		
 		result = None
 		
 		if data and isinstance(data, dict):
 			result = rename(servicepath, name, short, data)
 		
+		elif data and isinstance(data, basestring):
+			msg = _("Failed: %s." % ( str( data ) ))
+			log.debug(msg)
+			self.data.append( name + ": " + msg )
 		
-		if result and isinstance(result, basestring):
-			self.data.append( result )
+		else:
+			msg = _("No data available")
+			log.debug(msg)
+			self.data.append( name + ": " + msg )
 		
 		if config.plugins.seriesplugin.rename_popups.value or config.plugins.seriesplugin.rename_popups_success.value:
 			

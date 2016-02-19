@@ -43,7 +43,7 @@ from SeriesPlugin import resetInstance, getInstance
 from SeriesPluginIndependent import startIndependent, stopIndependent
 from FilePatterns import readFilePatterns
 from DirectoryPatterns import readDirectoryPatterns
-from Logger import logDebug, logInfo
+from Logger import log
 from ShowLogScreen import ShowLogScreen
 from Channels import getTVBouquets
 from ChannelEditor import ChannelEditor
@@ -163,7 +163,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			
 			# Check if xmltvimport exists
 			if os.path.exists("/etc/epgimport"):
-				logDebug("Config: Found epgimport")
+				log.debug("Config: Found epgimport")
 #				self.list.append( getConfigListEntry(  _("Enable support for EPGImport")           , config.plugins.seriesplugin.epgimport ) )
 			elif config.plugins.seriesplugin.epgimport.value:
 				self.changesMade = True
@@ -171,7 +171,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			
 			# Check if xmltvimport exists
 			if os.path.exists("/etc/xmltvimport"):
-				logDebug("Config: Found xmltvimport")
+				log.debug("Config: Found xmltvimport")
 #				self.list.append( getConfigListEntry(  _("Enable support for XMLTVImport")         , config.plugins.seriesplugin.xmltvimport ) )
 			elif config.plugins.seriesplugin.xmltvimport.value:
 				self.changesMade = True
@@ -354,7 +354,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 	# Overwrite ConfigListScreen keyCancel function
 	def keyCancel(self):
 		self.help_window_was_shown = False
-		logDebug("SPC keyCancel")
+		log.debug("SPC keyCancel")
 		#self.seriesPlugin.resetChannels()
 		resetInstance()
 		if self["config"].isChanged() or self.changesMade:
@@ -395,7 +395,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		self.session.openWithCallback(self.channelEditorClosed, ChannelEditor)
 
 	def channelEditorClosed(self, result=None):
-		logDebug("SPC channelEditorClosed", result)
+		log.debug("SPC channelEditorClosed", result)
 		if result:
 			self.changesMade = True
 		else:

@@ -57,7 +57,7 @@ from enigma import getDesktop
 
 # Plugin internal
 from SeriesPlugin import getInstance
-from Logger import logDebug, logInfo 
+from Logger import log
 
 
 # Constants
@@ -136,7 +136,7 @@ class SeriesPluginInfoScreen(Screen):
 			#"openSimilarList": self.openSimilarList
 		})
 		
-		logInfo("SeriesPluginInfo:", service, event)
+		log.info("SeriesPluginInfo:", service, event)
 		self.service = service
 		self.event = event
 		
@@ -198,7 +198,7 @@ class SeriesPluginInfoScreen(Screen):
 				future = False
 				today = False
 				elapsed = True
-				logDebug("SPI: eServiceReference movie", str(ref))
+				log.debug("eServiceReference movie", str(ref))
 			else:
 				# Service is channel reference
 				ref = service
@@ -209,24 +209,24 @@ class SeriesPluginInfoScreen(Screen):
 					except:
 						pass
 				# Get information from event
-				logDebug("SPI: eServiceReference channel", str(ref))
+				log.debug("eServiceReference channel", str(ref))
 		
 		elif isinstance(service, ServiceReference):
 			ref = service.ref
 			channel = service.getServiceName()
-			logDebug("SPI: ServiceReference", str(ref))
+			log.debug("ServiceReference", str(ref))
 		
 		elif isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
 			channel = ServiceReference(ref).getServiceName() or ""
-			logDebug("SPI: ChannelSelectionBase", str(ref))
+			log.debug("ChannelSelectionBase", str(ref))
 		
 		# Fallbacks
 		if ref is None:
 			ref = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
 			channel = getChannel(ref)
 			
-			logDebug("SPI: Fallback ref", ref, str(ref), channel)
+			log.debug("Fallback ref", ref, str(ref), channel)
 		
 		if not isinstance(self.event, eServiceEvent):
 			try:
@@ -236,13 +236,13 @@ class SeriesPluginInfoScreen(Screen):
 				# Has the movie been renamed earlier?
 				# Refresh / reload the list?
 				self["event_episode"].setText( "No valid selection!" )
-				logDebug("SPI: No valid selection", str(ref))
+				log.debug("No valid selection", str(ref))
 				return
 			# Get information from epg
 			future = False
 			today = True
 			elapsed = False
-			logDebug("SPI: Fallback event", self.event)
+			log.debug("Fallback event", self.event)
 		
 		self.service = ref
 		
@@ -254,29 +254,29 @@ class SeriesPluginInfoScreen(Screen):
 			# We got the exact margins, no need to adapt it
 			self.short = self.event.getShortDescription() or ""
 			ext = self.event.getExtendedDescription() or ""
-			logDebug("SPI: event")
+			log.debug("event")
 		
 		if not begin:
 			info = self.serviceHandler.info(eServiceReference(str(ref)))
-			#logDebug("SPI: info")
+			#log.debug("info")
 			if info:
-				#logDebug("SPI: if info")
+				#log.debug("if info")
 				begin = info.getInfo(ref, iServiceInformation.sTimeCreate) or 0
 				if begin:
 					duration = info.getLength(ref) or 0
 					end = begin + duration or 0
-					#logDebug("SPI: sTimeCreate")
+					#log.debug("sTimeCreate")
 				else:
 					end = os.path.getmtime(ref.getPath()) or 0
 					duration = info.getLength(ref) or 0
 					begin = end - duration or 0
-					#logDebug("SPI: sTimeCreate else")
+					#log.debug("sTimeCreate else")
 			elif ref:
 				path = ref.getPath()
-				#logDebug("SPI: getPath")
+				#log.debug("getPath")
 				if path and os.path.exists(path):
 					begin = os.path.getmtime(path) or 0
-					#logDebug("SPI: getctime")
+					#log.debug("getctime")
 
 			# We don't know the exact margins, we will assume the E2 default margins
 			begin = begin + (config.recording.margin_before.value * 60)
@@ -292,21 +292,21 @@ class SeriesPluginInfoScreen(Screen):
 			if self.session and os.path.exists(logopath):
 				self.loadPixmap("logo", logopath )
 		try:
-			logDebug("SPI: getEpisode:", self.name, begin, end, ref)
+			log.debug("getEpisode:", self.name, begin, end, ref)
 			self.seriesPlugin.getEpisode(
 					self.episodeCallback, 
 					self.name, begin, end, ref, future=future, today=today, elapsed=elapsed
 				)
 		except Exception as e:
-			logDebug("SPI: exception:", str(e))
+			log.exception("exception:", str(e))
 			self.episodeCallback(str(e))
 
 	def episodeCallback(self, data=None):
 		#TODO episode list handling
 		#store the list and just open the first one
 		
-		logDebug("SPI: episodeCallback", data)
-		#logDebug(data)
+		log.debug("episodeCallback", data)
+		#log.debug(data)
 		if data and isinstance(data, dict):
 			# Episode data available
 			self.data = data
@@ -327,7 +327,8 @@ class SeriesPluginInfoScreen(Screen):
 				self.setColorButtons()
 			except Exception as e:
 				# Screen already closed
-				logDebug("SPI: exception:", str(e))
+				log.debug("exception:", str(e))
+				pass
 		elif data:
 			custom = str( data )
 		else:
@@ -338,7 +339,7 @@ class SeriesPluginInfoScreen(Screen):
 			self["event_episode"].setText( custom )
 		except Exception as e:
 			# Screen already closed
-			#logDebug("SPI: exception:", str(e))
+			log.debug("exception:", str(e))
 			pass
 
 
@@ -387,7 +388,7 @@ class SeriesPluginInfoScreen(Screen):
 
 	# Overwrite Screen close function
 	def close(self):
-		logDebug("SPI: user close")
+		log.debug("user close")
 		
 		global instance
 		instance = None
@@ -398,7 +399,7 @@ class SeriesPluginInfoScreen(Screen):
 
 	def setColorButtons(self):
 		try:
-			logDebug("SPI: event eit", self.event and self.event.getEventId())
+			log.debug("event eit", self.event and self.event.getEventId())
 			if self.service and self.data:
 				
 				if self.path and os.path.exists(self.path):
@@ -420,6 +421,8 @@ class SeriesPluginInfoScreen(Screen):
 				self["key_red"].setText("")
 				self.redButtonFunction = None
 		except:
+			# Screen already closed
+			log.debug("exception:", str(e))
 			pass
 
 	def redButton(self):
@@ -435,7 +438,7 @@ class SeriesPluginInfoScreen(Screen):
 			pass
 
 	def keyRename(self):
-		logDebug("SPI: keyRename")
+		log.debug("keyRename")
 		ref = self.eservice
 		if ref and self.data:
 			path = ref.getPath()
@@ -450,7 +453,7 @@ class SeriesPluginInfoScreen(Screen):
 
 	# Adapted from EventView
 	def keyRecord(self):
-		logDebug("SPI: keyRecord")
+		log.debug("keyRecord")
 		if self.event and self.service:
 			event = self.event
 			ref = self.service
@@ -479,14 +482,14 @@ class SeriesPluginInfoScreen(Screen):
 				self.session.openWithCallback(self.finishedAdd, TimerEntry, newEntry)
 
 	def removeTimer(self, timer):
-		logDebug("SPI: remove Timer")
+		log.debug("remove Timer")
 		timer.afterEvent = AFTEREVENT.NONE
 		self.session.nav.RecordTimer.removeEntry(timer)
 		#self["key_green"].setText(_("Add timer"))
 		#self.key_green_choice = self.ADD_TIMER
 
 	def finishedAdd(self, answer):
-		logDebug("SPI: finished add")
+		log.debug("finished add")
 		if answer[0]:
 			entry = answer[1]
 			simulTimerList = self.session.nav.RecordTimer.record(entry)
@@ -502,7 +505,7 @@ class SeriesPluginInfoScreen(Screen):
 		else:
 			#self["key_green"].setText(_("Add timer"))
 			#self.key_green_choice = self.ADD_TIMER
-			logDebug("SPI: Timeredit aborted")
+			log.debug("Timeredit aborted")
 
 	def finishSanityCorrection(self, answer):
 		self.finishedAdd(answer)

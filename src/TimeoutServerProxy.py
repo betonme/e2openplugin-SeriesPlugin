@@ -9,7 +9,7 @@ from time import time
 from Components.config import config
 
 # Internal
-from Logger import logDebug, logInfo
+from Logger import log
 
 skip_expiration = 5.0 * 60 	# in seconds
 reduced_timeout = 3.0		# in seconds
@@ -33,7 +33,7 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 		try:
 			result = self.sp.cache.getWebChannels()
 		except Exception as e:
-			logInfo("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
+			log.exception("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
 		return result
 
 	def getSeasonEpisode( self, name, webChannel, unixtime, max_time_drift ):
@@ -49,9 +49,9 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 		
 		try:
 			result = self.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
-			logDebug("SerienServer getSeasonEpisode result:", result)
+			log.debug("SerienServer getSeasonEpisode result:", result)
 		except Exception as e:
-			logInfo("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
+			log.exception("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
 			self.skip[name] = time()
 			result = str(e)
 		
