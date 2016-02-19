@@ -446,7 +446,7 @@ class SeriesPluginInfoScreen(Screen):
 					self.redButtonFunction = None
 					self.session.open( MessageBox, _("Successfully renamed"), MessageBox.TYPE_INFO )
 				else:
-					self.session.open( MessageBox, _("Renaming failed"), MessageBox.TYPE_INFO )
+					self.session.open( MessageBox, _("Renaming failed"), MessageBox.TYPE_ERROR )
 
 	# Adapted from EventView
 	def keyRecord(self):
