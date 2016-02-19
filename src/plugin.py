@@ -71,12 +71,12 @@ def test(session=None):
 	# http://dm7080/autotimer
 	# http://www.unixtime.de/
 	try:
-		#from SeriesPluginBare import bareGetSeasonEpisode 	#future=True, today=False, elapsed=False
-		#bareGetSeasonEpisode("1:0:19:7C:6:85:FFFF0000:0:0:0:", "The Walking Dead", 1448740500, 1448745600, "Description", "/media/hdd/movie", True, False, False)
-		#bareGetSeasonEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One?", 1448923500, 1448926500, "Description", "/media/hdd/movie", False, False, True)
-		#bareGetSeasonEpisode("1:0:19:814D:14B:270F:FFFF0000:0:0:0:", "Bones", 1451416200, 1451416200, "Description", "/media/hdd/movie", False, True, False)
-		#sp = bareGetSeasonEpisode("1:0:19:2B66:437:66:FFFF0000:0:0:0:", "Bares für Rares", 1451311500, 1451311500, "Description", "/media/hdd/movie", False, True, False)
-		#sp = bareGetSeasonEpisode("1:0:19:7980:1C3:270F:FFFF0000:0:0:0:", "Offroad Survivors", 1451492100, 1451492100, "Description", "/media/hdd/movie", False, True, False)
+		#from SeriesPluginBare import bareGetEpisode 	#future=True, today=False, elapsed=False
+		#bareGetEpisode("1:0:19:7C:6:85:FFFF0000:0:0:0:", "The Walking Dead", 1448740500, 1448745600, "Description", "/media/hdd/movie", True, False, False)
+		#bareGetEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One?", 1448923500, 1448926500, "Description", "/media/hdd/movie", False, False, True)
+		#bareGetEpisode("1:0:19:814D:14B:270F:FFFF0000:0:0:0:", "Bones", 1451416200, 1451416200, "Description", "/media/hdd/movie", False, True, False)
+		#sp = bareGetEpisode("1:0:19:2B66:437:66:FFFF0000:0:0:0:", "Bares für Rares", 1451311500, 1451311500, "Description", "/media/hdd/movie", False, True, False)
+		#sp = bareGetEpisode("1:0:19:7980:1C3:270F:FFFF0000:0:0:0:", "Offroad Survivors", 1451492100, 1451492100, "Description", "/media/hdd/movie", False, True, False)
 		#from Tools.Notifications import AddPopup
 		#from Screens.MessageBox import MessageBox
 		#AddPopup( sp[0], MessageBox.TYPE_INFO, 0, 'SP_PopUp_ID_Test' )
@@ -89,9 +89,9 @@ def test(session=None):
 		#	movielist_info(session, service)
 		
 		#TEST AUTOTIMER
-		#from SeriesPluginBare import bareGetSeasonEpisode
-		#bareGetSeasonEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One", 1448751000, 1448754000, "Description", "/media/hdd/movie", False, False, True)
-		#bareGetSeasonEpisode("1:0:19:8150:14B:270F:FFFF0000:0:0:0:", "Dragons Auf zu neuen Ufern TEST_TO_BE_REMOVED", 1449390300, 1449393300, "Description", "/media/hdd/movie", False, False, True)
+		#from SeriesPluginBare import bareGetEpisode
+		#bareGetEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One", 1448751000, 1448754000, "Description", "/media/hdd/movie", False, False, True)
+		#bareGetEpisode("1:0:19:8150:14B:270F:FFFF0000:0:0:0:", "Dragons Auf zu neuen Ufern TEST_TO_BE_REMOVED", 1449390300, 1449393300, "Description", "/media/hdd/movie", False, False, True)
 		pass
 		
 	except Exception as e:
@@ -201,9 +201,9 @@ def movielist_info(session, service, *args, **kwargs):
 # Synchronous call, blocks until we have the information
 def getSeasonEpisode4(service_ref, name, begin, end, description, path, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
-		from SeriesPluginBare import bareGetSeasonEpisode
+		from SeriesPluginBare import bareGetEpisode
 		try:
-			return bareGetSeasonEpisode(service_ref, name, begin, end, description, path, True, False, False)
+			return bareGetEpisode(service_ref, name, begin, end, description, path, True, False, False)
 		except Exception as e:
 			log.exception( "SeriesPlugin getSeasonEpisode4 exception " + str(e))
 			return str(e)
@@ -248,7 +248,7 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 	result = None
 	if config.plugins.seriesplugin.enabled.value:
-		log.debug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
+		log.debug("SeriesPlugin getSeasonAndEpisode is deprecated - Update Your AutoTimer!")
 		try:
 			spt = SeriesPluginTimer()
 			result = spt.getEpisode(timer, name, begin, end, True)
@@ -259,10 +259,10 @@ def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
-		from SeriesPluginBare import bareGetSeasonEpisode
+		from SeriesPluginBare import bareGetEpisode
 		try:
-			result = bareGetSeasonEpisode(service_ref, name, begin, end, description, path)
-			if result and len(result) == 4:
+			result = bareGetEpisode(service_ref, name, begin, end, description, path)
+			if result and isinstance(result, dict):
 				return (result[0],result[1],result[2])
 			else:
 				return str(result)
