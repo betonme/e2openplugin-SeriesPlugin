@@ -170,6 +170,16 @@ def checkTimers(session, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		runIndependent()
 
+# Call from timer list - not used yet
+def showTimerInfo(session, timer, *args, **kwargs):
+	if config.plugins.seriesplugin.enabled.value:
+		from enigma import eEPGCache
+		try:
+			event = timer.eit and epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
+			session.open(SeriesPluginInfoScreen, timer.service_ref, event)
+		except Exception as e:
+			logDebug(_("SeriesPlugin info exception ") + str(e))
+
 
 #######################################################
 # Movielist menu rename
@@ -216,47 +226,60 @@ def showResult(*args, **kwargs):
 
 
 # Call asynchronous
-def renameTimer(timer, name, begin, end, *args, **kwargs):
+# Can also be called from a timer list - not used yet
+def renameTimer(timer, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		try:
 			spt = SeriesPluginTimer()
-			spt.getEpisode(timer, name, begin, end)
+			spt.getEpisode(timer)
+		except Exception as e:
+			log.exception(_("SeriesPlugin label exception ") + str(e))
+
+def renameTimers(timers, *args, **kwargs):
+	if config.plugins.seriesplugin.enabled.value:
+		try:
+			spt = SeriesPluginTimer()
+			for timer in timers:
+				spt.getEpisode(timer)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 
 
+#######################################################
 # For compatibility reasons
-def modifyTimer(timer, name, *args, **kwargs):
+def modifyTimer(timer, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
 		try:
 			spt = SeriesPluginTimer()
-			spt.getEpisode(timer, name or timer.name, timer.begin, timer.end)
+			spt.getEpisode(timer)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 
 
 # For compatibility reasons
-def labelTimer(timer, begin=None, end=None, *args, **kwargs):
+def labelTimer(timer, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
 		try:
 			spt = SeriesPluginTimer()
-			spt.getEpisode(timer, timer.name, timer.begin, timer.end)
+			spt.getEpisode(timer)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 
-def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
+# For compatibility reasons
+def getSeasonAndEpisode(timer, *args, **kwargs):
 	result = None
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin getSeasonAndEpisode is deprecated - Update Your AutoTimer!")
 		try:
 			spt = SeriesPluginTimer()
-			result = spt.getEpisode(timer, name, begin, end, True)
+			result = spt.getEpisode(timer, True)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 	return result
 
+# For compatibility reasons
 def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
