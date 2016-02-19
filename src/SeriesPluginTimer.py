@@ -46,11 +46,9 @@ class SeriesPluginTimer(object):
 	data = []
 	counter = 0;
 	
-	def __init__(self, timer, name, begin, end, block=False):
+	def __init__(self):
 		
-		log.debug("name, timername, begin, end:", name, timer.name, begin, end, block)
-		
-		return self.getEpisode(timer, name, begin, end, block)
+		log.debug("SeriesPluginTimer: New instance")
 
 	def getEpisode(self, timer, name, begin, end, block):
 		

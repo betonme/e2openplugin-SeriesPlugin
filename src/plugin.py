@@ -218,7 +218,8 @@ def showResult(*args, **kwargs):
 def renameTimer(timer, name, begin, end, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		try:
-			SeriesPluginTimer(timer, name, begin, end)
+			spt = SeriesPluginTimer()
+			spt.getEpisode(timer, name, begin, end)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 
@@ -228,7 +229,8 @@ def modifyTimer(timer, name, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin modifyTimer is deprecated - Update Your AutoTimer!")
 		try:
-			SeriesPluginTimer(timer, name or timer.name, timer.begin, timer.end)
+			spt = SeriesPluginTimer()
+			spt.getEpisode(timer, name or timer.name, timer.begin, timer.end)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 
@@ -238,7 +240,8 @@ def labelTimer(timer, begin=None, end=None, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin labelTimer is deprecated - Update Your AutoTimer!")
 		try:
-			SeriesPluginTimer(timer, timer.name, timer.begin, timer.end)
+			spt = SeriesPluginTimer()
+			spt.getEpisode(timer, timer.name, timer.begin, timer.end)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 
@@ -247,7 +250,8 @@ def getSeasonAndEpisode(timer, name, begin, end, *args, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		log.debug("SeriesPlugin getSeasonEpisode is deprecated - Update Your AutoTimer!")
 		try:
-			result = SeriesPluginTimer(timer, name, begin, end, True)
+			spt = SeriesPluginTimer()
+			result = spt.getEpisode(timer, name, begin, end, True)
 		except Exception as e:
 			log.exception(_("SeriesPlugin label exception ") + str(e))
 	return result
