@@ -89,15 +89,30 @@ scheme_fallback = [
 		("{org:s}_S{season:02d}EP{episode:02d}"                , "Org_S01EP01"),
 		("{org:s}_S{season:02d}EP{episode:02d_}"               , "Org_S01EP01_"),
 		
+		("{org:s} S{rawseason:s} E{rawepisode:s} {title:s}" , "Org SRaw ERaw Title"),
+		("{org:s} S{rawseason:s}E{rawepisode:s} {title:s}"  , "Org SRawERaw Title"),
+		("{org:s} {rawseason:s} {rawepisode:s} {title:s}"   , "Org Raw Raw Title"),
+		("{org:s} {rawseason:s}{rawepisode:s} {title:s}"    , "Org RawRaw Title"),
+		
+		("{org:s} - S{rawseason:s} E{rawepisode:s} - {title:s}" , "Org - SRaw ERaw - Title"),
+		("{org:s} - S{rawseason:s}E{rawepisode:s} - {title:s}"  , "Org - SRawERaw - Title"),
+		("{org:s} - {rawseason:s} {rawepisode:s} - {title:s}"   , "Org - Raw Raw - Title"),
+		("{org:s} - {rawseason:s}{rawepisode:s} - {title:s}"    , "Org - RawRaw - Title"),
+		
 		("{series:s} S{rawseason:s} E{rawepisode:s} {title:s}" , "Series SRaw ERaw Title"),
 		("{series:s} S{rawseason:s}E{rawepisode:s} {title:s}"  , "Series SRawERaw Title"),
 		("{series:s} {rawseason:s} {rawepisode:s} {title:s}"   , "Series Raw Raw Title"),
 		("{series:s} {rawseason:s}{rawepisode:s} {title:s}"    , "Series RawRaw Title"),
 		
+		("{series:s} - S{rawseason:s} E{rawepisode:s} - {title:s}" , "Series - SRaw ERaw - Title"),
+		("{series:s} - S{rawseason:s}E{rawepisode:s} - {title:s}"  , "Series - SRawERaw - Title"),
+		("{series:s} - {rawseason:s} {rawepisode:s} - {title:s}"   , "Series - Raw Raw - Title"),
+		("{series:s} - {rawseason:s}{rawepisode:s} - {title:s}"    , "Series - RawRaw - Title"),
+		
 		("{series:s} S{season:02d} E{rawepisode:s} {title:s}" , "Series S01 ERaw Title"),
 		("{series:s} S{season:02d}E{rawepisode:s} {title:s}"  , "Series S01ERaw Title"),
 		("{series:s} - S{season:02d}E{rawepisode:s} - {title:s}" , "Series - S01ERaw - Title"),
-
+		
 		("{channel:s} {series:s} S{season:02d} E{rawepisode:s} {title:s}" , "Channel Series S01 ERaw Title"),
 		("{service:s} {series:s} S{season:02d}E{rawepisode:s} {title:s}"  , "Service Series S01ERaw Title"),
 		
