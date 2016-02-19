@@ -277,9 +277,6 @@ class SeriesPluginRenamer(object):
 							name, begin, end, rec_ref_str, elapsed=True, rename=True
 						)
 					
-					#result = seriesPlugin.getEpisodeBlocking( name, begin, end, rec_ref_str, elapsed=True )
-					#self.renamerCallback( servicepath, name, short, result )
-					
 			except Exception as e:
 				log.exception("Exception:", str(e))
 

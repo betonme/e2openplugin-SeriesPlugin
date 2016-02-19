@@ -28,8 +28,8 @@ def bareGetSeasonEpisode(service_ref, name, begin, end, description, path, futur
 		
 		from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
 		seriesPlugin = getInstance()
-		data = seriesPlugin.getEpisodeBlocking(
-			name, begin, end, service_ref, future, today, elapsed
+		data = seriesPlugin.getEpisode(
+			name, begin, end, service_ref, future, today, elapsed, True
 		)
 		
 		global loop_counter

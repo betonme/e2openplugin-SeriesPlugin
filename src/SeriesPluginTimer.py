@@ -48,15 +48,11 @@ class SeriesPluginTimer(object):
 	
 	def __init__(self, timer, name, begin, end, block=False):
 		
-		log.debug("name, timername, begin, end:", name, timer.name, begin, end)
+		log.debug("name, timername, begin, end:", name, timer.name, begin, end, block)
 		
-		if block:
-			# We do not want to execute the blocking code here
-			return
-		
-		return self.getSeasonAndEpisode(timer, name, begin, end, block)
+		return self.getEpisode(timer, name, begin, end, block)
 
-	def getSeasonAndEpisode(self, timer, name, begin, end, block=True):
+	def getEpisode(self, timer, name, begin, end, block):
 		
 		log.info("timername, service, name, begin, end:", timer.name, str(timer.service_ref.ref), name, begin, end)
 		
@@ -130,17 +126,10 @@ class SeriesPluginTimer(object):
 			
 			timer.sp_in_queue = True
 			
-			if block:
-				result = seriesPlugin.getEpisodeBlocking(
-					name, begin, end, timer.service_ref, future=True
-				)
-				return self.timerCallback(timer, result)
-			else:
-				seriesPlugin.getEpisode(
+			return seriesPlugin.getEpisode(
 					boundFunction(self.timerCallback, timer),
-					name, begin, end, timer.service_ref, future=True
+					name, begin, end, timer.service_ref, future=True, block=block
 				)
-				return None
 		else:
 			msg = _("Skipping lookup because no channel is specified")
 			log.warning(msg)
