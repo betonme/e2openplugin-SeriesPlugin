@@ -152,7 +152,7 @@ def lookupChannelByReference(ref):
 				logDebug("lookupChannelByReference", ref, altname)
 				altnames.append(altname)
 		return altnames
-		
+	logDebug("lookupChannelByReference: Failed for", ref)
 	return False
 
 

@@ -70,7 +70,7 @@ class SerienServer(IdentifierBase2):
 		# Prepare parameters
 		webChannels = lookupChannelByReference(service)
 		if not webChannels:
-			msg = _("No matching channel found.") + "\n\n" + _("Please open the Channel Editor and add the channel manually.")
+			msg = _("No matching channel found.") + "\n\n" + str(service) + _("Please open the Channel Editor and add the channel manually.")
 			logInfo(msg)
 			AddPopup(
 				msg,
