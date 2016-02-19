@@ -13,7 +13,7 @@ from datetime import datetime
 from Plugins.Extensions.SeriesPlugin.__init__ import _
 from Plugins.Extensions.SeriesPlugin.IdentifierBase import IdentifierBase2
 from Plugins.Extensions.SeriesPlugin.Logger import log
-from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference
+from Plugins.Extensions.SeriesPlugin.Channels import lookupChannelByReference, getChannel
 from Plugins.Extensions.SeriesPlugin.TimeoutServerProxy import TimeoutServerProxy
 
 
@@ -73,7 +73,7 @@ class SerienServer(IdentifierBase2):
 		# Prepare parameters
 		webChannels = lookupChannelByReference(service)
 		if not webChannels:
-			msg = _("No matching channel found.") + "\n\n" + str(service) + _("Please open the Channel Editor and add the channel manually.")
+			msg = _("No matching channel found.") + "\n" + getChannel(service) + " (" + str(service) + ")\n\n" + _("Please open the Channel Editor and add the channel manually.")
 			log.warning(msg)
 			return msg
 		

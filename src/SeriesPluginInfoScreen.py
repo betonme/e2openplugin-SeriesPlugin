@@ -58,19 +58,12 @@ from enigma import getDesktop
 # Plugin internal
 from SeriesPlugin import getInstance
 from Logger import log
-
+from Channels import getChannel
 
 # Constants
 PIXMAP_PATH = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Logos/" )
 
 instance = None
-
-def getChannel(eservicereference):
-	if isinstance(eservicereference, eServiceReference):
-		servicereference = ServiceReference(eservicereference)
-		if servicereference:
-			return servicereference.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
-	return ""
 
 
 #######################################################

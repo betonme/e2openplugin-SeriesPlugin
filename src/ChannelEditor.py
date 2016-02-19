@@ -224,7 +224,14 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			self.setTitle(_("Problem during loading Webchannels"))
 			temp = []
 		self.webChlist = sorted(temp, key=lambda tup: tup[0])
-
+	
+	def getChannelByRef(ref):
+		if self.stbChlist:
+			for servicename,serviceref,uservicename in self.stbChlist:
+				if serviceref == ref:
+					return servicename
+		return ""
+	
 	def showChannels(self):
 		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet )
 		if len(self.stbChlist) != 0:
