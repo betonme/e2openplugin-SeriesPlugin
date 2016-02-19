@@ -63,7 +63,7 @@ def runIndependent():
 			# Configured with a dialog
 			# Stored in a db or xml
 			
-			spt.getEpisode(timer, timer.name, timer.begin, timer.end)
+			spt.getEpisode(timer)
 			
 	except Exception as e:
 		log.exception( _("Independent mode exception") + "\n" + str(e))

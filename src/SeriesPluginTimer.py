@@ -50,9 +50,9 @@ class SeriesPluginTimer(object):
 		
 		log.debug("SeriesPluginTimer: New instance")
 
-	def getEpisode(self, timer, name, begin, end, block):
+	def getEpisode(self, timer, block):
 		
-		log.info("timername, service, name, begin, end:", timer.name, str(timer.service_ref.ref), name, begin, end)
+		log.info("timername, service, begin, end:", timer.name, str(timer.service_ref.ref), timer.begin, timer.end)
 		
 		if hasattr(timer, 'sp_in_queue'):
 			if timer.sp_in_queue:
@@ -81,21 +81,20 @@ class SeriesPluginTimer(object):
 				event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
 				log.debug("lookupEventId", timer.eit, event)
 			if not(event):
-				event = epgcache.lookupEventTime( timer.service_ref.ref, begin + ((end - begin) /2) );
+				event = epgcache.lookupEventTime( timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) /2) );
 				log.debug("lookupEventTime", event )
 			
 			if event:
-				if not ( len(timer.name) == len(name) == len(event.getEventName()) ):
+				if not ( len(timer.name) == len(event.getEventName()) ):
 					msg = _("Skipping timer because it is already modified %s" % (timer.name) )
 					log.warning(msg)
 					timer.log(602, "[SeriesPlugin]" + " " + msg )
 					return
 			else:
-				if ( len(timer.name) == len(name) ):
-					msg = _("Skipping timer because no event was found")
-					log.warning(msg, timer.name)
-					timer.log(603, "[SeriesPlugin]" + " " + msg )
-					return
+				msg = _("Skipping timer because no event was found")
+				log.warning(msg, timer.name)
+				timer.log(603, "[SeriesPlugin]" + " " + msg )
+				return
 		
 		if timer.begin < time() + 60:
 			msg = _("Skipping timer because it starts in less than 60 seconds")
@@ -120,13 +119,13 @@ class SeriesPluginTimer(object):
 		seriesPlugin = getInstance()
 		
 		if timer.service_ref:
-			log.debug("getEpisode:", name, begin, end, block)
+			log.debug("getEpisode:", timer.name, timer.begin, timer.end, block)
 			
 			timer.sp_in_queue = True
 			
 			return seriesPlugin.getEpisode(
 					boundFunction(self.timerCallback, timer),
-					name, begin, end, timer.service_ref, future=True, block=block
+					 timer.name, timer.begin, timer.end, timer.service_ref, future=True, block=block
 				)
 		else:
 			msg = _("Skipping lookup because no channel is specified")

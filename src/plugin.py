@@ -167,7 +167,8 @@ def channel(session, service=None, *args, **kwargs):
 #######################################################
 # Timer
 def checkTimers(session, *args, **kwargs):
-	runIndependent()
+	if config.plugins.seriesplugin.enabled.value:
+		runIndependent()
 
 
 #######################################################
