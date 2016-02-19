@@ -38,7 +38,7 @@ class Logger(object):
 		self.local_log_enabled = False
 		
 		self.instance = self.instance or logging.getLogger("SeriesPlugin")
-		self.instance.setLevel(logging.WARNING)
+		self.instance.setLevel(logging.DEBUG)
 		
 		self.reinit()
 	
