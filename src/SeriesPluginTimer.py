@@ -50,7 +50,7 @@ class SeriesPluginTimer(object):
 		
 		log.debug("SeriesPluginTimer: New instance")
 
-	def getEpisode(self, timer, block):
+	def getEpisode(self, timer, block=False):
 		
 		log.info("timername, service, begin, end:", timer.name, str(timer.service_ref.ref), timer.begin, timer.end)
 		
@@ -125,7 +125,7 @@ class SeriesPluginTimer(object):
 			
 			return seriesPlugin.getEpisode(
 					boundFunction(self.timerCallback, timer),
-					 timer.name, timer.begin, timer.end, timer.service_ref, future=True, block=block
+					timer.name, timer.begin, timer.end, timer.service_ref, future=True, block=block
 				)
 		else:
 			msg = _("Skipping lookup because no channel is specified")

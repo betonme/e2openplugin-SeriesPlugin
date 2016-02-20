@@ -291,7 +291,7 @@ class SeriesPluginInfoScreen(Screen):
 			log.debug("getEpisode:", self.name, begin, end, ref)
 			self.seriesPlugin.getEpisode(
 					self.episodeCallback, 
-					self.name, begin, end, ref, future=future, today=today, elapsed=elapsed
+					self.name, begin, end, ref, future=future, today=today, elapsed=elapsed, block=False
 				)
 		except Exception as e:
 			log.exception("exception:", str(e))

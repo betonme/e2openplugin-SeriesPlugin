@@ -376,7 +376,7 @@ class SeriesPlugin(Modules, ChannelsBase):
 		else:
 			return None
 	
-	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False, rename=False, block=False):
+	def getEpisode(self, callback, name, begin, end=None, service=None, future=False, today=False, elapsed=False, block=False, rename=False):
 		
 		if config.plugins.seriesplugin.skip_during_records.value:
 			try:

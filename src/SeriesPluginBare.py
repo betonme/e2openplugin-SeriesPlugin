@@ -30,7 +30,7 @@ def bareGetEpisode(service_ref, name, begin, end, description, path, future=True
 		seriesPlugin = getInstance()
 		data = seriesPlugin.getEpisode(
 			None, 
-			name, begin, end, service_ref, future, today, elapsed, True
+			name, begin, end, service_ref, future, today, elapsed, block=True
 		)
 		
 		global loop_counter

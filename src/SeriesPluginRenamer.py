@@ -274,7 +274,7 @@ class SeriesPluginRenamer(object):
 					log.debug("getEpisode:", name, begin, end, rec_ref_str)
 					seriesPlugin.getEpisode(
 							boundFunction(self.renamerCallback, servicepath, name, short),
-							name, begin, end, rec_ref_str, elapsed=True, rename=True
+							name, begin, end, rec_ref_str, elapsed=True, block=True, rename=True
 						)
 					
 			except Exception as e:
