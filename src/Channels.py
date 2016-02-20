@@ -126,11 +126,15 @@ def buildSTBchannellist(BouquetName = None):
 				break
 	return chlist
 
-def getChannel(eservicereference):
-	if isinstance(eservicereference, eServiceReference):
-		servicereference = ServiceReference(eservicereference)
-		if servicereference:
-			return servicereference.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+def getChannel(ref):
+	if isinstance(ref, eServiceReference):
+		servicereference = ServiceReference(ref)
+	elif isinstance(ref, ServiceReference):
+		servicereference = ref
+	else:
+		servicereference = ServiceReference(str(ref))
+	if servicereference:
+		return servicereference.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
 	return ""
 
 def compareChannels(ref, remote):
