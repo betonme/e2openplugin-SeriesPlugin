@@ -213,7 +213,7 @@ def refactorDirectory(org, data):
 
 def normalizeResult(result):
 	if result and isinstance(result, dict):
-		logDebug("normalize result")
+		log.debug("normalize result")
 		title_   = result['title'].strip()
 		series_  = result['series'].strip()
 		season_  = result['season']
@@ -238,7 +238,7 @@ def normalizeResult(result):
 		result['time'] = strftime("%H:%M:%S", localtime(result['begin']))
 		return result
 	else:
-		logDebug("normalize result failed", str(result))
+		log.debug("normalize result failed", str(result))
 		return result
 
 

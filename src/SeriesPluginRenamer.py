@@ -182,7 +182,7 @@ def osrename(src, dst):
 			return osrename( src, dst + "_")
 			break
 		else:
-			log.warning( _("Skipping rename because file already exists") + "\n" + to + "\n\n" + _("Can be configured within the setup")
+			log.warning( _("Skipping rename because file already exists") + "\n" + to + "\n\n" + _("Can be configured within the setup") )
 	return True
 
 

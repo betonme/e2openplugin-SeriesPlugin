@@ -37,7 +37,7 @@ class Logger(object):
 		self.local_log = ""
 		self.local_log_enabled = False
 		
-		self.instance = self.instance or logging.getLogger("SeriesPlugin")
+		self.instance = logging.getLogger("SeriesPlugin")
 		self.instance.setLevel(logging.DEBUG)
 		
 		self.reinit()
@@ -65,25 +65,25 @@ class Logger(object):
 			self.instance.addHandler(fhandler)
 			self.instance.setLevel(logging.DEBUG)
 
-	def start():
+	def start(self):
 		# Start a temporary log, which will be removed after reading.
 		# Debug is not included
 		self.local_log = ""
 		self.local_log_enabled = True
 
-	def append(strargs):
+	def append(self, strargs):
 		if self.local_log_enabled:
 			self.local_log += "&#13;&#10;" + strargs
 	
-	def get():
+	def get(self):
 		self.local_log_enabled = False
 		return self.local_log
 
-	def shutdown():
+	def shutdown(self):
 		if self.instance:
 			self.instance.shutdown()
 
-	def info(*args):
+	def info(self, *args):
 		strargs = " ".join( [ str(arg) for arg in args ] )
 		
 		self.append(strargs)
@@ -94,7 +94,7 @@ class Logger(object):
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
 
-	def debug(*args):
+	def debug(self, *args):
 		strargs = " ".join( [ str(arg) for arg in args ] )
 		
 		if self.instance:
@@ -108,7 +108,7 @@ class Logger(object):
 			self.instance.debug( str(traceback.format_exc()) )
 			sys.exc_clear()
 
-	def warning(*args):
+	def warning(self, *args):
 		strargs = " ".join( [ str(arg) for arg in args ] )
 		
 		self.append(strargs)
@@ -126,7 +126,7 @@ class Logger(object):
 					'SP_PopUp_ID_Warning_'+strargs
 				)
 
-	def error(*args):
+	def error(self, *args):
 		strargs = " ".join( [ str(arg) for arg in args ] )
 		
 		self.append(strargs)
@@ -144,7 +144,7 @@ class Logger(object):
 					'SP_PopUp_ID_Error_'+strargs
 				)
 		
-	def exception(*args):
+	def exception(self, *args):
 		strargs = " ".join( [ str(arg) for arg in args ] )
 		
 		self.append(strargs)

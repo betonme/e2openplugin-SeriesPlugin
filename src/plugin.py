@@ -178,7 +178,7 @@ def showTimerInfo(session, timer, *args, **kwargs):
 			event = timer.eit and epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
 			session.open(SeriesPluginInfoScreen, timer.service_ref, event)
 		except Exception as e:
-			logDebug(_("SeriesPlugin info exception ") + str(e))
+			log.exception(_("SeriesPlugin info exception ") + str(e))
 
 
 #######################################################
