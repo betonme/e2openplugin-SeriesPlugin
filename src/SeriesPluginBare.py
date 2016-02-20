@@ -29,6 +29,7 @@ def bareGetEpisode(service_ref, name, begin, end, description, path, future=True
 		from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
 		seriesPlugin = getInstance()
 		data = seriesPlugin.getEpisode(
+			None, 
 			name, begin, end, service_ref, future, today, elapsed, True
 		)
 		
