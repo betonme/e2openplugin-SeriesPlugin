@@ -165,7 +165,10 @@ class SeriesPluginInfoScreen(Screen):
 		today = False
 		elapsed = False
 		
-		service = self.service
+		if self.service:
+			service = self.service
+		else:
+			service = self.service = self.session and self.session.nav.getCurrentlyPlayingServiceReference()
 		
 		ref = None
 		
