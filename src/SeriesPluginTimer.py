@@ -87,12 +87,12 @@ class SeriesPluginTimer(object):
 			if event:
 				if not ( len(timer.name) == len(event.getEventName()) ):
 					msg = _("Skipping timer because it is already modified %s" % (timer.name) )
-					log.warning(msg)
+					log.info(msg)
 					timer.log(602, "[SeriesPlugin]" + " " + msg )
 					return
 			else:
 				msg = _("Skipping timer because no event was found")
-				log.warning(msg, timer.name)
+				log.info(msg, timer.name)
 				timer.log(603, "[SeriesPlugin]" + " " + msg )
 				return
 		

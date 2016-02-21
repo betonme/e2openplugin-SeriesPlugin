@@ -74,7 +74,7 @@ class SerienServer(IdentifierBase2):
 		webChannels = lookupChannelByReference(service)
 		if not webChannels:
 			msg = _("No matching channel found.") + "\n" + getChannel(service) + " (" + str(service) + ")\n\n" + _("Please open the Channel Editor and add the channel manually.")
-			log.warning(msg)
+			log.error(msg)
 			return msg
 		
 		unixtime = str(begin)

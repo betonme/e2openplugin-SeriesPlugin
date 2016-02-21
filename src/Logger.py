@@ -121,8 +121,8 @@ class Logger(object):
 		
 		AddPopup(
 					strargs,
-					MessageBox.TYPE_ERROR,
-					-1,
+					MessageBox.TYPE_WARNING,
+					int(config.plugins.seriesplugin.popups_warning_timeout.value),
 					'SP_PopUp_ID_Warning_'+strargs
 				)
 
