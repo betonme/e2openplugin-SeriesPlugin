@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SeriesPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-02-13 23:10+0100\n"
-"PO-Revision-Date: 2016-02-13 23:54+0100\n"
+"POT-Creation-Date: 2016-02-20 22:24+0100\n"
+"PO-Revision-Date: 2016-02-20 22:56+0100\n"
 "Last-Translator: James Blond <jb@unknown.com>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -109,20 +109,23 @@ msgstr "Kanal '- %s -' entfernt."
 msgid "Reset channel list?"
 msgstr "Kanalliste zurücksetzen?"
 
+msgid "Skipping old channels file"
+msgstr "Überspringe alte Kanal Datei"
+
 msgid "Don't edit this manually unless you really know what you are doing"
 msgstr "Bitte nicht bearbeiten wenn Du nicht wirklich weißt was du tust"
 
 msgid "Your pattern file is corrupt"
 msgstr "Vorlage Datei ist beschädigt"
 
-msgid "Skip: No show name specified"
-msgstr "Übersprungen: kein Sendungsnamen angegeben"
+msgid "Skipping lookup because no show name is specified"
+msgstr "Übersprunge wenn kein Sendungsnamen angegeben"
 
-msgid "Skip: No begin timestamp specified"
-msgstr "Übersprungen: keine Anfangszeit angegeben"
+msgid "Skipping lookup because no begin timestamp is specified"
+msgstr "Übersprunge wenn keine Anfangszeit angegeben"
 
-msgid "Skip: No service / channel specified"
-msgstr "Übersprungen: kein Service / Kanal angegeben"
+msgid "Skipping lookup because no channel is specified"
+msgstr "Übersprunge wenn kein Kanal angegeben"
 
 msgid "No matching channel found."
 msgstr "Kein passender Kanal gefunden"
@@ -145,11 +148,35 @@ msgstr "Fehler fehlende Abhängigkeit"
 msgid "Please install missing python paket manually"
 msgstr "Bitte installiere das fehlende Python Paket manuell"
 
-msgid "Skip check during running records (Can be disabled)"
-msgstr "Überspringe Prüfung bei laufender Aufnahme (kann deaktiviert werden)"
+msgid "Skip check during running records"
+msgstr "Überspringe Prüfung bei laufender Aufnahme"
+
+msgid "Can be configured within the setup"
+msgstr "Kann in Einstellungen konfiguriert werden"
+
+msgid "Skip check because of pattern match"
+msgstr "Überspringe Prüfung wenn Vorlage übereinstimmt"
+
+msgid "No identifier available"
+msgstr "Keine Kennung verfügbar"
+
+msgid "Please check Your installation"
+msgstr "Bitte überprüfe deine Installation"
+
+msgid "Channels are not matched"
+msgstr "Keine Kanalübereinstimmung"
+
+msgid "Please open the channel editor (setup) and match them"
+msgstr "Bitte öffne den Kanaleditor (Einstellungen) und weise ihn zu"
 
 msgid "SeriesPlugin is deactivated"
 msgstr "SeriesPlugin ist ausgeschaltet"
+
+msgid "Failed: %s."
+msgstr "Gescheitert: %s."
+
+msgid "No data available"
+msgstr "Keine Daten vorhanden"
 
 msgid "SP has been finished with errors:\n"
 msgstr "SP mit Fehlern beendet:\n"
@@ -252,6 +279,9 @@ msgstr "Timer alle (X) Minuten prüfen"
 
 msgid "Check Timer for corresponding EPG events"
 msgstr "Prüfe Timer auf entsprechenden EPG Eintrag"
+
+msgid "Add tag 'SeriesPlugin' to timer"
+msgstr "Füge TAG 'SeriesPlugin' zu Timer hinzu"
 
 msgid "Show warnings after Timer handling"
 msgstr "Zeige Warnung nach Timer Erstellung (Popup)"
@@ -361,6 +391,9 @@ msgstr "Umbenennen gescheitert"
 msgid "Do you really want to delete %s?"
 msgstr "Möchtest Du wirklich %s löschen?"
 
+msgid "Skipping rename because file already exists"
+msgstr "Überspringe umbenennen wenn Datei bereits vorhanden ist"
+
 msgid "Do You want to start renaming?"
 msgstr "Möchtest Du das Umbenennen beginnen?"
 
@@ -370,8 +403,32 @@ msgstr "Aufnahme umbenennen wurde beendet mit %d Fehler:\n"
 msgid "%d records renamed successfully"
 msgstr "%d Aufnahmen erfolgreich umbenannt"
 
-msgid "No data available"
-msgstr "Keine Daten vorhanden"
+msgid "Skipping timer because it is already in queue"
+msgstr "Überspringe Timer wenn in Warteschleife vorhanden"
+
+msgid "Skipping timer because it is already handled"
+msgstr "Überspringe Timer wenn in Bearbeitung"
+
+msgid "Skipping timer because it is already modified %s"
+msgstr "Überspringe Timer wenn %s bereits geändert sind"
+
+msgid "Skipping timer because no event was found"
+msgstr "Überspringe Timer wenn kein Ereignis gefunden wurde"
+
+msgid "Skipping timer because it starts in less than 60 seconds"
+msgstr "Überspringe Timer wenn er in weniger als 60 Sekunden startet"
+
+msgid "Skipping timer because it is already running"
+msgstr "Übersringe Timer wenn er bereits ausgeführt wird"
+
+msgid "Skipping timer because it is a just play timer"
+msgstr "Überspringe Timer wenn  es ein Wiedergabetimer ist"
+
+msgid "Try to find infos for %s"
+msgstr "Versuche Informationen zu finden für %s"
+
+msgid "Success: %s"
+msgstr "Erfolg: %s"
 
 msgid "Timer rename has been finished with %d errors:\n"
 msgstr "Timer umbenennen wurde beendet mit %d Fehler:\n"
