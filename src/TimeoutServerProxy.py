@@ -51,7 +51,12 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 			result = self.sp.cache.getSeasonEpisode( name, webChannel, unixtime, max_time_drift )
 			log.debug("SerienServer getSeasonEpisode result:", result)
 		except Exception as e:
-			log.exception("Exception in xmlrpc: " + str(e) + ' - ' + str(result))
+			msg = "Exception in xmlrpc: \n" + str(e) + ' - ' + str(result) + "\n\nfor" + name + " (" + webChannel + ")"
+			if not config.plugins.seriesplugin.autotimer_independent.value:
+				log.exception(msg)
+			else:
+				# The independant mode could have a lot of non series entries
+				log.debug(msg)
 			self.skip[name] = time()
 			result = str(e)
 		
