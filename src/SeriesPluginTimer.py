@@ -170,34 +170,24 @@ class SeriesPluginTimer(object):
 		
 		timer.sp_in_queue = False
 		
-		if config.plugins.seriesplugin.timer_popups.value or config.plugins.seriesplugin.timer_popups_success.value:
-			
-			SeriesPluginTimer.counter = SeriesPluginTimer.counter +1
-			
-			if SeriesPluginTimer.data or config.plugins.seriesplugin.timer_popups_success.value:
+		SeriesPluginTimer.counter = SeriesPluginTimer.counter +1
+		
+		# Maybe there is a better way to avoid multiple Popups
+		from SeriesPlugin import getInstance
+		
+		instance = getInstance()
+		
+		if instance.thread.empty() and instance.thread.finished():
+		
+			if SeriesPluginTimer.data:
+				msg = "SeriesPlugin:\n" + _("Timer rename has been finished with %d errors:\n") % (len(SeriesPluginTimer.data)) +"\n" +"\n".join(SeriesPluginTimer.data)
+				log.warning(msg)
 				
-				# Maybe there is a better way to avoid multiple Popups
-				from SeriesPlugin import getInstance
+			else:
+				msg = "SeriesPlugin:\n" + _("%d timer renamed successfully") % (SeriesPluginTimer.counter)
+				log.success(msg)
 				
-				instance = getInstance()
-				
-				if instance.thread.empty() and instance.thread.finished():
-				
-					if SeriesPluginTimer.data:
-						AddPopup(
-							"SeriesPlugin:\n" + _("Timer rename has been finished with %d errors:\n") % (len(SeriesPluginTimer.data)) +"\n" +"\n".join(SeriesPluginTimer.data),
-							MessageBox.TYPE_ERROR,
-							int(config.plugins.seriesplugin.timer_popups_timeout.value),
-							'SP_PopUp_ID_TimerFinished'
-						)
-					else:
-						AddPopup(
-							"SeriesPlugin:\n" + _("%d timer renamed successfully") % (SeriesPluginTimer.counter),
-							MessageBox.TYPE_INFO,
-							int(config.plugins.seriesplugin.timer_popups_timeout.value),
-							'SP_PopUp_ID_TimerFinished'
-						)
-					SeriesPluginTimer.data = []
-					SeriesPluginTimer.counter = 0
+			SeriesPluginTimer.data = []
+			SeriesPluginTimer.counter = 0
 		
 		return timer

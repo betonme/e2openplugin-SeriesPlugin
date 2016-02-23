@@ -210,11 +210,6 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 				self.list.append( getConfigListEntry(  _("Use legacy filenames") + " (ä to ae)"    , config.plugins.seriesplugin.rename_legacy ) )
 				self.list.append( getConfigListEntry(  _("Append '_' if file exist")               , config.plugins.seriesplugin.rename_existing_files ) )
 			
-			self.list.append( getConfigListEntry(  _("Show warnings after Record renaming")        , config.plugins.seriesplugin.rename_popups ) )
-			self.list.append( getConfigListEntry(  _("Show success after Record renaming")         , config.plugins.seriesplugin.rename_popups_success ) )
-			if (-1 < config.plugins.seriesplugin.rename_popups.value) or (-1 < config.plugins.seriesplugin.rename_popups_success.value):
-				self.list.append( getConfigListEntry(  _("Timeout for Rename Popup")               , config.plugins.seriesplugin.rename_popups_timeout ) )
-			
 			self.list.append( getConfigListEntry(  _("Max time drift to match episode")            , config.plugins.seriesplugin.max_time_drift ) )
 			self.list.append( getConfigListEntry(  _("Title search depths")                        , config.plugins.seriesplugin.search_depths ) )
 			
@@ -227,17 +222,15 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			
 			self.list.append( getConfigListEntry(  _("Check Timer for corresponding EPG events")   , config.plugins.seriesplugin.timer_eit_check ) )
 			self.list.append( getConfigListEntry(  _("Add tag 'SeriesPlugin' to timer")            , config.plugins.seriesplugin.timer_add_tag ) )
-			self.list.append( getConfigListEntry(  _("Show warnings after Timer handling")         , config.plugins.seriesplugin.timer_popups ) )
-			self.list.append( getConfigListEntry(  _("Show success after Timer handling")          , config.plugins.seriesplugin.timer_popups_success ) )
-			if (-1 < config.plugins.seriesplugin.timer_popups.value) or (-1 < config.plugins.seriesplugin.timer_popups_success.value):
-				self.list.append( getConfigListEntry(  _("Timeout for Timer Popup")                , config.plugins.seriesplugin.timer_popups_timeout ) )
+			
+			self.list.append( getConfigListEntry(  _("Socket timeout")                             , config.plugins.seriesplugin.socket_timeout ) )
+			
+			self.list.append( getConfigListEntry(  _("Timeout for Success Popups")                 , config.plugins.seriesplugin.popups_success_timeout  ) )
+			self.list.append( getConfigListEntry(  _("Timeout for Warnings Popups")                , config.plugins.seriesplugin.popups_warning_timeout  ) )
 			
 			#self.list.append( getConfigListEntry(  _("Use local caching")                         , config.plugins.seriesplugin.caching ) )
 			#if config.plugins.seriesplugin.caching.value:
 			#	self.list.append( getConfigListEntry(  _("Cache expires after x hours")            , config.plugins.seriesplugin.caching_expiration ) )
-			
-			self.list.append( getConfigListEntry(  _("Socket timeout")                             , config.plugins.seriesplugin.socket_timeout ) )
-			self.list.append( getConfigListEntry(  _("Timeout for Warnings Popups")                , config.plugins.seriesplugin.popups_warning_timeout  ) )
 			
 			self.list.append( getConfigListEntry(  _("Channel matching file")                      , config.plugins.seriesplugin.channel_file ) )
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
@@ -282,8 +275,6 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		current = self["config"].getCurrent()[1]
 		if (current == config.plugins.seriesplugin.enabled or 
 			current == config.plugins.seriesplugin.rename_file or
-			current == config.plugins.seriesplugin.rename_popups.value or 
-			current == config.plugins.seriesplugin.rename_popups_success.value or
 			current == config.plugins.seriesplugin.autotimer_independent or 
 			current == config.plugins.seriesplugin.write_log):
 			self.changeConfig()

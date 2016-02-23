@@ -83,6 +83,25 @@ class Logger(object):
 		if self.instance:
 			self.instance.shutdown()
 
+	def success(self, *args):
+		strargs = " ".join( [ str(arg) for arg in args ] )
+		
+		self.append(strargs)
+		
+		if self.instance:
+			self.instance.info(strargs)
+		
+		elif config.plugins.seriesplugin.debug_prints.value:
+			print strargs
+		
+		if int(config.plugins.seriesplugin.popups_success_timeout.value) != 0:
+			AddPopup(
+					strargs,
+					MessageBox.TYPE_INFO,
+					int(config.plugins.seriesplugin.popups_success_timeout.value),
+					'SP_PopUp_ID_Success_'+strargs
+				)
+
 	def info(self, *args):
 		strargs = " ".join( [ str(arg) for arg in args ] )
 		
@@ -119,7 +138,8 @@ class Logger(object):
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
 		
-		AddPopup(
+		if int(config.plugins.seriesplugin.popups_warning_timeout.value) != 0:
+			AddPopup(
 					strargs,
 					MessageBox.TYPE_WARNING,
 					int(config.plugins.seriesplugin.popups_warning_timeout.value),

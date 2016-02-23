@@ -63,20 +63,13 @@ def bareGetEpisode(service_ref, name, begin, end, description, path, future=True
 def bareShowResult():
 	global loop_data, loop_counter
 	
-	if loop_data and config.plugins.seriesplugin.timer_popups.value:
-		AddPopup(
-			"SeriesPlugin:\n" + _("SP has been finished with errors:\n") +"\n" +"\n".join(loop_data),
-			MessageBox.TYPE_ERROR,
-			int(config.plugins.seriesplugin.timer_popups_timeout.value),
-			'SP_PopUp_ID_Finished'
-		)
-	elif not loop_data and config.plugins.seriesplugin.timer_popups_success.value:
-		AddPopup(
-			"SeriesPlugin:\n" + _("%d timer renamed successfully") % (loop_counter),
-			MessageBox.TYPE_INFO,
-			int(config.plugins.seriesplugin.timer_popups_timeout.value),
-			'SP_PopUp_ID_Finished'
-		)
+	if loop_data:
+		msg = "SeriesPlugin:\n" + _("SP has been finished with errors:\n") +"\n" +"\n".join(loop_data)
+		log.warning(msg)
+	
+	else:
+		msg = "SeriesPlugin:\n" + _("%d timer renamed successfully") % (loop_counter)
+		log.success(msg)
 	
 	loop_data = []
 	loop_counter = 0

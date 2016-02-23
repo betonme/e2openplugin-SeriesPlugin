@@ -298,31 +298,21 @@ class SeriesPluginRenamer(object):
 			log.debug(msg)
 			self.data.append( name + ": " + msg )
 		
-		if config.plugins.seriesplugin.rename_popups.value or config.plugins.seriesplugin.rename_popups_success.value:
-			
-			self.counter = self.counter +1
-			
-			if self.data or config.plugins.seriesplugin.rename_popups_success.value:
-			
-				# Maybe there is a better way to avoid multiple Popups
-				from SeriesPlugin import getInstance
+		self.counter = self.counter +1
+		
+		# Maybe there is a better way to avoid multiple Popups
+		from SeriesPlugin import getInstance
+		
+		instance = getInstance()
+		
+		if instance.thread.empty() and instance.thread.finished():
+			if self.data:
+				msg = "SeriesPlugin:\n" + _("Record rename has been finished with %d errors:\n") % (len(self.data)) +"\n" +"\n".join(self.data)
+				log.warning(msg)
 				
-				instance = getInstance()
+			else:
+				msg = "SeriesPlugin:\n" + _("%d records renamed successfully") % (self.counter)
+				log.success(msg)
 				
-				if instance.thread.empty() and instance.thread.finished():
-					if self.data:
-						AddPopup(
-							"SeriesPlugin:\n" + _("Record rename has been finished with %d errors:\n") % (len(self.data)) +"\n" +"\n".join(self.data),
-							MessageBox.TYPE_ERROR,
-							int(config.plugins.seriesplugin.rename_popups_timeout.value),
-							'SP_PopUp_ID_RenameFinished'
-						)
-					else:
-						AddPopup(
-							"SeriesPlugin:\n" + _("%d records renamed successfully") % (self.counter),
-							MessageBox.TYPE_INFO,
-							int(config.plugins.seriesplugin.rename_popups_timeout.value),
-							'SP_PopUp_ID_RenameFinished'
-						)
-					self.data = []
-					self.counter = 0
+			self.data = []
+			self.counter = 0
