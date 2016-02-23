@@ -204,7 +204,7 @@ def refactorDirectory(org, data):
 			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("  ", " ").replace("//", "/")
 			dir = CompiledRegexpReplaceDirChars.sub(' ', cust_)
 			log.debug(" refactor dir", org, cust_, dir)
-		if not os.path.exists(dir):
+		if dir and not os.path.exists(dir):
 			try:
 				os.makedirs(dir)
 			except:
