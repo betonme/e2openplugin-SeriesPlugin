@@ -108,7 +108,7 @@ class SeriesPluginTimer(object):
 				timer.log(602, "[SeriesPlugin]" + " " + msg )
 				return
 			begin = event.getBeginTime() or 0
-			duration = self.event.getDuration() or 0
+			duration = event.getDuration() or 0
 			end = begin + duration
 			
 		else:
