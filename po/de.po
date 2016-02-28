@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SeriesPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-02-20 22:24+0100\n"
-"PO-Revision-Date: 2016-02-20 22:56+0100\n"
+"POT-Creation-Date: 2016-02-21 17:37+0100\n"
+"PO-Revision-Date: 2016-02-21 17:54+0100\n"
 "Last-Translator: James Blond <jb@unknown.com>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -272,7 +272,7 @@ msgid "Skip search during records"
 msgstr "Suchen während einer Aufnahme deaktivieren"
 
 msgid "AutoTimer independent mode"
-msgstr "Serien Infos suchen ohne AutoTimer"
+msgstr "Serien Infos suchen ohne AutoTimer (unabhängiger Modus)"
 
 msgid "Check timer every x minutes"
 msgstr "Timer alle (X) Minuten prüfen"
@@ -294,6 +294,9 @@ msgstr "Anzeigedauer Timer Popup"
 
 msgid "Socket timeout"
 msgstr "Zeitlimt für Anfragen zum Proxy (Sekunden)"
+
+msgid "Timeout for Warnings Popups"
+msgstr "Anzeigedauer Warnungen (Popup)"
 
 msgid "Channel matching file"
 msgstr "Passende Kanal Datei"
@@ -329,7 +332,7 @@ msgid "Send debug messages to shell"
 msgstr "Sende Debug Nachrichten (Shell)"
 
 msgid "Write debug messages into file"
-msgstr "Erstelle Fehlerprotokoll in Datei (Log)"
+msgstr "Schreibe Fehlerprotokoll in Datei (Log)"
 
 msgid "Location and name of log file"
 msgstr "Ort und Name der Protokolldatei"
@@ -339,6 +342,9 @@ msgstr "Aktiviere Aufnahmeprotokoll (Timer Protokoll)"
 
 msgid "Really close without saving settings?"
 msgstr "Wirklich schließen ohne die Einstellungen zu speichern?"
+
+msgid "Independent mode exception"
+msgstr "Ausnahme Timer Unabhängiger Modus"
 
 msgid "SeriesPlugin Info"
 msgstr "SeriesPlugin Information"
@@ -392,13 +398,13 @@ msgid "Do you really want to delete %s?"
 msgstr "Möchtest Du wirklich %s löschen?"
 
 msgid "Skipping rename because file already exists"
-msgstr "Überspringe umbenennen wenn Datei bereits vorhanden ist"
+msgstr "Überspringe Umbenennen wenn Datei bereits vorhanden ist"
 
 msgid "Do You want to start renaming?"
 msgstr "Möchtest Du das Umbenennen beginnen?"
 
 msgid "Record rename has been finished with %d errors:\n"
-msgstr "Aufnahme umbenennen wurde beendet mit %d Fehler:\n"
+msgstr "Aufnahme umbenennen wurde beendet mit %d Fehlern:\n"
 
 msgid "%d records renamed successfully"
 msgstr "%d Aufnahmen erfolgreich umbenannt"
@@ -419,7 +425,7 @@ msgid "Skipping timer because it starts in less than 60 seconds"
 msgstr "Überspringe Timer wenn er in weniger als 60 Sekunden startet"
 
 msgid "Skipping timer because it is already running"
-msgstr "Übersringe Timer wenn er bereits ausgeführt wird"
+msgstr "Überspringe Timer wenn er bereits ausgeführt wird"
 
 msgid "Skipping timer because it is a just play timer"
 msgstr "Überspringe Timer wenn  es ein Wiedergabetimer ist"
@@ -428,10 +434,10 @@ msgid "Try to find infos for %s"
 msgstr "Versuche Informationen zu finden für %s"
 
 msgid "Success: %s"
-msgstr "Erfolg: %s"
+msgstr "Erfolgreich: %s"
 
 msgid "Timer rename has been finished with %d errors:\n"
-msgstr "Timer umbenennen wurde beendet mit %d Fehler:\n"
+msgstr "Timer umbenennen wurde beendet mit %d Fehlern:\n"
 
 msgid "Show Log file"
 msgstr "Protokolldatei anzeigen (Log)"
@@ -491,7 +497,7 @@ msgid "  PayPal: "
 msgstr "  PayPal: "
 
 msgid "SeriesPlugin test exception "
-msgstr "SeriesPlugin Test Ausnahme"
+msgstr "SeriesPlugin Ausnahme Test"
 
 msgid "SeriesPlugin setup exception "
 msgstr "SeriesPlugin Ausnahme Einstellungen"
