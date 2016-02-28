@@ -72,30 +72,6 @@ class SeriesPluginTimer(object):
 			timer.log(607, "[SeriesPlugin]" + " " + msg )
 			return
 		
-		if config.plugins.seriesplugin.timer_eit_check.value:
-			
-			event = None
-			epgcache = eEPGCache.getInstance()
-			
-			if timer.eit:
-				event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
-				log.debug("lookupEventId", timer.eit, event)
-			if not(event):
-				event = epgcache.lookupEventTime( timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) /2) );
-				log.debug("lookupEventTime", event )
-			
-			if event:
-				if not ( len(timer.name) == len(event.getEventName()) ):
-					msg = _("Skipping timer because it is already modified %s" % (timer.name) )
-					log.info(msg)
-					timer.log(602, "[SeriesPlugin]" + " " + msg )
-					return
-			else:
-				msg = _("Skipping timer because no event was found")
-				log.info(msg, timer.name)
-				timer.log(603, "[SeriesPlugin]" + " " + msg )
-				return
-		
 		if timer.begin < time() + 60:
 			msg = _("Skipping timer because it starts in less than 60 seconds")
 			log.debug(msg, timer.name)
@@ -114,6 +90,40 @@ class SeriesPluginTimer(object):
 			timer.log(606, "[SeriesPlugin]" + " " + msg )
 			return
 		
+		
+		event = None
+		epgcache = eEPGCache.getInstance()
+		
+		if timer.eit:
+			event = epgcache.lookupEventId(timer.service_ref.ref, timer.eit)
+			log.debug("lookupEventId", timer.eit, event)
+		if not(event):
+			event = epgcache.lookupEventTime( timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) /2) );
+			log.debug("lookupEventTime", event )
+		
+		if event:
+			if not ( len(timer.name) == len(event.getEventName()) ):
+				msg = _("Skipping timer because it is already modified %s" % (timer.name) )
+				log.info(msg)
+				timer.log(602, "[SeriesPlugin]" + " " + msg )
+				return
+			begin = event.getBeginTime() or 0
+			duration = self.event.getDuration() or 0
+			end = begin + duration
+			
+		else:
+			if config.plugins.seriesplugin.timer_eit_check.value:
+				msg = _("Skipping timer because no event was found")
+				log.info(msg, timer.name)
+				timer.log(603, "[SeriesPlugin]" + " " + msg )
+				return
+			else:
+				# We don't know the exact margins, we will assume the E2 default margins
+				log.debug("We don't know the exact margins, we will assume the E2 default margins")
+				begin = begin + (config.recording.margin_before.value * 60)
+				end = end - (config.recording.margin_after.value * 60)
+		
+		
 		timer.log(600, "[SeriesPlugin]" + " " + _("Try to find infos for %s" % (timer.name) ) )
 		
 		seriesPlugin = getInstance()
@@ -125,7 +135,7 @@ class SeriesPluginTimer(object):
 			
 			return seriesPlugin.getEpisode(
 					boundFunction(self.timerCallback, timer),
-					timer.name, timer.begin, timer.end, timer.service_ref, future=True, block=block
+					timer.name, begin, end, timer.service_ref, future=True, block=block
 				)
 		else:
 			msg = _("Skipping lookup because no channel is specified")

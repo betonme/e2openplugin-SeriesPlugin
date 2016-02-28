@@ -263,8 +263,9 @@ class SeriesPluginRenamer(object):
 						else:
 							end = os.path.getmtime(servicepath)
 							begin = end - (info.getLength(service) or 0)
+						
 						#MAYBE we could also try to parse the filename
-						# We don't know the exact margins, we will assume the E2 default margins
+						log.debug("We don't know the exact margins, we will assume the E2 default margins")
 						begin -= (int(config.recording.margin_before.value) * 60)
 						end += (int(config.recording.margin_after.value) * 60)
 					

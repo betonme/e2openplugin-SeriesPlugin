@@ -261,22 +261,23 @@ class SeriesPluginInfoScreen(Screen):
 				if begin:
 					duration = info.getLength(ref) or 0
 					end = begin + duration or 0
-					#log.debug("sTimeCreate")
+					log.debug("sTimeCreate")
 				else:
 					end = os.path.getmtime(ref.getPath()) or 0
 					duration = info.getLength(ref) or 0
 					begin = end - duration or 0
-					#log.debug("sTimeCreate else")
+					log.debug("sTimeCreate else")
 			elif ref:
 				path = ref.getPath()
 				#log.debug("getPath")
 				if path and os.path.exists(path):
 					begin = os.path.getmtime(path) or 0
-					#log.debug("getctime")
+					log.debug("getmtime")
 
-			# We don't know the exact margins, we will assume the E2 default margins
-			begin = begin + (config.recording.margin_before.value * 60)
-			end = end - (config.recording.margin_after.value * 60)
+				# We don't know the exact margins, we will assume the E2 default margins
+				log.debug("We don't know the exact margins, we will assume the E2 default margins")
+				begin = begin + (config.recording.margin_before.value * 60)
+				end = end - (config.recording.margin_after.value * 60)
 		
 		if self.session:
 			self.updateScreen(self.name, _("Retrieving Season, Episode and Title..."), self.short, ext, begin, duration, channel)
