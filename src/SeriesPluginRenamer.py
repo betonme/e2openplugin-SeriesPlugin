@@ -312,8 +312,9 @@ class SeriesPluginRenamer(object):
 				log.warning(msg)
 				
 			else:
-				msg = "SeriesPlugin:\n" + _("%d records renamed successfully") % (self.counter)
-				log.success(msg)
+				if self.counter > 0:
+					msg = "SeriesPlugin:\n" + _("%d records renamed successfully") % (self.counter)
+					log.success(msg)
 				
 			self.data = []
 			self.counter = 0

@@ -194,8 +194,9 @@ class SeriesPluginTimer(object):
 				log.warning(msg)
 				
 			else:
-				msg = "SeriesPlugin:\n" + _("%d timer renamed successfully") % (SeriesPluginTimer.counter)
-				log.success(msg)
+				if SeriesPluginTimer.counter > 0:
+					msg = "SeriesPlugin:\n" + _("%d timer renamed successfully") % (SeriesPluginTimer.counter)
+					log.success(msg)
 				
 			SeriesPluginTimer.data = []
 			SeriesPluginTimer.counter = 0
