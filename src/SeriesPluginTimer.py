@@ -120,8 +120,8 @@ class SeriesPluginTimer(object):
 			else:
 				# We don't know the exact margins, we will assume the E2 default margins
 				log.debug("We don't know the exact margins, we will assume the E2 default margins")
-				begin = begin + (config.recording.margin_before.value * 60)
-				end = end - (config.recording.margin_after.value * 60)
+				begin = timer.begin + (config.recording.margin_before.value * 60)
+				end = timer.end - (config.recording.margin_after.value * 60)
 		
 		
 		timer.log(600, "[SeriesPlugin]" + " " + _("Try to find infos for %s" % (timer.name) ) )
