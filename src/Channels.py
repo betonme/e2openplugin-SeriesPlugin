@@ -111,6 +111,7 @@ def getServicesOfBouquet(bouquet):
 		elif (eServiceReference(serviceref).flags & eServiceReference.isGroup):
 			# handle group services
 			log.debug("SPC: found group %s" % (serviceref) )
+			chlist.append((servicename, re.sub('::.*', ':', serviceref), unifyChannel(servicename)))
 			chlist.extend( getServicesOfBouquet(serviceref) )
 		
 		elif not (eServiceReference(serviceref).flags & eServiceReference.isMarker):
