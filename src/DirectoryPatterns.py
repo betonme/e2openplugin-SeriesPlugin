@@ -33,6 +33,8 @@ from Logger import log
 scheme_fallback = [
 		("Off", "Disabled"),
 		
+		("{org:s}/{series:s}/"               , "Original/Series/"),
+		
 		("{org:s}/{series:s}/{season:02d}/"               , "Original/Series/01/"),
 		("{org:s}/{series:s}/S{season:02d}/"              , "Original/Series/S01/"),
 		("{org:s}/{series:s}/{rawseason:s}/"              , "Original/Series/Raw/"),
