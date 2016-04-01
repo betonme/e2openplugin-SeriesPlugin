@@ -219,6 +219,8 @@ def normalizeResult(result):
 		season_  = result['season']
 		episode_ = result['episode']
 		
+		if config.plugins.seriesplugin.cut_series_title.value and " - " in series_:
+			series_, sub_series_title = series_.split(" - ", 1)
 		result['rawseason']  = season_  or config.plugins.seriesplugin.default_season.value
 		result['rawepisode'] = episode_ or config.plugins.seriesplugin.default_episode.value
 		if season_:
