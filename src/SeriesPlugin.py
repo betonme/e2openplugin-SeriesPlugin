@@ -53,7 +53,7 @@ instance = None
 
 CompiledRegexpNonDecimal = re.compile(r'[^\d]')
 CompiledRegexpReplaceChars = None
-CompiledRegexpReplaceDirChars = re.compile('[^/\w\-_\. ]')
+CompiledRegexpReplaceDirChars = re.compile('[^/\wäöüß\-_\. ]')
 
 def dump(obj):
 	for attr in dir(obj):
