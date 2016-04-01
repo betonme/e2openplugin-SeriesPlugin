@@ -33,7 +33,7 @@ class XMLTVBase(object):
 			self.epgimport = XMLFile(path)
 		
 		# Check if xmltvimport exists
-		elif os.path.exists("/etc/xmltvimport"):
+		if os.path.exists("/etc/xmltvimport"):
 			log.debug("readXMLTV: Found xmltvimport")
 			path = "/etc/xmltvimport/wunschliste.sources.xml"
 			self.xmltvimport = XMLFile(path)
@@ -84,14 +84,16 @@ class XMLTVBase(object):
 		
 		if config.plugins.seriesplugin.epgimport.value:
 			log.debug("Write: xml channels for epgimport")
-			try:
-				self.epgimport.writeXML( etree )
-			except Exception as e:
-				log.exception("Exception in write XML: " + str(e))
+			if self.epgimport:
+				try:
+					self.epgimport.writeXML( etree )
+				except Exception as e:
+					log.exception("Exception in write XML: " + str(e))
 		
 		if config.plugins.seriesplugin.xmltvimport.value:
 			log.debug("Write: xml channels for xmltvimport")
-			try:
-				self.xmltvimport.writeXML( etree )
-			except Exception as e:
-				log.exception("Exception in write XML: " + str(e))
+			if self.xmltvimport:
+				try:
+					self.xmltvimport.writeXML( etree )
+				except Exception as e:
+					log.exception("Exception in write XML: " + str(e))
