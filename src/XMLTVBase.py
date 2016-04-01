@@ -25,6 +25,8 @@ class XMLTVBase(object):
 		self.epgimportversion = "0"
 		self.xmltvimport = None
 		self.xmltvimportversion = "0"
+		self.crossepg = None
+		self.crossepgversion = "0"
 		
 		# Check if xmltvimport exists
 		if os.path.exists("/etc/epgimport"):
@@ -37,6 +39,12 @@ class XMLTVBase(object):
 			log.debug("readXMLTV: Found xmltvimport")
 			path = "/etc/xmltvimport/wunschliste.sources.xml"
 			self.xmltvimport = XMLFile(path)
+		
+		# Check if crossepg exists
+		if os.path.exists("/etc/crossepg"):
+			log.debug("readXMLTV: Found crossepg")
+			path = "/etc/crossepg/wunschliste.sources.xml"
+			self.crossepg = XMLFile(path)
 		
 		self.readXMLTVConfig()
 
@@ -54,16 +62,21 @@ class XMLTVBase(object):
 				self.xmltvimportversion = etree.getroot().get("version", "1")
 				log.debug("readXMLTVConfig: XMLTVImport Version " + self.xmltvimportversion)
 		
+		if self.crossepg:
+			etree = self.crossepg.readXML()
+			if etree:
+				self.crossepgversion = etree.getroot().get("version", "1")
+				log.debug("readXMLTVConfig: crossepg Version " + self.crossepgversion)
 	
 	def writeXMLTVConfig(self):
 		
-		if int(self.epgimportversion[0]) >= 5 and int(self.xmltvimportversion[0]) >= 5:
-			return;
-		
-		if self.epgimport is None and self.xmltvimport is None:
+		if self.epgimport is None and self.xmltvimport is None and self.crossepg is None:
 			return
 		
-		if config.plugins.seriesplugin.epgimport.value == False and config.plugins.seriesplugin.xmltvimport.value == False:
+		if int(self.epgimportversion[0]) >= 5 and int(self.xmltvimportversion[0]) >= 5 and int(self.crossepgversion[0]) >= 5:
+			return;
+		
+		if config.plugins.seriesplugin.epgimport.value == False and config.plugins.seriesplugin.xmltvimport.value == False and config.plugins.seriesplugin.crossepg.value == False:
 			return
 		
 		# Build Header
@@ -95,5 +108,13 @@ class XMLTVBase(object):
 			if self.xmltvimport:
 				try:
 					self.xmltvimport.writeXML( etree )
+				except Exception as e:
+					log.exception("Exception in write XML: " + str(e))
+		
+		if config.plugins.seriesplugin.crossepg.value:
+			log.debug("Write: xml channels for crossepg")
+			if self.crossepg:
+				try:
+					self.crossepg.writeXML( etree )
 				except Exception as e:
 					log.exception("Exception in write XML: " + str(e))

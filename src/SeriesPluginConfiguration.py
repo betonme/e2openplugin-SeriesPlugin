@@ -179,6 +179,14 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 				self.changesMade = True
 				config.plugins.seriesplugin.xmltvimport.value = False
 			
+			# Check if crossepg exists
+			if os.path.exists("/etc/crossepg"):
+				log.debug("Config: Found crossepg")
+				self.list.append( getConfigListEntry(  _("Enable support for crossepg")            , config.plugins.seriesplugin.crossepg ) )
+			elif config.plugins.seriesplugin.crossepg.value:
+				self.changesMade = True
+				config.plugins.seriesplugin.crossepg.value = False
+			
 			self.list.append( getConfigListEntry(  _("Show in info menu")                          , config.plugins.seriesplugin.menu_info ) )
 			self.list.append( getConfigListEntry(  _("Show in extensions menu")                    , config.plugins.seriesplugin.menu_extensions ) )
 			self.list.append( getConfigListEntry(  _("Show in epg menu")                           , config.plugins.seriesplugin.menu_epg ) )

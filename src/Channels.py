@@ -329,6 +329,14 @@ class ChannelsBase(XMLFile):
 						etree.write(path, encoding='utf-8', xml_declaration=True) 
 					except Exception as e:
 						log.exception("Exception in write XML: " + str(e))
-			
+				
+				if config.plugins.seriesplugin.crossepg.value:
+					log.debug("Write: xml channels for crossepg")
+					try:
+						path = "/etc/crossepg/wunschliste.channels.xml"
+						etree.write(path, encoding='utf-8', xml_declaration=True) 
+					except Exception as e:
+						log.exception("Exception in write XML: " + str(e))
+				
 		except Exception as e:
 			log.exception("Exception in writeXML: " + str(e))
