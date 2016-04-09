@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SeriesPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 17:43+0100\n"
-"PO-Revision-Date: 2016-03-06 17:49+0100\n"
+"POT-Creation-Date: 2016-03-29 12:38+0200\n"
+"PO-Revision-Date: 2016-03-29 12:46+0200\n"
 "Last-Translator: James Blond <jb@unknown.com>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -195,6 +195,12 @@ msgstr "Kanal bearbeiten"
 
 msgid "Enable SeriesPlugin"
 msgstr "SeriesPlugin aktivieren"
+
+msgid "Enable support for EPGImport"
+msgstr "EPGImport Unterstützung aktivieren"
+
+msgid "Enable support for XMLTVImport"
+msgstr "XMLTVImport Unterstützung aktivieren"
 
 msgid "Show in info menu"
 msgstr "Serien-Info im Info Menü anzeigen"
