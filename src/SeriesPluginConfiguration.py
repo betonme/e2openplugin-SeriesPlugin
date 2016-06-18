@@ -189,7 +189,6 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			
 			self.list.append( getConfigListEntry(  _("Show in info menu")                          , config.plugins.seriesplugin.menu_info ) )
 			self.list.append( getConfigListEntry(  _("Show in extensions menu")                    , config.plugins.seriesplugin.menu_extensions ) )
-			self.list.append( getConfigListEntry(  _("Show in epg menu")                           , config.plugins.seriesplugin.menu_epg ) )
 			self.list.append( getConfigListEntry(  _("Show in channel menu")                       , config.plugins.seriesplugin.menu_channel ) )
 			self.list.append( getConfigListEntry(  _("Show Info in movie list menu")               , config.plugins.seriesplugin.menu_movie_info ) )
 			self.list.append( getConfigListEntry(  _("Show Rename in movie list menu")             , config.plugins.seriesplugin.menu_movie_rename ) )
@@ -314,7 +313,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		self.seriesPlugin.saveXML()
 		
 		# Set new configuration
-		from plugin import WHERE_EPGMENU, WHERE_CHANNELMENU, addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, CHECKTIMERS, info, sp_extension, channel, movielist_info, movielist_rename, checkTimers
+		from plugin import addSeriesPlugin, removeSeriesPlugin, SHOWINFO, RENAMESERIES, CHECKTIMERS, info, sp_extension, channel, movielist_info, movielist_rename, checkTimers
 		
 		if config.plugins.seriesplugin.menu_info.value:
 			addSeriesPlugin(PluginDescriptor.WHERE_EVENTINFO, SHOWINFO, info)
@@ -326,15 +325,10 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_EXTENSIONSMENU, SHOWINFO)
 		
-		if config.plugins.seriesplugin.menu_epg.value:
-			addSeriesPlugin(WHERE_EPGMENU, SHOWINFO)
-		else:
-			removeSeriesPlugin(WHERE_EPGMENU, SHOWINFO)
-		
 		if config.plugins.seriesplugin.menu_channel.value:
-			addSeriesPlugin(WHERE_CHANNELMENU, SHOWINFO, channel)
+			addSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO, channel)
 		else:
-			removeSeriesPlugin(WHERE_CHANNELMENU, SHOWINFO)
+			removeSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO)
 		
 		if config.plugins.seriesplugin.menu_movie_info.value:
 			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, SHOWINFO, movielist_info)

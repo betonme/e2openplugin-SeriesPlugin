@@ -20,14 +20,11 @@ from SeriesPluginIndependent import startIndependent, runIndependent
 from SeriesPluginConfiguration import SeriesPluginConfiguration
 from Logger import log
 
-from spEPGSelection import SPEPGSelectionInit, SPEPGSelectionUndo
-from spChannelContextMenu import SPChannelContextMenuInit, SPChannelContextMenuUndo
-
 
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "5.7.1"
+VERSION = "5.7.2"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
@@ -53,9 +50,6 @@ except:
 	DEVICE = ''
 
 REQUEST_PARAMETER = "?device=" + DEVICE + "&version=SP" + VERSION
-
-WHERE_EPGMENU     = 'WHERE_EPGMENU'
-WHERE_CHANNELMENU = 'WHERE_CHANNELMENU'
 
 
 def buildURL(url):
@@ -363,10 +357,7 @@ def Plugins(**kwargs):
 													fnc = channel,
 													needsRestart = False) )
 			except:
-				addSeriesPlugin(WHERE_CHANNELMENU, SHOWINFO)
-		
-		if config.plugins.seriesplugin.menu_epg.value:
-			addSeriesPlugin(WHERE_EPGMENU, SHOWINFO)
+				pass
 
 	return descriptors
 
@@ -374,14 +365,7 @@ def Plugins(**kwargs):
 # Add / Remove menu functions
 def addSeriesPlugin(menu, title, fnc=None):
 	# Add to menu
-	if( menu == WHERE_EPGMENU ):
-		SPEPGSelectionInit()
-	elif( menu == WHERE_CHANNELMENU ):
-		try:
-			addSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO, fnc)
-		except:
-			SPChannelContextMenuInit()
-	else:
+	try:
 		from Components.PluginComponent import plugins
 		if plugins:
 			for p in plugins.getPlugins( where = menu ):
@@ -398,22 +382,17 @@ def addSeriesPlugin(menu, title, fnc=None):
 																fnc = fnc)
 				if menu in plugins.plugins:
 					plugins.plugins[ menu ].append(plugin)
-
+	except:
+		pass
 
 def removeSeriesPlugin(menu, title):
 	# Remove from menu
-	if( menu == WHERE_EPGMENU ):
-		SPEPGSelectionUndo()
-	elif( menu == WHERE_CHANNELMENU ):
-		try:
-			removeSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO)
-		except:
-			SPChannelContextMenuUndo()
-	else:
+	try:
 		from Components.PluginComponent import plugins
 		if plugins:
 			for p in plugins.getPlugins( where = menu ):
 				if p.name == title:
 					plugins.plugins[ menu ].remove(p)
 					break
-
+	except:
+		pass
