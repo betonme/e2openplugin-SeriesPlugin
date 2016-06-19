@@ -19,6 +19,7 @@ config.plugins.seriesplugin.crossepg                  = ConfigYesNo(default = Fa
 
 config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
+config.plugins.seriesplugin.menu_epg                  = ConfigYesNo(default = False)
 config.plugins.seriesplugin.menu_channel              = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_movie_info           = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_movie_rename         = ConfigYesNo(default = True)
