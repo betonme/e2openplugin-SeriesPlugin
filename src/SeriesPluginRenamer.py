@@ -272,7 +272,7 @@ class SeriesPluginRenamer(object):
 						end += (int(config.recording.margin_after.value) * 60)
 					
 					rec_ref_str = info.getInfoString(service, iServiceInformation.sServiceref)
-					#channel = getChannel( ServiceReference(rec_ref_str) )
+					#channel = ServiceReference(rec_ref_str).getServiceName()
 					
 					log.debug("getEpisode:", name, begin, end, rec_ref_str)
 					seriesPlugin.getEpisode(
