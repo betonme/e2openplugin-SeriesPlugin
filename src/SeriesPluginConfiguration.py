@@ -325,10 +325,13 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 		else:
 			removeSeriesPlugin(PluginDescriptor.WHERE_EXTENSIONSMENU, SHOWINFO)
 		
-		if config.plugins.seriesplugin.menu_channel.value:
-			addSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO, channel)
-		else:
-			removeSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO)
+		try:
+			if config.plugins.seriesplugin.menu_channel.value:
+				addSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO, channel)
+			else:
+				removeSeriesPlugin(PluginDescriptor.WHERE_CHANNEL_CONTEXT_MENU, SHOWINFO)
+		except:
+			pass
 		
 		if config.plugins.seriesplugin.menu_movie_info.value:
 			addSeriesPlugin(PluginDescriptor.WHERE_MOVIELIST, SHOWINFO, movielist_info)
