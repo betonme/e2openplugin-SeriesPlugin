@@ -70,6 +70,7 @@ config.plugins.seriesplugin.socket_timeout            = ConfigSelectionNumber(0,
 
 config.plugins.seriesplugin.popups_success_timeout    = ConfigSelectionNumber(-1, 20, 1, default = 3)
 config.plugins.seriesplugin.popups_warning_timeout    = ConfigSelectionNumber(-1, 20, 1, default = -1)
+config.plugins.seriesplugin.popups_error_timeout      = ConfigSelectionNumber(-1, 20, 1, default = -1)
 
 config.plugins.seriesplugin.caching                   = ConfigYesNo(default = True)
 config.plugins.seriesplugin.caching_expiration        = ConfigSelectionNumber(0, 48, 1, default = 6)

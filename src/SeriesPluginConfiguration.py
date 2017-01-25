@@ -238,6 +238,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			
 			self.list.append( getConfigListEntry(  _("Timeout for Success Popups")                 , config.plugins.seriesplugin.popups_success_timeout  ) )
 			self.list.append( getConfigListEntry(  _("Timeout for Warnings Popups")                , config.plugins.seriesplugin.popups_warning_timeout  ) )
+			self.list.append( getConfigListEntry(  _("Timeout for Error Popups")                   , config.plugins.seriesplugin.popups_error_timeout  ) )
 			
 			#self.list.append( getConfigListEntry(  _("Use local caching")                         , config.plugins.seriesplugin.caching ) )
 			#if config.plugins.seriesplugin.caching.value:

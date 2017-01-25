@@ -120,7 +120,7 @@ def getInstance():
 				deprecated = True
 			log.debug( " AutoTimer: " + AUTOTIMER_VERSION )
 			if deprecated:
-				log.warning( _("Your autotimer is deprecated")  + "\n" +_("Please update it") )
+				log.debug( _("Your autotimer is deprecated")  + "\n" +_("Please update it") )
 		except ImportError:
 			log.debug( " AutoTimer: Not found" )
 		
