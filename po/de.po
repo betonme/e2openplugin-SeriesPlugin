@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SeriesPlugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-16 23:29+0200\n"
-"PO-Revision-Date: 2016-06-16 23:39+0200\n"
+"POT-Creation-Date: 2017-01-26 01:03+0100\n"
+"PO-Revision-Date: 2017-01-26 01:06+0100\n"
 "Last-Translator: James Blond <jb@unknown.com>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -295,6 +295,9 @@ msgstr "Anzeigedauer für erfolgreiche Popups"
 msgid "Timeout for Warnings Popups"
 msgstr "Anzeigedauer Warnungen (Popup)"
 
+msgid "Timeout for Error Popups"
+msgstr "Anzeigedauer Fehlermeldung(en) (Popups)"
+
 msgid "Channel matching file"
 msgstr "Passende Kanal Datei"
 
@@ -516,3 +519,4 @@ msgstr "SeriesPlugin Ausnahme Beschriftung"
 
 msgid "Setup"
 msgstr "Einstellungen"
+
