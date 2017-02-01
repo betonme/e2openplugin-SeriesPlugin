@@ -182,13 +182,13 @@ class SeriesPluginInfoScreen(Screen):
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
 				sref = ServiceReference(ref)
 				ref = sref.ref
-				channel = sref.getServiceName()
+				channel = getChannel( sref )
 				if not channel:
 					ref = str(ref)
 					ref = re.sub('::.*', ':', ref)
 					sref = ServiceReference(ref)
 					ref = sref.ref
-					channel = sref.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
+					channel = getChannel( sref )
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
 				future = False
@@ -198,10 +198,10 @@ class SeriesPluginInfoScreen(Screen):
 			else:
 				# Service is channel reference
 				ref = service
-				channel = ServiceReference(str(service)).getServiceName() or ""
+				channel = getChannel( ServiceReference(str(service)) ) or ""
 				if not channel:
 					try:
-						channel = ServiceReference(service.toString()).getServiceName() or ""
+						channel = getChannel( ServiceReference(service.toString()) ) or ""
 					except:
 						pass
 				# Get information from event
@@ -209,12 +209,12 @@ class SeriesPluginInfoScreen(Screen):
 		
 		elif isinstance(service, ServiceReference):
 			ref = service.ref
-			channel = service.getServiceName()
+			channel = getChannel( service )
 			log.debug("ServiceReference", str(ref))
 		
 		elif isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
-			channel = ServiceReference(ref).getServiceName() or ""
+			channel = getChannel( ServiceReference(ref) ) or ""
 			log.debug("ChannelSelectionBase", str(ref))
 		
 		# Fallbacks
