@@ -28,7 +28,6 @@ from . import _
 from Components.config import config
 
 from Screens.MessageBox import MessageBox
-from Tools.Notifications import AddPopup
 
 from Tools.BoundFunction import boundFunction
 from Tools.ASCIItranslit import ASCIItranslit

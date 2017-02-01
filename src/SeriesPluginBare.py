@@ -6,9 +6,6 @@ from . import _
 
 from Components.config import *
 
-from Screens.MessageBox import MessageBox
-from Tools.Notifications import AddPopup
-
 # Plugin internal
 from SeriesPluginTimer import SeriesPluginTimer
 from Logger import log

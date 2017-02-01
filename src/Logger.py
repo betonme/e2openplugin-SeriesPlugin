@@ -180,8 +180,9 @@ class Logger(object):
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
 		
-		if currentThread().getName() == 'MainThread':
-			AddPopup(
+		if int(config.plugins.seriesplugin.popups_error_timeout.value) != 0:
+			if currentThread().getName() == 'MainThread':
+				AddPopup(
 					strargs,
 					MessageBox.TYPE_ERROR,
 					-1,

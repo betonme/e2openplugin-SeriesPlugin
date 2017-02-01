@@ -29,8 +29,6 @@ from ServiceReference import ServiceReference
 # Config
 from Components.config import *
 
-from Screens.MessageBox import MessageBox
-from Tools.Notifications import AddPopup
 from Tools.BoundFunction import boundFunction
 
 # Plugin internal
