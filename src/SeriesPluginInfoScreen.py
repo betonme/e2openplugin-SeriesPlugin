@@ -172,6 +172,7 @@ class SeriesPluginInfoScreen(Screen):
 		
 		ref = None
 		
+		log.debug("InfoScreen service", str(service))
 		if isinstance(service, eServiceReference):
 			#ref = service  #Problem EPG
 			self.eservice = service

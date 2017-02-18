@@ -248,7 +248,7 @@ msgid "Replace special characters in title"
 msgstr "Sonderzeichen im Titel ersetzen"
 
 msgid "Cut series title on dash"
-msgstr "Schneide Serien Titel mit einem mal"
+msgstr "Schneide Serien Titel nach dem Bindestrich"
 
 msgid "Main bouquet for channel editor"
 msgstr "Haupt-Bouquet für Kanal-Editor"

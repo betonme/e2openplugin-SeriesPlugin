@@ -37,7 +37,6 @@ from ServiceReference import ServiceReference
 
 # Plugin internal
 from SeriesPlugin import getInstance, refactorTitle, refactorDescription, refactorDirectory
-#from Channels import getChannel
 from Logger import log
 
 CompiledRegexpGlobEscape = re.compile('([\[\]\?*])')  # "[\\1]"
