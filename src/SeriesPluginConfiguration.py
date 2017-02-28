@@ -235,6 +235,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Add tag 'SeriesPlugin' to timer")            , config.plugins.seriesplugin.timer_add_tag ) )
 			
 			self.list.append( getConfigListEntry(  _("Socket timeout")                             , config.plugins.seriesplugin.socket_timeout ) )
+			self.list.append( getConfigListEntry(  _("Stop on ProtocolError")                      , config.plugins.seriesplugin.stop_on_protocol_error ) )
 			
 			self.list.append( getConfigListEntry(  _("Timeout for Success Popups")                 , config.plugins.seriesplugin.popups_success_timeout  ) )
 			self.list.append( getConfigListEntry(  _("Timeout for Warnings Popups")                , config.plugins.seriesplugin.popups_warning_timeout  ) )

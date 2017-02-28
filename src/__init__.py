@@ -67,6 +67,7 @@ config.plugins.seriesplugin.timer_eit_check           = ConfigYesNo(default = Tr
 config.plugins.seriesplugin.timer_add_tag             = ConfigYesNo(default = True)
 
 config.plugins.seriesplugin.socket_timeout            = ConfigSelectionNumber(0, 600, 1, default = 10)
+config.plugins.seriesplugin.stop_on_protocol_error    = ConfigYesNo(default = False)
 
 config.plugins.seriesplugin.popups_success_timeout    = ConfigSelectionNumber(-1, 20, 1, default = 3)
 config.plugins.seriesplugin.popups_warning_timeout    = ConfigSelectionNumber(-1, 20, 1, default = -1)

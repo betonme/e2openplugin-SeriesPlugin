@@ -172,7 +172,6 @@ class SeriesPluginInfoScreen(Screen):
 		
 		ref = None
 		
-		log.debug("InfoScreen service", str(service))
 		if isinstance(service, eServiceReference):
 			#ref = service  #Problem EPG
 			self.eservice = service
@@ -183,13 +182,13 @@ class SeriesPluginInfoScreen(Screen):
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
 				sref = ServiceReference(ref)
 				ref = sref.ref
-				channel = getChannel( sref )
+				channel = sref.getServiceName()
 				if not channel:
 					ref = str(ref)
 					ref = re.sub('::.*', ':', ref)
 					sref = ServiceReference(ref)
 					ref = sref.ref
-					channel = getChannel( sref )
+					channel = sref.getServiceName().replace('\xc2\x86', '').replace('\xc2\x87', '')
 				# Get information from record meta files
 				self.event = info and info.getEvent(service)
 				future = False
@@ -199,10 +198,10 @@ class SeriesPluginInfoScreen(Screen):
 			else:
 				# Service is channel reference
 				ref = service
-				channel = getChannel( ServiceReference(str(service)) ) or ""
+				channel = ServiceReference(str(service)).getServiceName() or ""
 				if not channel:
 					try:
-						channel = getChannel( ServiceReference(service.toString()) ) or ""
+						channel = ServiceReference(service.toString()).getServiceName() or ""
 					except:
 						pass
 				# Get information from event
@@ -210,12 +209,12 @@ class SeriesPluginInfoScreen(Screen):
 		
 		elif isinstance(service, ServiceReference):
 			ref = service.ref
-			channel = getChannel( service )
+			channel = service.getServiceName()
 			log.debug("ServiceReference", str(ref))
 		
 		elif isinstance(service, ChannelSelectionBase):
 			ref = service.getCurrentSelection()
-			channel = getChannel( ServiceReference(ref) ) or ""
+			channel = ServiceReference(ref).getServiceName() or ""
 			log.debug("ChannelSelectionBase", str(ref))
 		
 		# Fallbacks
