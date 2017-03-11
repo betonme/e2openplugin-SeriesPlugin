@@ -27,7 +27,7 @@ from spChannelContextMenu import SPChannelContextMenuInit, SPChannelContextMenuU
 #######################################################
 # Constants
 NAME = "SeriesPlugin"
-VERSION = "5.9.0"
+VERSION = "5.9.1"
 DESCRIPTION = _("SeriesPlugin")
 SHOWINFO = _("Show series info (SP)")
 RENAMESERIES = _("Rename serie(s) (SP)")
