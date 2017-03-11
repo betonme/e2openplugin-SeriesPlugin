@@ -312,7 +312,7 @@ def Plugins(**kwargs):
 													needsRestart = False,
 													fnc = start) )
 
-		if config.plugins.seriesplugin.menu_info.value:
+		if config.plugins.seriesplugin.menu_event_info.value:
 			descriptors.append( PluginDescriptor(
 													name = SHOWINFO,
 													description = SHOWINFO,

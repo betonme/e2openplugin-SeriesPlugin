@@ -17,7 +17,7 @@ config.plugins.seriesplugin.epgimport                 = ConfigYesNo(default = Fa
 config.plugins.seriesplugin.xmltvimport               = ConfigYesNo(default = False)
 config.plugins.seriesplugin.crossepg                  = ConfigYesNo(default = False)
 
-config.plugins.seriesplugin.menu_info                 = ConfigYesNo(default = True)
+config.plugins.seriesplugin.menu_event_info           = ConfigYesNo(default = True)
 config.plugins.seriesplugin.menu_extensions           = ConfigYesNo(default = False)
 config.plugins.seriesplugin.menu_epg                  = ConfigYesNo(default = False)
 config.plugins.seriesplugin.menu_channel              = ConfigYesNo(default = True)
