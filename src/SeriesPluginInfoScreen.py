@@ -176,7 +176,8 @@ class SeriesPluginInfoScreen(Screen):
 			#ref = service  #Problem EPG
 			self.eservice = service
 			self.path = service.getPath()
-			if self.path:
+			log.debug("eServiceReference path", str(self.path))
+			if self.path and os.path.exists(self.path):
 				# Service is a movie reference
 				info = self.serviceHandler.info(service)
 				ref = info.getInfoString(service, iServiceInformation.sServiceref)
