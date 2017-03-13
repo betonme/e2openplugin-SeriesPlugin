@@ -46,6 +46,9 @@ class Logger(object):
 	def reinit(self):
 		self.instance.handlers = [] 
 		
+		if not hasattr(config.plugins, "seriesplugin"):
+			return
+		
 		if config.plugins.seriesplugin.debug_prints.value:
 			shandler = logging.StreamHandler(sys.stdout)
 			shandler.setLevel(logging.DEBUG)
