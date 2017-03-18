@@ -28,13 +28,9 @@ config.plugins.seriesplugin.identifier_elapsed        = ConfigText(default = "",
 config.plugins.seriesplugin.identifier_today          = ConfigText(default = "", fixed_size = False)
 config.plugins.seriesplugin.identifier_future         = ConfigText(default = "", fixed_size = False)
 
-#config.plugins.seriesplugin.manager                   = ConfigSelection(choices = [("", "")], default = "")
-#config.plugins.seriesplugin.guide                     = ConfigSelection(choices = [("", "")], default = "")
-
 config.plugins.seriesplugin.pattern_file              = ConfigText(default = "/etc/enigma2/seriesplugin_patterns.json", fixed_size = False)
 config.plugins.seriesplugin.pattern_title             = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
 config.plugins.seriesplugin.pattern_description       = ConfigText(default = "S{season:02d}E{episode:02d} {title:s} {org:s}", fixed_size = False)
-#config.plugins.seriesplugin.pattern_record            = ConfigText(default = "{org:s} S{season:02d}E{episode:02d} {title:s}", fixed_size = False)
 config.plugins.seriesplugin.pattern_file_directories  = ConfigText(default = "/etc/enigma2/seriesplugin_pattern_directories.json", fixed_size = False)
 config.plugins.seriesplugin.pattern_directory         = ConfigText(default = "Disabled", fixed_size = False)
 
@@ -82,11 +78,14 @@ config.plugins.seriesplugin.log_file                  = ConfigText(default = "/t
 config.plugins.seriesplugin.log_reply_user            = ConfigText(default = "Dreambox User", fixed_size = False)
 config.plugins.seriesplugin.log_reply_mail            = ConfigText(default = "myemail@home.com", fixed_size = False)
 
-# Internal
 config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0)
 #config.plugins.seriesplugin.uid                       = ConfigText(default = str(time()), fixed_size = False)
 
-config.plugins.seriesplugin.serienserver_url          = ConfigText(default = 'http://www.serienserver.de/cache/cache.php', fixed_size = False)
+url_choices = [	
+					("Stable",       "http://www.serienserver.de/cache/cache.php" ),
+					("Experimental", "http://www.serienserver.de/test/cache.php" )
+				]
+config.plugins.seriesplugin.serienserver_url          = ConfigSelection(choices = url_choices, default = url_choices[0][0])
 config.plugins.seriesplugin.xmltv_url                 = ConfigText(default = 'http://www.serienserver.de/xmltv/wunschliste.xml', fixed_size = False)
 
 
