@@ -58,13 +58,6 @@ WHERE_EPGMENU     = 'WHERE_EPGMENU'
 WHERE_CHANNELMENU = 'WHERE_CHANNELMENU'
 
 
-def buildURL(url):
-	if config.plugins.seriesplugin.proxy_url.value:
-		return config.plugins.seriesplugin.proxy_url.value + REQUEST_PARAMETER + "&url=" + url
-	else:
-		return url
-
-
 #######################################################
 # Test
 def test(session=None):
