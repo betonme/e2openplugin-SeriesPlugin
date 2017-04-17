@@ -248,7 +248,7 @@ class SeriesPluginConfiguration(ConfigListScreen, Screen):
 			self.list.append( getConfigListEntry(  _("Channel matching file")                      , config.plugins.seriesplugin.channel_file ) )
 			self.list.append( getConfigListEntry(  _("Episode pattern file")                       , config.plugins.seriesplugin.pattern_file ) )
 			self.list.append( getConfigListEntry(  _("Directory pattern file")                     , config.plugins.seriesplugin.pattern_file_directories ) )
-			self.list.append( getConfigListEntry(  _("SerienServer API")                           , config.plugins.seriesplugin.serienserver_url ) )
+			#self.list.append( getConfigListEntry(  _("SerienServer API")                           , config.plugins.seriesplugin.serienserver_url ) )
 			
 			try:
 				self.list.append( getConfigListEntry( "AT: "+_("Poll automatically")                 , config.plugins.autotimer.autopoll ) )
