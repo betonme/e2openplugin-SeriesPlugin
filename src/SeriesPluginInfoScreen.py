@@ -41,7 +41,7 @@ from Components.Label import Label
 from Components.ScrollLabel import ScrollLabel
 from Components.Pixmap import Pixmap
 
-from enigma import eEPGCache, eServiceReference, eServiceCenter, iServiceInformation, ePicLoad, eServiceEvent
+from enigma import eEPGCache, eServiceReference, eServiceCenter, iServiceInformation, ePicLoad, eServiceEvent,getDesktop
 from ServiceReference import ServiceReference
 
 from RecordTimer import RecordTimerEntry, parseEvent, AFTEREVENT
@@ -51,9 +51,6 @@ from Screens.TimerEdit import TimerSanityConflict
 
 from Tools.BoundFunction import boundFunction
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS
-
-from skin import loadSkin
-from enigma import getDesktop
 
 # Plugin internal
 from SeriesPlugin import getInstance
@@ -74,13 +71,9 @@ class SeriesPluginInfoScreen(Screen):
 	desktopSize = desktop and desktop.size()
 	dwidth = desktopSize and desktopSize.width()
 	if dwidth == 1920:
-		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenFULLHD.xml" )
-	elif dwidth == 1280:
-		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenHD.xml" )
-	elif dwidth == 1024:
-		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenXD.xml" )
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreen_1080.xml" )
 	else:
-		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreenSD.xml" )
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/InfoScreen.xml" )
 	
 	skin = open(skinFile).read()
 	

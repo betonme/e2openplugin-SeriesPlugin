@@ -15,7 +15,7 @@ from Screens.HelpMenu import HelpableScreen
 from Screens.ChoiceBox import ChoiceBox
 from Screens.MessageBox import MessageBox
 
-from enigma import eListboxPythonMultiContent, eListbox, gFont, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, loadPNG, RT_WRAP, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_VALIGN_BOTTOM
+from enigma import eListboxPythonMultiContent, eListbox, gFont, getDesktop, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, loadPNG, RT_WRAP, RT_VALIGN_CENTER, RT_VALIGN_TOP, RT_VALIGN_BOTTOM
 from Tools.Directories import resolveFilename, SCOPE_PLUGINS, SCOPE_CURRENT_PLUGIN
 from twisted.web import client, error as weberror
 from twisted.internet import reactor, defer
@@ -125,8 +125,15 @@ class MatchList(MenuList):
 
 class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	
-	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/ChannelEditor.xml" )
-	skin = open(skinfile).read()
+	desktop = getDesktop(0)
+	desktopSize = desktop and desktop.size()
+	dwidth = desktopSize and desktopSize.width()
+	if dwidth == 1920:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/ChannelEditor_1080.xml" )
+	else:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/ChannelEditor.xml" )
+	
+	skin = open(skinFile).read()
 	
 	def __init__(self, session):
 		Screen.__init__(self, session)

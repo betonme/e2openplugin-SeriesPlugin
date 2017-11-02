@@ -1,0 +1,19 @@
+	<screen name="SeriesPluginInfoScreen" position="center,120" size="820,520" title="SeriesPlugin">
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/SeriesPlugin/Images/r.png" position="10,0" size="200,50" />
+		<widget name="key_red" position="10,0" size="200,50" zPosition="1" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" transparent="1" foregroundColor="white" shadowColor="black" shadowOffset="-2,-2" />
+        <widget font="Regular;22" halign="right" position="700,5" render="Label" size="100,40" valign="center" source="global.CurrentTime">
+            <convert type="ClockToText">Default</convert>
+        </widget>
+        <widget font="Regular;22" halign="right" position="460,5" render="Label" size="240,40" valign="center" source="global.CurrentTime">
+            <convert type="ClockToText">Date</convert>
+        </widget>
+        <eLabel position="10,50" size="800,1" backgroundColor="grey" />
+	    <widget name="logo" position="210,60" size="400,64" />
+    	<widget name="event_title" foregroundColor="yellow" position="10,140" size="800,30" font="Regular;22"/>
+    	<widget name="event_episode" position="10,180" size="800,60" font="Regular;22"/>
+    	<widget name="event_description" position="10,250" size="800,220" font="Regular;20"/>
+		<eLabel position="10,480" size="800,1" backgroundColor="grey" />
+    	<widget name="datetime" foregroundColor="yellow" position="10,490" size="200,30" font="Regular;22"/>
+    	<widget name="duration" foregroundColor="yellow" position="220,490" size="200,30" font="Regular;22"/>
+    	<widget name="channel" foregroundColor="yellow" position="450,490" size="360,30" font="Regular;22" halign="right"/>
+	</screen>

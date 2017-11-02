@@ -38,6 +38,8 @@ from Tools.Directories import resolveFilename, SCOPE_PLUGINS
 
 from Plugins.Plugin import PluginDescriptor
 
+from enigma import getDesktop
+
 # Plugin internal
 from SeriesPlugin import resetInstance, getInstance
 from SeriesPluginIndependent import startIndependent, stopIndependent
@@ -63,9 +65,16 @@ def checkList(cfg):
 #######################################################
 # Configuration screen
 class SeriesPluginConfiguration(ConfigListScreen, Screen):
+
+	desktop = getDesktop(0)
+	desktopSize = desktop and desktop.size()
+	dwidth = desktopSize and desktopSize.width()
+	if dwidth == 1920:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/Setup_1080.xml" )
+	else:
+		skinFile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/Setup.xml" )
 	
-	skinfile = os.path.join( resolveFilename(SCOPE_PLUGINS), "Extensions/SeriesPlugin/Skins/Setup.xml" )
-	skin = open(skinfile).read()
+	skin = open(skinFile).read()	
 	
 	def __init__(self, session):
 		Screen.__init__(self, session)
