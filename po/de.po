@@ -1,19 +1,20 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: SeriesPlugin\n"
+"Project-Id-Version: SeriesPlugin 5.9.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-26 01:03+0100\n"
-"PO-Revision-Date: 2017-01-26 01:06+0100\n"
+"POT-Creation-Date: 2017-12-26 14:10+0100\n"
+"PO-Revision-Date: 2017-12-26 14:36+0100\n"
 "Last-Translator: James Blond <jb@unknown.com>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Generator: Poedit 1.8.13\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: .\n"
 
 msgid "Channel Editor"
 msgstr "Kanal Editor"
@@ -205,8 +206,8 @@ msgstr "XMLTVImport Unterstützung aktivieren"
 msgid "Enable support for crossepg"
 msgstr "Aktiviere CrossEPG Unterstützung"
 
-msgid "Show in info menu"
-msgstr "Serien-Info im Info Menü anzeigen"
+msgid "Show in event info menu"
+msgstr "Serien-Info im Ereignis Menü anzeigen"
 
 msgid "Show in extensions menu"
 msgstr "Serien-Info im Erweiterten Menü anzeigen"
@@ -248,7 +249,7 @@ msgid "Replace special characters in title"
 msgstr "Sonderzeichen im Titel ersetzen"
 
 msgid "Cut series title on dash"
-msgstr "Schneide Serien Titel nach dem Bindestrich"
+msgstr "Schneide Serien Titel mit einem mal"
 
 msgid "Main bouquet for channel editor"
 msgstr "Haupt-Bouquet für Kanal-Editor"
@@ -281,13 +282,16 @@ msgid "Check timer every x minutes"
 msgstr "Timer alle (X) Minuten prüfen"
 
 msgid "Check Timer for corresponding EPG events"
-msgstr "Prüfe Timer auf entsprechenden EPG Eintrag"
+msgstr "Prüfe Timer ob EPG Event stimmt"
 
 msgid "Add tag 'SeriesPlugin' to timer"
 msgstr "Füge TAG 'SeriesPlugin' zu Timer hinzu"
 
 msgid "Socket timeout"
 msgstr "Zeitlimt für Anfragen zum Proxy (Sekunden)"
+
+msgid "Stop on ProtocolError"
+msgstr "SeriesPlugin bei Verbindungsfehler stoppen"
 
 msgid "Timeout for Success Popups"
 msgstr "Anzeigedauer für erfolgreiche Popups"
@@ -458,6 +462,14 @@ msgstr ""
 msgid "No log file found"
 msgstr "Keine Protokolldatei gefunden"
 
+msgid "ProtocolError:"
+msgstr "Verbindungsfehler:"
+
+msgid "Stop is enabled. To reactivate SeriesPlugin, just open the setup"
+msgstr ""
+"SeriesPlugin wurde gestoppt. Um SeriesPlugin zu reaktivieren, öffne die "
+"Einstellungen"
+
 msgid "SeriesPlugin"
 msgstr "SeriesPlugin"
 
@@ -519,4 +531,3 @@ msgstr "SeriesPlugin Ausnahme Beschriftung"
 
 msgid "Setup"
 msgstr "Einstellungen"
-
