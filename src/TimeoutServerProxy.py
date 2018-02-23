@@ -24,6 +24,9 @@ class TimeoutServerProxy(ServerProxy):
 		from Plugins.Extensions.SeriesPlugin.plugin import REQUEST_PARAMETER
 		uri = config.plugins.seriesplugin.serienserver_url.value + REQUEST_PARAMETER
 		
+		import ssl
+		if hasattr(ssl, '_create_unverified_context'):
+			ssl._create_default_https_context = ssl._create_unverified_context
 		ServerProxy.__init__(self, uri, verbose=False, *args, **kwargs)
 		
 		timeout = config.plugins.seriesplugin.socket_timeout.value
