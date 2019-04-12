@@ -158,7 +158,6 @@ def resetInstance():
 	from Cacher import clearCache
 	clearCache()
 
-
 def refactorTitle(org_, data):
 	if CompiledRegexpReplaceChars:
 		org = CompiledRegexpReplaceChars.sub('', org_)
@@ -171,25 +170,53 @@ def refactorTitle(org_, data):
 			cust_ = config.plugins.seriesplugin.pattern_title.value.strip().format( **data )
 			cust = cust_.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
 			log.debug(" refactor title", cust_, cust)
+			#check if new title already exist in org on use org in pattern to avoid rename loop
+			if "{org:s}" in config.plugins.seriesplugin.pattern_title.value:
+				data["org"] = ""
+				cust1_ = config.plugins.seriesplugin.pattern_title.value.strip().format( **data )
+				cust1 = cust1_.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
+				log.debug(" refactor title without org", cust1)
+				if cust1 in org:
+					cust = org
 			return cust
 		else:
 			return org
 	else:
 		return org
 
+
+def checkIfTitleExistInDescription(org, data):
+	#check if use 'org' and 'title' in pattern and series-title already exist in org-description, then remove from org 
+	if ("{org:s}" in config.plugins.seriesplugin.pattern_description.value) and ("{title:s}" in config.plugins.seriesplugin.pattern_description.value):
+		if isinstance(org, str) and isinstance(data["title"], unicode): 
+			#convert org to unicode for compare with data["title"] if data["title"] has umlauts
+			org = unicode(org)
+		if data["title"].upper() in org.upper():
+			title_str  = re.compile(data["title"], re.IGNORECASE)
+			org  = title_str.sub("", org)
+	return org
+
 def refactorDescription(org_, data):
 	if CompiledRegexpReplaceChars:
 		org = CompiledRegexpReplaceChars.sub('', org_)
-		log.debug(" refactor desc", org_, org)
+		log.debug(" refactor desc org_, org", org_, org)
 	else:
 		org = org_
 	if data:
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off" and not config.plugins.seriesplugin.pattern_description.value == "Disabled":
-			data["org"] = org
+			data["org"] = checkIfTitleExistInDescription(org, data)
 			cust_ = config.plugins.seriesplugin.pattern_description.value.strip().format( **data )
 			cust = cust_.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
-			log.debug(" refactor desc", cust_, cust)
-			return cust
+			log.debug(" refactor desc cust_, cust", cust_, cust)
+			#check if new description already exist in org on use org in pattern to avoid rename loop
+			if "{org:s}" in config.plugins.seriesplugin.pattern_description.value:
+				data["org"] = ""
+				cust1_ = config.plugins.seriesplugin.pattern_description.value.strip().format( **data )
+				cust1 = cust1_.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
+				log.debug(" refactor desc without org", cust1)
+				if cust1 in org:
+					cust = org
+			return cust	
 		else:
 			return org
 	else:
