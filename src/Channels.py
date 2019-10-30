@@ -88,7 +88,7 @@ def unifyChannel(text):
 	
 	text = CompiledRegexpChannelUnify.sub(translate, text)
 	try:
-		text = text.decode("utf-8").encode("latin1")
+		text = text.encode('utf-8')
 	except:
 		pass
 	text = CompiledRegexpChannelRemoveSpecialChars.sub('', text)

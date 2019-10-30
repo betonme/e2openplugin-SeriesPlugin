@@ -230,7 +230,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		log.debug("Load Web channels")
 		data = self.getWebChannels()
 		if data:
-			temp = [ (x,unifyChannel(x)) for x in data]
+			temp = [ (x.encode('utf-8'),unifyChannel(x)) for x in data]
 		else:
 			self.setTitle(_("Problem during loading Webchannels"))
 			temp = []
