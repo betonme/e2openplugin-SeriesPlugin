@@ -83,7 +83,8 @@ config.plugins.seriesplugin.lookup_counter            = ConfigNumber(default = 0
 
 url_choices = [	
 					( "https://www.serienserver.de/cache/cache.php", "Stable" ),
-					( "https://www.serienserver.de/test/cache.php", "Experimental" )
+					( "http://www.serienserver.de/cache/cache.php", "Stable (HTTP)" ),
+					#( "https://www.serienserver.de/test/cache.php", "Experimental" ),
 				]
 config.plugins.seriesplugin.serienserver_url          = ConfigSelection(choices = url_choices, default = url_choices[0][0])
 config.plugins.seriesplugin.xmltv_url                 = ConfigText(default = 'http://www.serienserver.de/xmltv/wunschliste.xml', fixed_size = False)
