@@ -51,7 +51,7 @@ class MatchList(MenuList):
 		MenuList.__init__(self, [], enableWrapAround=True, content=eListboxPythonMultiContent) 
 
 		self.listFont = None
-		self.itemHeight = 30
+		self.ItemHeight = 30
 		self.iconPosX = 8
 		self.iconPosY = 8
 		self.iconSize = 16
@@ -78,8 +78,8 @@ class MatchList(MenuList):
 					self.listFont = parseFont(value, ((1,1),(1,1)))
 					self.l.setFont(0, self.listFont)
 				elif attrib == "itemHeight":
-					self.itemHeight = int(value)
-					self.l.setItemHeight(self.itemHeight)
+					self.ItemHeight = int(value)
+					self.l.setItemHeight(self.ItemHeight)
 				elif attrib == "iconPosX":
 					self.iconPosX = int(value)
 				elif attrib == "iconPosY":
@@ -112,13 +112,13 @@ class MatchList(MenuList):
 		l.append( (eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, self.iconPosY, self.iconSize,     self.iconSize,  loadPNG(imageStatus)) )
 		
 		pos += self.iconSize + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             self.colWidthStb,  self.itemHeight, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             self.colWidthStb,  self.ItemHeight, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, stbSender) )
 		
 		pos += self.colWidthStb + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             self.colWidthWeb,  self.itemHeight, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             self.colWidthWeb,  self.ItemHeight, 0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, webSender) )
 		
 		pos += self.colWidthWeb + self.margin
-		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             size.width()-pos, self.itemHeight,  0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
+		l.append( (eListboxPythonMultiContent.TYPE_TEXT,             pos, 0,             size.width()-pos, self.ItemHeight,  0, RT_HALIGN_LEFT | RT_VALIGN_CENTER, "", colorYellow) )
 		
 		return l
 
