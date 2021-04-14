@@ -333,7 +333,6 @@ class SeriesPluginInfoScreen(Screen):
 			log.debug("exception:", str(e))
 			pass
 
-
 	def updateScreen(self, name, episode, short, ext, begin, duration, channel):
 		# Adapted from EventView
 		self["event_title"].setText(name)
@@ -386,7 +385,6 @@ class SeriesPluginInfoScreen(Screen):
 		
 		# Call baseclass function
 		Screen.close(self)
-
 
 	def setColorButtons(self):
 		try:

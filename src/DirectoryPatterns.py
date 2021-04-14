@@ -62,6 +62,7 @@ scheme_fallback = [
 		("{home:s}/{series:s}/Season {rawseason:s}/", "Home/Series/Season Raw/")
 	]
 
+
 def readDirectoryPatterns():
 	path = config.plugins.seriesplugin.pattern_file_directories.value
 	obj = None
