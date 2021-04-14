@@ -72,23 +72,23 @@ def test(session=None):
 		#bareGetEpisode("1:0:19:814D:14B:270F:FFFF0000:0:0:0:", "Bones", 1451416200, 1451416200, "Description", "/media/hdd/movie", False, True, False)
 		#sp = bareGetEpisode("1:0:19:2B66:437:66:FFFF0000:0:0:0:", "Bares für Rares", 1451311500, 1451311500, "Description", "/media/hdd/movie", False, True, False)
 		#sp = bareGetEpisode("1:0:19:7980:1C3:270F:FFFF0000:0:0:0:", "Offroad Survivors", 1451492100, 1451492100, "Description", "/media/hdd/movie", False, True, False)
-		
+
 		#TEST INFOSCREEN MOVIE
 		#	from enigma import eServiceReference
 			#service = eServiceReference(eServiceReference.idDVB, 0, "/media/hdd/movie/20151120 0139 - Pro7 HD - The 100.ts")
 			#service = eServiceReference(eServiceReference.idDVB, 0, "/media/hdd/movie/20151205 1625 - TNT Serie HD (S) - The Last Ship - Staffel 1.ts")
 			#service = eServiceReference(eServiceReference.idDVB, 0, "/media/hdd/movie/20151204 1825 - VIVA_COMEDY CENTRAL HD - Rules of Engagement.ts")
 		#	movielist_info(session, service)
-		
+
 		#TEST AUTOTIMER
 		#from SeriesPluginBare import bareGetEpisode
 		#bareGetEpisode("1:0:1:2F50:F1:270F:FFFF0000:0:0:0:", "Are You the One", 1448751000, 1448754000, "Description", "/media/hdd/movie", False, False, True)
 		#bareGetEpisode("1:0:19:8150:14B:270F:FFFF0000:0:0:0:", "Dragons Auf zu neuen Ufern TEST_TO_BE_REMOVED", 1449390300, 1449393300, "Description", "/media/hdd/movie", False, False, True)
 		pass
-		
+
 	except Exception as e:
 		log.exception(_("SeriesPlugin test exception ") + str(e))
-	
+
 #######################################################
 # Start
 
@@ -97,18 +97,18 @@ def start(reason, **kwargs):
 	if config.plugins.seriesplugin.enabled.value:
 		# Startup
 		if reason == 0:
-			
+
 			#TEST AUTOTIMER
 			#test()
 			#if kwargs.has_key("session"):
 			#	session = kwargs["session"]
 			#	test(session)
 			#TESTEND
-			
+
 			# Start on demand if it is requested
 			if config.plugins.seriesplugin.autotimer_independent.value:
 				startIndependent()
-			
+
 		# Shutdown
 		elif reason == 1:
 			from SeriesPlugin import resetInstance
@@ -184,7 +184,7 @@ def movielist_rename(session, service, services=None, *args, **kwargs):
 		try:
 			if services:
 				if not isinstance(services, list):
-					services = [services]	
+					services = [services]
 			else:
 				services = [service]
 			SeriesPluginRenamer(session, services)
@@ -301,7 +301,7 @@ def getSeasonEpisode(service_ref, name, begin, end, description, path, *args, **
 # Plugin main function
 def Plugins(**kwargs):
 	descriptors = []
-	
+
 	descriptors.append(PluginDescriptor(
 											name=NAME + " " + _("Setup"),
 											description=NAME + " " + _("Setup"),
@@ -309,9 +309,9 @@ def Plugins(**kwargs):
 											fnc=setup,
 											icon="plugin.png",
 											needsRestart=False))
-	
+
 	if config.plugins.seriesplugin.enabled.value:
-		
+
 		descriptors.append(PluginDescriptor(
 													where=PluginDescriptor.WHERE_SESSIONSTART,
 													needsRestart=False,
@@ -332,7 +332,7 @@ def Plugins(**kwargs):
 													where=PluginDescriptor.WHERE_EXTENSIONSMENU,
 													fnc=sp_extension,
 													needsRestart=False))
-		
+
 		if config.plugins.seriesplugin.check_timer_list.value:
 			descriptors.append(PluginDescriptor(
 													name=CHECKTIMERS,
@@ -340,7 +340,7 @@ def Plugins(**kwargs):
 													where=PluginDescriptor.WHERE_EXTENSIONSMENU,
 													fnc=checkTimers,
 													needsRestart=False))
-		
+
 		if config.plugins.seriesplugin.menu_movie_info.value:
 			descriptors.append(PluginDescriptor(
 													name=SHOWINFO,
@@ -348,7 +348,7 @@ def Plugins(**kwargs):
 													where=PluginDescriptor.WHERE_MOVIELIST,
 													fnc=movielist_info,
 													needsRestart=False))
-		
+
 		if config.plugins.seriesplugin.menu_movie_rename.value:
 			descriptors.append(PluginDescriptor(
 													name=RENAMESERIES,
@@ -356,7 +356,7 @@ def Plugins(**kwargs):
 													where=PluginDescriptor.WHERE_MOVIELIST,
 													fnc=movielist_rename,
 													needsRestart=False))
-		
+
 		if config.plugins.seriesplugin.menu_channel.value:
 			try:
 				descriptors.append(PluginDescriptor(
@@ -367,7 +367,7 @@ def Plugins(**kwargs):
 													needsRestart=False))
 			except:
 				addSeriesPlugin(WHERE_CHANNELMENU, SHOWINFO)
-		
+
 		if config.plugins.seriesplugin.menu_epg.value:
 			addSeriesPlugin(WHERE_EPGMENU, SHOWINFO)
 
@@ -421,4 +421,3 @@ def removeSeriesPlugin(menu, title):
 				if p.name == title:
 					plugins.plugins[menu].remove(p)
 					break
-

@@ -81,7 +81,7 @@ config.plugins.seriesplugin.log_reply_mail = ConfigText(default="myemail@home.co
 config.plugins.seriesplugin.lookup_counter = ConfigNumber(default=0)
 #config.plugins.seriesplugin.uid                       = ConfigText(default = str(time()), fixed_size = False)
 
-url_choices = [	
+url_choices = [
 					("https://www.serienserver.de/cache/cache.php", "Stable"),
 					("http://www.serienserver.de/cache/cache.php", "Stable (HTTP)"),
 					#( "https://www.serienserver.de/test/cache.php", "Experimental" ),
