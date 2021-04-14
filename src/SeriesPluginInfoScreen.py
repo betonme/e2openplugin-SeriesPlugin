@@ -41,7 +41,7 @@ from Components.Label import Label
 from Components.ScrollLabel import ScrollLabel
 from Components.Pixmap import Pixmap
 
-from enigma import eEPGCache, eServiceReference, eServiceCenter, iServiceInformation, ePicLoad, eServiceEvent,getDesktop
+from enigma import eEPGCache, eServiceReference, eServiceCenter, iServiceInformation, ePicLoad, eServiceEvent, getDesktop
 from ServiceReference import ServiceReference
 
 from RecordTimer import RecordTimerEntry, parseEvent, AFTEREVENT

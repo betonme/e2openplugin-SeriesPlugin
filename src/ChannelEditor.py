@@ -83,7 +83,7 @@ class MatchList(MenuList):
 		if self.skinAttributes is not None:
 			for (attrib, value) in self.skinAttributes:
 				if attrib == "font":
-					self.listFont = parseFont(value, ((1,1),(1,1)))
+					self.listFont = parseFont(value, ((1, 1), (1, 1)))
 					self.l.setFont(0, self.listFont)
 				elif attrib == "itemHeight":
 					self.ItemHeight = int(value)
@@ -114,7 +114,7 @@ class MatchList(MenuList):
 		else:
 			imageStatus = path = os.path.join(PIXMAP_PATH, "plus.png")
 		
-		l = [(stbSender, webSender, serviceref, status),]
+		l = [(stbSender, webSender, serviceref, status), ]
 		
 		pos = self.margin + self.iconPosX
 		l.append((eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST, pos, self.iconPosY, self.iconSize, self.iconSize, loadPNG(imageStatus)))
@@ -189,7 +189,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		
 		self.helpList[0][2].sort()
 
-		self["helpActions"] = ActionMap(["HelpActions",], {
+		self["helpActions"] = ActionMap(["HelpActions", ], {
 			"displayHelp": self.showHelp
 		}, 0)
 
@@ -238,7 +238,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		log.debug("Load Web channels")
 		data = self.getWebChannels()
 		if data:
-			temp = [(x.encode('utf-8'),unifyChannel(x)) for x in data]
+			temp = [(x.encode('utf-8'), unifyChannel(x)) for x in data]
 		else:
 			self.setTitle(_("Problem during loading Webchannels"))
 			temp = []
@@ -246,7 +246,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	
 	def getChannelByRef(ref):
 		if self.stbChlist:
-			for servicename,serviceref,uservicename in self.stbChlist:
+			for servicename, serviceref, uservicename in self.stbChlist:
 				if serviceref == ref:
 					return servicename
 		return ""
@@ -254,7 +254,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 	def showChannels(self):
 		self.setTitle(_("STB- / Web-Channel for bouquet:") + " " + self.bouquet)
 		if len(self.stbChlist) != 0:
-			for servicename,serviceref,uservicename in self.stbChlist:
+			for servicename, serviceref, uservicename in self.stbChlist:
 				#log.debug("servicename", servicename, uservicename)
 				
 				webSender = lookupChannelByReference(serviceref)
@@ -276,7 +276,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		sequenceMatcher = SequenceMatcher(" ".__eq__, "", "")
 		
 		if len(self.stbChlist) != 0:
-			for servicename,serviceref,uservicename in self.stbChlist:
+			for servicename, serviceref, uservicename in self.stbChlist:
 				#log.debug("servicename", servicename, uservicename)
 				
 				webSender = lookupChannelByReference(serviceref)
@@ -316,7 +316,7 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			self.setTitle(_("Error check log file"))
 
 	def getIndexOfWebSender(self, webSender):
-		for pos,webCh in enumerate(self.webChlist):
+		for pos, webCh in enumerate(self.webChlist):
 			if(webCh[0] == webSender):
 				return pos
 		return 0
@@ -333,10 +333,10 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			if webSender:
 				idx = self.getIndexOfWebSender(self.webChlist)
 			log.debug("keyAdd webSender", webSender, idx)
-			self.session.openWithCallback(boundFunction(self.addConfirm, servicename, serviceref, webSender), ChoiceBox,_("Add Web Channel"), self.webChlist, None, idx)
+			self.session.openWithCallback(boundFunction(self.addConfirm, servicename, serviceref, webSender), ChoiceBox, _("Add Web Channel"), self.webChlist, None, idx)
 	
 	def getIndexOfServiceref(self, serviceref):
-		for pos,stbWebChl in enumerate(self.stbToWebChlist):
+		for pos, stbWebChl in enumerate(self.stbToWebChlist):
 			if(stbWebChl[2] == serviceref):
 				return pos
 		return False
@@ -351,13 +351,13 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 			idx = self.getIndexOfServiceref(serviceref)
 			log.debug("addConfirm", servicename, serviceref, remote, idx)
 			if idx is not False:
-				self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' added.") % {'servicename': servicename, 'remote':remote})
+				self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' added.") % {'servicename': servicename, 'remote': remote})
 				self.addChannel(serviceref, servicename, remote)
 				self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
 				self['list'].setList(self.stbToWebChlist)
 		elif servicename and serviceref and remote and webSender:
 			log.debug("add or replace", servicename, serviceref, remote, webSender)
-			self.session.openWithCallback(boundFunction(self.addOrReplace, servicename, serviceref, webSender, remote), MessageBox,_("Add channel (Yes) or replace it (No)"), MessageBox.TYPE_YESNO, default=False)
+			self.session.openWithCallback(boundFunction(self.addOrReplace, servicename, serviceref, webSender, remote), MessageBox, _("Add channel (Yes) or replace it (No)"), MessageBox.TYPE_YESNO, default=False)
 
 	def addOrReplace(self, servicename, serviceref, webSender, remote, result):
 		idx = self.getIndexOfServiceref(serviceref)
@@ -367,13 +367,13 @@ class ChannelEditor(Screen, HelpableScreen, ChannelsBase, WebChannels):
 		
 		if result:
 			log.debug("add", servicename, serviceref, remote, webSender)
-			self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' added.") % {'servicename': servicename, 'remote':remote})
+			self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' added.") % {'servicename': servicename, 'remote': remote})
 			self.addChannel(serviceref, servicename, remote)
 			self.stbToWebChlist[idx] = (servicename, webSender + " / " + remote, serviceref, "1")
 			
 		else:
 			log.debug("replace", servicename, serviceref, remote, webSender)
-			self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' replaced.") % {'servicename': servicename, 'remote':remote})
+			self.setTitle(_("Channel '- %(servicename)s - %(remote)s -' replaced.") % {'servicename': servicename, 'remote': remote})
 			self.replaceChannel(serviceref, servicename, remote)
 			self.stbToWebChlist[idx] = (servicename, remote, serviceref, "1")
 			

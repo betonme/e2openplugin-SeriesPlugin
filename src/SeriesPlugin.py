@@ -170,13 +170,13 @@ def refactorTitle(org_, data):
 		if config.plugins.seriesplugin.pattern_title.value and not config.plugins.seriesplugin.pattern_title.value == "Off" and not config.plugins.seriesplugin.pattern_title.value == "Disabled":
 			data["org"] = org
 			cust_ = config.plugins.seriesplugin.pattern_title.value.strip().format(**data)
-			cust = cust_.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
+			cust = cust_.replace('&amp;', '&').replace('&apos;', "'").replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace('  ', ' ')
 			log.debug(" refactor title", cust_, cust)
 			#check if new title already exist in org on use org in pattern to avoid rename loop
 			if "{org:s}" in config.plugins.seriesplugin.pattern_title.value:
 				data["org"] = ""
 				cust1_ = config.plugins.seriesplugin.pattern_title.value.strip().format(**data)
-				cust1 = cust1_.replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
+				cust1 = cust1_.replace('&amp;', '&').replace('&apos;', "'").replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace('  ', ' ')
 				log.debug(" refactor title without org", cust1)
 				if cust1 in org:
 					cust = org
@@ -208,13 +208,13 @@ def refactorDescription(org_, data):
 		if config.plugins.seriesplugin.pattern_description.value and not config.plugins.seriesplugin.pattern_description.value == "Off" and not config.plugins.seriesplugin.pattern_description.value == "Disabled":
 			data["org"] = checkIfTitleExistInDescription(org, data)
 			cust_ = config.plugins.seriesplugin.pattern_description.value.strip().format(**data)
-			cust = cust_.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
+			cust = cust_.replace("\n", " ").replace('&amp;', '&').replace('&apos;', "'").replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace('  ', ' ')
 			log.debug(" refactor desc cust_, cust", cust_, cust)
 			#check if new description already exist in org on use org in pattern to avoid rename loop
 			if "{org:s}" in config.plugins.seriesplugin.pattern_description.value:
 				data["org"] = ""
 				cust1_ = config.plugins.seriesplugin.pattern_description.value.strip().format(**data)
-				cust1 = cust1_.replace("\n", " ").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace('  ',' ')
+				cust1 = cust1_.replace("\n", " ").replace('&amp;', '&').replace('&apos;', "'").replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace('  ', ' ')
 				log.debug(" refactor desc without org", cust1)
 				if cust1 in org:
 					cust = org
@@ -231,7 +231,7 @@ def refactorDirectory(org, data):
 			data["org"] = org
 			data["home"] = "/media/hdd/movie"
 			cust_ = config.plugins.seriesplugin.pattern_directory.value.strip().format(**data)
-			cust_ = cust_.replace("\n", "").replace('&amp;','&').replace('&apos;',"'").replace('&gt;','>').replace('&lt;','<').replace('&quot;','"').replace("  ", " ").replace("//", "/")
+			cust_ = cust_.replace("\n", "").replace('&amp;', '&').replace('&apos;', "'").replace('&gt;', '>').replace('&lt;', '<').replace('&quot;', '"').replace("  ", " ").replace("//", "/")
 			dir = CompiledRegexpReplaceDirChars.sub(' ', cust_)
 			log.debug(" refactor dir", org, cust_, dir)
 		if dir and not os.path.exists(dir):
