@@ -97,7 +97,7 @@ class SeriesPluginTimer(object):
 			log.debug("lookupEventId", timer.eit, event)
 		if not(event):
 			if config.plugins.seriesplugin.timer_eit_check.value:
-				event = epgcache.lookupEventTime(timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) /2))
+				event = epgcache.lookupEventTime(timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) / 2))
 				log.debug("lookupEventTime", event)
 		
 		if event:
@@ -179,7 +179,7 @@ class SeriesPluginTimer(object):
 		
 		timer.sp_in_queue = False
 		
-		SeriesPluginTimer.counter = SeriesPluginTimer.counter +1
+		SeriesPluginTimer.counter = SeriesPluginTimer.counter + 1
 		
 		# Maybe there is a better way to avoid multiple Popups
 		from SeriesPlugin import getInstance
@@ -189,7 +189,7 @@ class SeriesPluginTimer(object):
 		if instance.thread.empty() and instance.thread.finished():
 		
 			if SeriesPluginTimer.data:
-				msg = "SeriesPlugin:\n" + _("Timer rename has been finished with %d errors:\n") % (len(SeriesPluginTimer.data)) +"\n" +"\n".join(SeriesPluginTimer.data)
+				msg = "SeriesPlugin:\n" + _("Timer rename has been finished with %d errors:\n") % (len(SeriesPluginTimer.data)) + "\n" + "\n".join(SeriesPluginTimer.data)
 				log.warning(msg)
 				
 			else:
