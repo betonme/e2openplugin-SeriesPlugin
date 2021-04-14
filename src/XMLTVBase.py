@@ -74,7 +74,7 @@ class XMLTVBase(object):
 			return
 		
 		if int(self.epgimportversion[0]) >= 5 and int(self.xmltvimportversion[0]) >= 5 and int(self.crossepgversion[0]) >= 5:
-			return;
+			return
 		
 		if config.plugins.seriesplugin.epgimport.value == False and config.plugins.seriesplugin.xmltvimport.value == False and config.plugins.seriesplugin.crossepg.value == False:
 			return

@@ -42,7 +42,7 @@ TAG = "SeriesPlugin"
 class SeriesPluginTimer(object):
 
 	data = []
-	counter = 0;
+	counter = 0
 	
 	def __init__(self):
 		
@@ -97,7 +97,7 @@ class SeriesPluginTimer(object):
 			log.debug("lookupEventId", timer.eit, event)
 		if not(event):
 			if config.plugins.seriesplugin.timer_eit_check.value:
-				event = epgcache.lookupEventTime( timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) /2) );
+				event = epgcache.lookupEventTime( timer.service_ref.ref, timer.begin + ((timer.end - timer.begin) /2) )
 				log.debug("lookupEventTime", event )
 		
 		if event:
