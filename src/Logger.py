@@ -21,7 +21,9 @@ from . import _
 
 import logging
 
-import os, sys, traceback
+import os
+import sys
+import traceback
 
 from Components.config import config
 
@@ -37,18 +39,18 @@ class Logger(object):
 	def __init__(self):
 		self.local_log = ""
 		self.local_log_enabled = False
-		
+
 		self.instance = logging.getLogger("SeriesPlugin")
 		self.instance.setLevel(logging.DEBUG)
-		
+
 		self.reinit()
-	
+
 	def reinit(self):
-		self.instance.handlers = [] 
-		
+		self.instance.handlers = []
+
 		if not hasattr(config.plugins, "seriesplugin"):
 			return
-		
+
 		if config.plugins.seriesplugin.debug_prints.value:
 			shandler = logging.StreamHandler(sys.stdout)
 			shandler.setLevel(logging.DEBUG)
@@ -58,7 +60,7 @@ class Logger(object):
 
 			self.instance.addHandler(shandler)
 			self.instance.setLevel(logging.DEBUG)
-			
+
 		if config.plugins.seriesplugin.write_log.value:
 			fhandler = logging.FileHandler(config.plugins.seriesplugin.log_file.value)
 			fhandler.setLevel(logging.DEBUG)
@@ -78,7 +80,7 @@ class Logger(object):
 	def append(self, strargs):
 		if self.local_log_enabled:
 			self.local_log += "&#13;&#10;" + strargs
-	
+
 	def get(self):
 		self.local_log_enabled = False
 		return self.local_log
@@ -88,78 +90,78 @@ class Logger(object):
 			self.instance.shutdown()
 
 	def success(self, *args):
-		strargs = " ".join( [ str(arg) for arg in args ] )
-		
+		strargs = " ".join([str(arg) for arg in args])
+
 		self.append(strargs)
-		
+
 		if self.instance:
 			self.instance.info(strargs)
-		
+
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
-		
+
 		if int(config.plugins.seriesplugin.popups_success_timeout.value) != 0:
 			if currentThread().getName() == 'MainThread':
 				AddPopup(
 					strargs,
 					MessageBox.TYPE_INFO,
 					int(config.plugins.seriesplugin.popups_success_timeout.value),
-					'SP_PopUp_ID_Success_'+strargs
+					'SP_PopUp_ID_Success_' + strargs
 				)
 
 	def info(self, *args):
-		strargs = " ".join( [ str(arg) for arg in args ] )
-		
+		strargs = " ".join([str(arg) for arg in args])
+
 		self.append(strargs)
-		
+
 		if self.instance:
 			self.instance.info(strargs)
-		
+
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
 
 	def debug(self, *args):
-		strargs = " ".join( [ str(arg) for arg in args ] )
-		
+		strargs = " ".join([str(arg) for arg in args])
+
 		if self.instance:
 			self.instance.debug(strargs)
-		
+
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
-		
+
 		if sys.exc_info()[0]:
-			self.instance.debug( str(sys.exc_info()[0]) )
-			self.instance.debug( str(traceback.format_exc()) )
+			self.instance.debug(str(sys.exc_info()[0]))
+			self.instance.debug(str(traceback.format_exc()))
 			sys.exc_clear()
 
 	def warning(self, *args):
-		strargs = " ".join( [ str(arg) for arg in args ] )
-		
+		strargs = " ".join([str(arg) for arg in args])
+
 		self.append(strargs)
-		
+
 		if self.instance:
 			self.instance.warning(strargs)
-		
+
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
-		
+
 		if int(config.plugins.seriesplugin.popups_warning_timeout.value) != 0:
 			if currentThread().getName() == 'MainThread':
 				AddPopup(
 					strargs,
 					MessageBox.TYPE_WARNING,
 					int(config.plugins.seriesplugin.popups_warning_timeout.value),
-					'SP_PopUp_ID_Warning_'+strargs
+					'SP_PopUp_ID_Warning_' + strargs
 				)
 
 	def error(self, *args):
-		strargs = " ".join( [ str(arg) for arg in args ] )
-		
+		strargs = " ".join([str(arg) for arg in args])
+
 		self.append(strargs)
-		
+
 		if self.instance:
 			self.instance.error(strargs)
-		
+
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
 
@@ -169,27 +171,27 @@ class Logger(object):
 					strargs,
 					MessageBox.TYPE_ERROR,
 					int(config.plugins.seriesplugin.popups_error_timeout.value),
-					'SP_PopUp_ID_Error_'+strargs
+					'SP_PopUp_ID_Error_' + strargs
 				)
-		
+
 	def exception(self, *args):
-		strargs = " ".join( [ str(arg) for arg in args ] )
-		
+		strargs = " ".join([str(arg) for arg in args])
+
 		self.append(strargs)
-		
+
 		if self.instance:
 			self.instance.exception(strargs)
-		
+
 		elif config.plugins.seriesplugin.debug_prints.value:
 			print strargs
-		
+
 		if int(config.plugins.seriesplugin.popups_error_timeout.value) != 0:
 			if currentThread().getName() == 'MainThread':
 				AddPopup(
 					strargs,
 					MessageBox.TYPE_ERROR,
 					int(config.plugins.seriesplugin.popups_error_timeout.value),
-					'SP_PopUp_ID_Exception_'+strargs
+					'SP_PopUp_ID_Exception_' + strargs
 				)
 
 
